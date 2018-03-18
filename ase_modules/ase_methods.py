@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-"""Methods for ASE scripts, mostly DFT scripts."""
+"""Methods for ASE scripts, mostly DFT scripts.
+I'm adding this here and pushing to repo - 180317"""
 
 #| - IMPORT MODULES
 import sys
@@ -183,9 +184,7 @@ def set_mag_mom_to_0(atoms):
     #| - set_mag_mom_to_0
     mag_mom_list = atoms.get_initial_magnetic_moments()
     new_mag_mom_list = np.zeros(len(mag_mom_list))
-    # print(atoms.get_initial_magnetic_moments())
     atoms.set_initial_magnetic_moments(new_mag_mom_list)
-    # print(atoms.get_initial_magnetic_moments())
     #__|
 
 
@@ -224,7 +223,6 @@ def calc_spinpol(atoms):
             params_dict = atoms.calc.__dict__
             if spin_key in params_dict:
                 spin_pol = params_dict[spin_key]
-                # if spin_pol == False:
                 if spin_pol is False:
                     spinpol = False
                     # set_mag_mom_to_0(atoms)
@@ -307,6 +305,7 @@ def set_init_mag_moms(atoms, preference="bader", magmoms=None):
         if magmom_key in atoms.info.keys():
             magmoms_master_dict[magmom_key] = atoms.info[magmom_key]
 
+    magmom_keys = magmoms_master_dict.keys()
 
     spinpol_calc = calc_spinpol(atoms)
     if not spinpol_calc:
@@ -316,18 +315,24 @@ def set_init_mag_moms(atoms, preference="bader", magmoms=None):
     elif magmoms is not None:
         magmoms_i = magmoms
 
-    elif preference == "bader" and "bader_magmoms" in magmoms_master_dict.keys():
-        print("set_init_mag_moms | Initial magnetic moments set from bader analysis")
+    elif preference == "bader" and "bader_magmoms" in magmom_keys:
+        text = ("set_init_mag_moms | "
+                "Initial magnetic moments set from bader analysis")
+        print(text)
         magmoms_i = magmoms_master_dict["bader_magmoms"]
         # atoms.set_initial_magnetic_moments(magmoms_master_dict["bader_magmoms"])
 
-    elif preference == "pdos" and "pdos_magmoms" in magmoms_master_dict.keys():
-        print("set_init_mag_moms | Initial magnetic moments set from PDOS analysis")
+    elif preference == "pdos" and "pdos_magmoms" in magmom_keys:
+        text = ("set_init_mag_moms | "
+                "Initial magnetic moments set from PDOS analysis")
+        print(text)
         magmoms_i = magmoms_master_dict["pdos_magmoms"]
         # atoms.set_initial_magnetic_moments(magmoms_master_dict["pdos_magmoms"])
 
     else:
-        print("set_init_mag_moms | Using simple method for initial magnetic moments")
+        text = ("set_init_mag_moms | "
+                "Using simple method for initial magnetic moments")
+        print(text)
         magmoms_i = simple_mag_moms(atoms)
         # atoms.set_initial_magnetic_moments(magmoms_simple)
 
@@ -706,7 +711,6 @@ def plot_beef_ensemble(
 
 #| - Vibrational Analysis *****************************************************
 
-
 def an_ads_vib(atoms, ads_index_list=[]):
     """
 
@@ -728,7 +732,8 @@ def an_ads_vib(atoms, ads_index_list=[]):
     print("Starting vibratinal analysis")
     set_init_mag_moms(atoms)
 
-    # list indices of atoms to be vibrated, this one is particular to OH*, i. e. [80,81]
+    # list indices of atoms to be vibrated, this one is particular to OH*,
+    # i. e. [80,81]
     vib = Vibrations(atoms, indices=ads_index_list)
     vib.run()
     vib_e_list = vib.get_energies()
@@ -1226,48 +1231,50 @@ def create_gif_from_atoms_movies(
 
 #| - __old__
 
-def pdos_analysis():
-    """
-    OLD VERSION DON'T USE
-    """
-    #| - pdos_analysis
-    from espresso import espresso
 
-    a = read("qn.traj")
+# def pdos_analysis():
+#     """
+#     OLD VERSION DON'T USE
+#     """
 
-    calc = espresso(pw=500,             #plane-wave cutoff
-        dw=5000,            #density cutoff
-        xc="BEEF-vdW",      #exchange-correlation functional
-        kpts=(3,3,1),       # ark - k-points for hexagonal symmetry in 2-D materials
-        nbands=-20,         #20 extra bands besides the bands needed for valence electrons
-        spinpol = True,     # ark - added spinpolarizatoin
-        sigma=0.1,
-        psppath="/home/vossj/suncat/psp/gbrv1.5pbe",    #pseudopotential path
-        convergence= {
-            "energy": 1.e-5, #convergence parameters
-            "mixing": 0.1,
-            "nmix": 20,
-            "mix": 4,
-            "maxsteps": 500,
-            "diag": "david"
-            },
-        output = {"removesave": False},
-        outdir="calcdir"
-        )    #output directory for Quantum Espresso files
-
-    # attach the espresso calculator to the surface
-    a.set_calculator(calc)
-    a.get_potential_energy()
-
-    pdos=calc.calc_pdos(nscf=True,
-                        kpts=(6,6,1),
-                        Emin=-10.0,
-                        Emax=10.0,
-                        tetrahedra=True,
-                        sigma=0.2,
-                        DeltaE=0.01)
-
-    pickle.dump(pdos,open("pdos.pkl", "w"))
-    #__|
+#| - pdos_analysis
+# from espresso import espresso
+#
+# a = read("qn.traj")
+#
+# calc = espresso(pw=500,             #plane-wave cutoff
+#     dw=5000,            #density cutoff
+#     xc="BEEF-vdW",      #exchange-correlation functional
+#     kpts=(3,3,1),       # ark - k-points for hexagonal symmetry in 2-D materials
+#     nbands=-20,         #20 extra bands besides the bands needed for valence electrons
+#     spinpol = True,     # ark - added spinpolarizatoin
+#     sigma=0.1,
+#     psppath="/home/vossj/suncat/psp/gbrv1.5pbe",    #pseudopotential path
+#     convergence= {
+#         "energy": 1.e-5, #convergence parameters
+#         "mixing": 0.1,
+#         "nmix": 20,
+#         "mix": 4,
+#         "maxsteps": 500,
+#         "diag": "david"
+#         },
+#     output = {"removesave": False},
+#     outdir="calcdir"
+#     )    #output directory for Quantum Espresso files
+#
+# # attach the espresso calculator to the surface
+# a.set_calculator(calc)
+# a.get_potential_energy()
+#
+# pdos=calc.calc_pdos(nscf=True,
+#                     kpts=(6,6,1),
+#                     Emin=-10.0,
+#                     Emax=10.0,
+#                     tetrahedra=True,
+#                     sigma=0.2,
+#                     DeltaE=0.01)
+#
+# pickle.dump(pdos,open("pdos.pkl", "w"))
+#__|
 
 #__|
