@@ -1,10 +1,11 @@
 #| - IMPORT MODULES
 import numpy as np
-import matplotlib.patches as mpatches
+# import matplotlib.patches as mpatches
 import copy
 
-import plotly
-from plotly.graph_objs import Scatter, Layout, Figure
+# import plotly
+# from plotly.graph_objs import Scatter, Layout, Figure
+from plotly.graph_objs import Scatter
 #__|
 
 class ORR_Free_E_Plot:
@@ -42,7 +43,7 @@ class ORR_Free_E_Plot:
         """
         """
         #| - rxn_energy_lst_h2o2
-        h2o2_e = 3.52
+        # h2o2_e = 3.52
 
         free_energy_list = []
         for key in self.fe_dict:
@@ -81,31 +82,31 @@ class ORR_Free_E_Plot:
         #| - apply_bias
         mod_free_e_lst = []        # Free energy reaction path at applied bias
         for energy, elec in zip(energy_list, range(len(energy_list))[::-1]):
-            mod_free_e_lst.append(energy - elec*bias)
+            mod_free_e_lst.append(energy - elec * bias)
 
         return(mod_free_e_lst)
         #__|
 
     def calc_overpotential(self):
         """
-        # Returns the limiting overpotential for the given species and the limiting
-        reaction step in the form of a list, species_A -> species_B is
+        # Returns the limiting overpotential for the given species and the
+        limiting reaction step in the form of a list, species_A -> species_B is
         [species_A, species_B]
         """
         #| - calc_overpotential
-        e_lst        = self.energy_lst
-        rxn_spec    = self.rxn_mech_states
+        # e_lst = self.energy_lst
+        rxn_spec = self.rxn_mech_states
 
         overpotential_lst = []
         for energy_i in enumerate(self.energy_lst[:-1]):
-            energy_i_plus1 = self.energy_lst[energy_i[0]+1]
+            energy_i_plus1 = self.energy_lst[energy_i[0] + 1]
             overpotential_i = 1.23 + energy_i_plus1 - energy_i[1]
             overpotential_lst.append(overpotential_i)
 
         overpotential = max(overpotential_lst)
         lim_step_index = overpotential_lst.index(overpotential)
 
-        limiting_step = [rxn_spec[lim_step_index],rxn_spec[lim_step_index+1]]
+        limiting_step = [rxn_spec[lim_step_index], rxn_spec[lim_step_index + 1]]
 
         return [overpotential, limiting_step]
         #__|
@@ -127,9 +128,14 @@ class ORR_Free_E_Plot:
                 # Ex. [4.92, 3.69, ... ] -> [4.92, 4.92, 3.69, 3.69, ... ]
         """
         #| - convert_to_plotting_list
-        energy_dupl_lst = [energy_lst[i//2] for i in range(len(energy_lst)*2)]
+        tmp_list = range(len(energy_lst) * 2)
+        energy_dupl_lst = [energy_lst[i // 2] for i in tmp_list]
 
-        rxn_coord_steps = self.create_rxn_coord_array(len(energy_lst), spacing=spacing, step_size=step_size)
+        rxn_coord_steps = self.create_rxn_coord_array(
+            len(energy_lst),
+            spacing=spacing,
+            step_size=step_size,
+            )
         out_list = [rxn_coord_steps, energy_dupl_lst]
 
         return(out_list)
@@ -188,48 +194,43 @@ class ORR_Free_E_Plot:
 
         #| - Plotly Scatter Plot
         data_1 = Scatter(
-            x = new_x_dat,
-            y = new_y_dat,
-            legendgroup = group,
+            x=new_x_dat,
+            y=new_y_dat,
+            legendgroup=group,
             showlegend=True,
-
-            name = name,
+            name=name,
             hoverinfo="none",  # TEMP - 180317
-            connectgaps = False,
-            line = dict(
-                color = color,
-                width = 6,
+            connectgaps=False,
+            line=dict(
+                color=color,
+                width=6,
                 ),
-            mode = "lines",
+            mode="lines",
             )
 
         data_2 = Scatter(
-            x = new_x_dat,
-            y = new_y_dat,
-            legendgroup = group,
-            name = name,
-            connectgaps = True,
+            x=new_x_dat,
+            y=new_y_dat,
+            legendgroup=group,
+            name=name,
+            connectgaps=True,
             showlegend=show_leg_2,
             hoverinfo="none",
-            line = dict(
-                color = color,
-                width = 1,
+            line=dict(
+                color=color,
+                width=1,
                 ),
-            mode = "lines",
+            mode="lines",
             )
 
 
         # print(new_x_dat)
 
         #| - Creating x-data in middle of states
-        new_x_dat_tmp = copy.copy(new_x_dat)
-        new_y_dat_tmp = copy.copy(new_y_dat)
-
-        # print(new_y_dat_tmp)
-        # print(y_dat)
+        # new_x_dat_tmp = copy.copy(new_x_dat)
+        # new_y_dat_tmp = copy.copy(new_y_dat)
 
         short_y = np.array(y_dat)[::2]
-        # print(tmp)
 
         xdat = list(set(new_x_dat))
         xdat.sort()
@@ -237,28 +238,26 @@ class ORR_Free_E_Plot:
         cnt = 0
         short_x = []
         for i_ind in range(len(xdat) / 2):
-            short_x.append(xdat[cnt] + 0.5) # TEMP Replace 0.5 with variable
+            short_x.append(xdat[cnt] + 0.5)  # TEMP Replace 0.5 with variable
             cnt += 2
-
         #__|
 
         data_3 = Scatter(
-            x = short_x,
-            y = short_y,
+            x=short_x,
+            y=short_y,
 
-            legendgroup = group,
-            name = name,
+            legendgroup=group,
+            name=name,
             # connectgaps = False,
             showlegend=False,
             hoverinfo="y+name",
 
-            marker= dict(
-                size= 14,
-                opacity= 0.,
+            marker=dict(
+                size=14,
+                opacity=0.,
                 ),
-            mode = "markers",
+            mode="markers",
             )
-
         #__|
 
         if plot_mode == "all":
@@ -267,7 +266,6 @@ class ORR_Free_E_Plot:
             data_lst = [data_1, data_3]
         elif plot_mode == "full_lines":
             data_lst = [data_2, data_3]
-
 
         print(len(data_lst))
         return(data_lst)
@@ -286,8 +284,8 @@ class ORR_Free_E_Plot:
 
             spacing:
                 # <type 'float'>
-                # Spacing inbetween the energy levels. The default of 0 creates a
-                free energy diagram that looks like steps
+                # Spacing inbetween the energy levels. The default of 0 creates
+                a free energy diagram that looks like steps
         """
         #| - create_rxn_coord_array
         lst = []
@@ -296,224 +294,15 @@ class ORR_Free_E_Plot:
                 lst.append(step_size)
                 # print(step_size)
                 # print(spacing)
-                lst.append(step_size+spacing)
+                lst.append(step_size + spacing)
             if i != 1:
-                lst.append(lst[-1]+step_size)
-                lst.append(lst[-2]+step_size+spacing)
+                lst.append(lst[-1] + step_size)
+                lst.append(lst[-2] + step_size + spacing)
 
-        lst.insert(0,0)
-        lst.append(lst[-1]+step_size)
+        lst.insert(0, 0)
+        lst.append(lst[-1] + step_size)
 
         return(lst)
         #__|
 
     #__| **********************************************************************
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#| - __old__
-
-# def process_orr_adsorbates_fed(free_e_dict):
-#     """
-#     Calculates the overpotential for the ORR reaction given the Free Energies
-#     of the species. Also outputs the Free energy landscape at V=0 and V=V_eq, as
-#     well as the x-coordinate data (just integer pairs defining the steps).
-#
-#     Output: {'overpotential': ###, 'ydata_nobias': [##,##,...], 'ydata_eq':
-#     [##,##,...], 'xdata': [0,1,1,2,2,...]}
-#
-#     Args
-#         free_e_lst: Dictionary containing the free energies of intermediates
-#         format the ORR reaction. An example is shown below.
-#         Ex.
-#         {'Ni': {'bulk': 0, 'ooh': 4.87, 'o': 4.17, 'oh': 2.11}}
-#     """
-#     #| - process_orr_adsorbates_fed
-#
-#     #| - Appending Species Free Energies to Output Dict                     1111
-#     metal = free_e_dict.keys()[0]
-#     species_fe = free_e_dict[metal]
-#     #__|                                                                    1111
-#
-#     fe_all = free_e_dict
-#
-#     steps = range(5)
-#
-#     #| - Constructing Reaction Coordinate - AUTOMATIC                       1111
-#     i = 0
-#     species_lst = ['bulk','ooh','o','oh','bulk']
-#     free_e_lst = []
-#     for species in species_lst:
-#         free_e_lst.append(fe_all[metal][species])
-#     # print(free_e_lst)
-#     #__|                                                                    1111
-#
-#     #| - Normalized energies by bulk energy                                 1111
-#     bulk_free_e =  free_e_lst[0]
-#     for i in range(len(free_e_lst)):
-#         free_e_lst[i] = free_e_lst[i] - bulk_free_e
-#     #__|                                                                    1111
-#
-#     #| - Replaces String "M" with Metal Name                                1111
-#     for j in range(len(species_lst)):
-#         species_lst[j] = str(species_lst[j]).replace('M', metal)
-#     #__|                                                                    1111
-#
-#     #| - Constructing Free Energy Diagram Data                              1111
-#     xdata = []
-#     ydata = []
-#     for step in range(len(steps)):
-#         xdata.append(steps[step])
-#         xdata.append(steps[step]+1)
-#
-#         if steps[step] == 0:
-#             ydata.append(free_e_lst[step] + 4.92)
-#             ydata.append(free_e_lst[step] + 4.92)
-#         else:
-#             ydata.append(free_e_lst[step])
-#             ydata.append(free_e_lst[step])
-#     #__|                                                                    1111
-#
-#     #| - Finding Overpotential                                              1111
-#     overpotential = 0
-#     for i in range(len(ydata)-1):
-#         if ydata[i+1] == ydata[i]:
-#             None
-#         else:
-#             d = 1.23 + ydata[i+1] - ydata[i]
-#             if d > overpotential:
-#                 overpotential = d
-#     #__|                                                                    1111
-#
-#     #| - Constructing FED at Equilibrium and Overpotential                  1111
-#     ydatalim    = []
-#     ydataeq        = []
-#     for j in range(len(free_e_lst)):
-#         if j == 0:
-#
-#             ydataeq.append(free_e_lst[j] - (4-j)*1.23 + 4*1.23)
-#             ydataeq.append(free_e_lst[j] - (4-j)*1.23 + 4*1.23)
-#
-#             ydatalim.append(free_e_lst[j] - (4-j)*(1.23-overpotential) + 4*1.23)
-#             ydatalim.append(free_e_lst[j] - (4-j)*(1.23-overpotential) + 4*1.23)
-#
-#         else:
-#             ydataeq.append(free_e_lst[j] - (4-j)*1.23)
-#             ydataeq.append(free_e_lst[j] - (4-j)*1.23)
-#
-#             ydatalim.append(free_e_lst[j] - (4-j)*(1.23-overpotential))
-#             ydatalim.append(free_e_lst[j] - (4-j)*(1.23-overpotential))
-#
-#     #__|                                                                    1111
-#
-#     #| - Constructing FED for H2O2 (2-e process)                            1111
-#     ydata_h2o2    = []
-#     for j in range(3):
-#         if j == 0:
-#             ydata_h2o2.append(free_e_lst[j] - (4-j)*(0.7/2.) + 4*1.23)
-#             ydata_h2o2.append(free_e_lst[j] - (4-j)*(0.7/2.) + 4*1.23)
-#
-#         elif j == 2:
-#             ydata_h2o2.append(3.52)
-#             ydata_h2o2.append(3.52)
-#
-#         else:
-#             ydata_h2o2.append(free_e_lst[j] - (4-2.*j)*(0.7/2.))
-#             ydata_h2o2.append(free_e_lst[j] - (4-2.*j)*(0.7/2.))
-#
-#     xdata_h2o2 = [ 0 , 1 , 1 , 2 , 2 , 3 ]
-#     #__|                                                                    1111
-#
-#     return {"ydata_nobias":ydata, "ydata_eq":ydataeq, "ydata_h2o2":ydata_h2o2,
-#      "xdata":xdata,    "overpotential":overpotential, "species_fe": species_fe,
-#     "xdata_h2o2":xdata_h2o2}
-#
-#     #__|
-#
-#
-# def create_rxn_coord_array(rxn_steps, spacing=0, step_size=1):
-#     """
-#     Creates a reaction coordinate array ([0, 1, 1, 2, 2, 3]) for plotting
-#
-#     Args:
-#         rxn_steps:
-#             # <type 'int'>
-#             # Number of steps in reaction coordinate including initial
-#             and final state.
-#             # Ex. A -> Intermediate -> C has 3 steps/states
-#
-#         spacing:
-#             # <type 'float'>
-#             # Spacing inbetween the energy levels. The default of 0 creates a
-#             free energy diagram that looks like steps
-#     """
-#     #| - create_rxn_coord_array
-#     lst = []
-#     for i in range(1, rxn_steps):
-#         if i == 1:
-#             lst.append(step_size)
-#             lst.append(step_size+spacing)
-#         if i != 1:
-#             lst.append(lst[-1]+step_size)
-#             lst.append(lst[-2]+step_size+spacing)
-#
-#     lst.insert(0,0)
-#     lst.append(lst[-1]+step_size)
-#     return lst
-#     #__|
-#
-#
-# def plot_fed_line(plot_obj, *args, **kwargs):
-#     """
-#
-#     Args:
-#         plot_obj:
-#             # <>
-#             #
-#         xdata:
-#             # <type 'list'>
-#             #
-#         ydata:
-#             # <type 'list'>
-#             #
-#     """
-#     #| - plot_fed_line
-#     xdata = args[0]; ydata = args[1]
-#
-#     plot_obj.plot(xdata[2*0:2*0+2], ydata[2*0:2*0+2], linewidth=3,**kwargs)
-#
-#     if "label" in kwargs: del kwargs["label"]
-#
-#     kwargs_even        = copy.copy(kwargs)
-#     kwargs_odd        = copy.copy(kwargs)
-#
-#     if "path_effects" in kwargs_odd: del kwargs_odd["path_effects"]
-#
-#     for i in range(len(xdata)/2):
-#         tmp = plot_obj.plot(xdata[2*i:2*i+2], ydata[2*i:2*i+2], linewidth=3, solid_capstyle='round', **kwargs_even)
-#         plot_obj.plot(xdata[2*i+1:2*i+3], ydata[2*i+1:2*i+3], linewidth=0.5,**kwargs_odd)
-#         # print(dir(tmp))
-#         # tmp.set_solid_capstyle('round')
-#         # ax.margins(.2)
-#     #__|
-
-#__|

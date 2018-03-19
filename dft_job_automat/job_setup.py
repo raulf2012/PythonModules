@@ -597,8 +597,6 @@ class DFT_Jobs_Setup:
         #| - __generate_data_table__
         rows_list = []
         for job in self.job_var_lst:
-
-
             revisions = self.job_revision_number(job)
 
             # if self.folders_exist:

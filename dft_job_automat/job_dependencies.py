@@ -10,28 +10,22 @@ from ase import io
 import pandas as pd
 
 #| - Import Modules
-import os
-import  sys
-import shutil
-import copy
-import subprocess
+import sys
+# import subprocess
 
-import numpy as np
-import pandas as pd
-pd.options.display.max_colwidth = 250
+# import numpy as np
+# import pandas as pd
+# pd.options.display.max_colwidth = 250
 
 # ASE
-from ase import io
-# from ase.io.trajectory import Trajectory
-# from ase.build import bulk
 
 # My Modules
-from ase_modules.adsorbates import Adsorbate
+# from ase_modules.adsorbates import Adsorbate
 #from ase_modules.add_adsorbate import add_adsorbate_centered
-from ase_modules.dft_params import Espresso_Params
+# from ase_modules.dft_params import Espresso_Params
 
 
-from dft_job_automat.job_setup import DFT_Jobs_Setup
+# from dft_job_automat.job_setup import DFT_Jobs_Setup
 from dft_job_automat.job_analysis import DFT_Jobs_Analysis
 from dft_job_automat.job_manager import DFT_Jobs_Manager
 # import dft_job_automat.job_dependencies as jd
@@ -54,8 +48,8 @@ def copyfiles_onestep_up(
     job_var_lst,
     step,
     JobsInstances_lst,
-    files_lst = [],
-    root_dir_files = None
+    files_lst=[],
+    root_dir_files=None
     ):
     """
     """
@@ -82,7 +76,11 @@ def copyfiles_onestep_up(
 
     root_dir = curr_step.root_dir
 
-    dir_curr = curr_step.var_lst_to_path(job_var_lst, job_rev="Auto", relative_path=False)
+    dir_curr = curr_step.var_lst_to_path(
+        job_var_lst,
+        job_rev="Auto",
+        relative_path=False,
+        )
     next_var_lst = copy.deepcopy(next_step.job_var_lst)
 
     #| - Finding jobs in step+1 whose properties match step's
@@ -91,9 +89,13 @@ def copyfiles_onestep_up(
         prop_value = curr_property["value"]    # 0.001
 
         for job in next_step.job_var_lst:
-            path_i = next_step.var_lst_to_path(job, job_rev="Auto", relative_path=False)
+            path_i = next_step.var_lst_to_path(
+                job,
+                job_rev="Auto",
+                relative_path=False,
+                )
 
-            match_lst = []
+            # match_lst = []
             for next_property in job:
                 next_prop_name = next_property["property"]
                 next_prop_value = next_property["value"]
@@ -108,22 +110,28 @@ def copyfiles_onestep_up(
     #__|
 
     for next_job in next_var_lst:
-        path_i = next_step.var_lst_to_path(next_job, job_rev="Auto", relative_path=False)
+        path_i = next_step.var_lst_to_path(
+            next_job,
+            job_rev="Auto",
+            relative_path=False,
+            )
 
         for file_i in files_lst:
 
             #| - Copy Files to Directory in New Step
             if type(file_i) == str:
-                curr_dir = dir_curr + curr_step.cluster.cluster.job_data_dir + "/" + file_i
+                curr_dir = dir_curr + \
+                    curr_step.cluster.cluster.job_data_dir + "/" + file_i
                 copy_if_not_in_dest(curr_dir, path_i + "/" + file_i)
 
             elif type(file_i) == list:
-                curr_dir = dir_curr + curr_step.cluster.cluster.job_data_dir + "/" + file_i[0]
+                curr_dir = dir_curr + \
+                    curr_step.cluster.cluster.job_data_dir + "/" + file_i[0]
                 copy_if_not_in_dest(curr_dir, path_i + "/" + file_i[1])
             #__|
 
 
-        if root_dir_files != None:
+        if root_dir_files is not None:
             root_dir = curr_step.root_dir
             source_dir = root_dir
 
@@ -132,14 +140,21 @@ def copyfiles_onestep_up(
             for file_i in root_dir_files:
                 #| - Copy Files from Root Dir to New Job Folder
                 if type(file_i) == str:
-                    copy_if_not_in_dest(source_dir + "/" + file_i, dest_dir + "/" + file_i)
+                    copy_if_not_in_dest(
+                        source_dir + "/" + file_i,
+                        dest_dir + "/" + file_i,
+                        )
 
                 elif type(file_i) == list:
-                    copy_if_not_in_dest(source_dir + "/" + file_i[0], dest_dir + "/" + file_i[1])
+                    copy_if_not_in_dest(
+                        source_dir + "/" + file_i[0],
+                        dest_dir + "/" + file_i[1],
+                        )
                 #__|
 
 
-    file = open(dir_curr + "/.FILES_COPIED", "w")
+    open(dir_curr + "/.FILES_COPIED", "w")
+    # file = open(dir_curr + "/.FILES_COPIED", "w")
 
     #__|
 
@@ -172,7 +187,8 @@ def job_runnable(df, root_dir_beg, path_i):
     """
     """
     #| - job_runnable
-    df["full_path"] = root_dir_beg + "/" + df["root_dir"] + "/" + df["path"] + "_" + df["job_revision_number"].astype(str)
+    df["full_path"] = root_dir_beg + "/" + df["root_dir"] + "/" + df["path"] + \
+        "_" + df["job_revision_number"].astype(str)
 
     index = df.index[df["full_path"] == path_i].tolist()
     df_i = df.iloc[index]
@@ -190,7 +206,8 @@ def job_failed(df, root_dir_beg, path_i):
     """
     """
     #| - job_failed
-    df["full_path"] = root_dir_beg + "/" + df["root_dir"] + "/" + df["path"] + "_" + df["job_revision_number"].astype(str)
+    df["full_path"] = root_dir_beg + "/" + df["root_dir"] + "/" + df["path"] + \
+        "_" + df["job_revision_number"].astype(str)
 
 
     index = df.index[df["full_path"] == path_i].tolist()
@@ -207,7 +224,7 @@ def job_failed(df, root_dir_beg, path_i):
     # job_state = df.iloc[index[0]]["job_state_2"]
 
     # if job_state == "FAILED":
-        # return(True)
+    # return(True)
 
 
     if df_fin["job_state_2"].iloc[0] == "FAILED":
@@ -262,7 +279,11 @@ class DFT_Jobs_Workflow:
         self.run_jobs = run_jobs
 
         self.root_dir = self.__set_cwd__(root_dir)
-        self.atoms_dict = create_atoms_list(atoms_list_names, atoms_prefix, self.root_dir)
+        self.atoms_dict = create_atoms_list(
+            atoms_list_names,
+            atoms_prefix,
+            self.root_dir,
+            )
 
         self.step_dir_names = self.__set_step_dir_names__()
         self.model_names = self.__set_model_names__(model_names)
@@ -306,7 +327,7 @@ class DFT_Jobs_Workflow:
         """
         #| - __set_model_names__
         # model_names = self.model_names
-        if model_names == None:
+        if model_names is None:
             model_names_list = []
             for step_i in range(self.num_steps):
                 model_i = str(step_i) + "model.py"
@@ -330,9 +351,10 @@ class DFT_Jobs_Workflow:
         for step in range(len(step_dir_names)):
             step_num = step + 1
 
-            print("Initialaizing Job Instance: " + str(step_num))  #PERM_PRINT
+            print("Initialaizing Job Instance: " + str(step_num))  # PERM_PRINT
 
-            dir_struct_file = master_root_dir + "/" + step_dir_names[step] + "/jobs_bin/dir_structure.json"
+            # dir_struct_file = master_root_dir + "/" + step_dir_names[step] + \
+            #     "/jobs_bin/dir_structure.json"
 
             level_labels_tmp = self.tree_level_labels_list[step]
             level_entries_tmp = self.tree_level_values_list[step]
@@ -360,7 +382,7 @@ class DFT_Jobs_Workflow:
 
         Jobs_Inst_list = []
         for step in range(len(step_dir_names)):
-            step_num = step + 1
+            # step_num = step + 1
 
             level_labels_tmp = self.tree_level_labels_list[step]
             level_entries_tmp = self.tree_level_values_list[step]
@@ -386,18 +408,18 @@ class DFT_Jobs_Workflow:
         master_root_dir = self.root_dir
 
         for step in range(len(step_dir_names)):
-            step_num = step + 1
+            # step_num = step + 1
 
             step_folder = master_root_dir + "/" + step_dir_names[step]
             if not os.path.isdir(step_folder):
-                os.makedirs(step_dir)
+                os.makedirs(step_folder)
         #__|
 
     def __prep_dir_sys__(self):
         """
         """
         #| - __prep_dir_sys
-        print("PREPARING EXTENDED FOLDER SYSTEM")  #PERM_PRINT
+        print("PREPARING EXTENDED FOLDER SYSTEM")  # PERM_PRINT
         step_dir_names = self.step_dir_names
         master_root_dir = self.root_dir
 
@@ -408,8 +430,9 @@ class DFT_Jobs_Workflow:
             step_num = step + 1
             JobsAn = self.jobs_an_list[step]
 
-            print("Placing Initial Files in Folders | LOOP OVER JOBS")  #PERM_PRINT
-            files_placed_file = master_root_dir + "/" + step_dir_names[step] + "/.FILES_PLACED"
+            print("Placing Initial Files in Folders | LOOP OVER JOBS")
+            files_placed_file = master_root_dir + "/" + \
+                step_dir_names[step] + "/.FILES_PLACED"
 
             if not os.path.isfile(files_placed_file):
 
@@ -420,27 +443,29 @@ class DFT_Jobs_Workflow:
                 # for i in JobsAn.job_var_lst:print(i)
 
                 for job_i in JobsAn.job_var_lst:
-                    path_i = JobsAn.var_lst_to_path(job_i, job_rev="Auto", relative_path=False)
+                    path_i = JobsAn.var_lst_to_path(
+                        job_i,
+                        job_rev="Auto",
+                        relative_path=False,
+                        )
 
-                    # print(job_i)
-                    # print("!#@$!#!#")
                     #| - Job_i Parameters
                     job_i_params = {}
                     for variable in JobsAn.tree_level_labels:
-                        # print(variable)
-                        # print(JobsAn.)
-                        job_i_params[variable] = JobsAn.extract_prop_from_var_lst(job_i, variable)
+                        job_i_var_j = JobsAn.extract_prop_from_var_lst(
+                            job_i,
+                            variable,
+                            )
+                        job_i_params[variable] = job_i_var_j
                     #__|
-
-                    # print("###$@!e")
-                    # print(job_i_params)
 
                     self.setup_function(step, path_i, job_i_params, wf_vars)
 
                 file_name = master_root_dir + "/" + step_dir_names[step]
                 file = open(file_name + "/.FILES_PLACED", "w")
 
-            file = open(master_root_dir + "/.FOLDERS_CREATED", "w")
+            # file = open(master_root_dir + "/.FOLDERS_CREATED", "w")
+            open(master_root_dir + "/.FOLDERS_CREATED", "w")
         #__|
 
     def __job_maint__(self):
@@ -448,39 +473,62 @@ class DFT_Jobs_Workflow:
         """
         #| - __job_maint__
         step_dir_names = self.step_dir_names
-        master_root_dir = self.root_dir
+        # master_root_dir = self.root_dir
 
         for step in range(len(step_dir_names)):
             step_num = step + 1
             Jobs = self.jobs_man_list[step]
 
-            df = Jobs.data_frame
-            tally = {"successes": 0, "failures": 0, "running": 0, "pending": 0}
+            # df = Jobs.data_frame
+            tally = {"successes": 0, "failures": 0, "runnin
+
+            g": 0, "pending": 0}
 
             #| - PRINT
-            print("")  #PERM_PRINT
-            print("###################################################################")
-            print("############################ STEP " + str(step_num) + " ###############################")
-            print("###################################################################")
-            print("Total Jobs: " + str(Jobs.num_jobs))  #PERM_PRINT
+            print("")  # PERM_PRINT
+            print("###########################################################")
+
+            str_i = "########################"
+            str_i += " STEP " + str(step_num) + " ###########################"
+            # "######################## STEP " + str(step_num) +
+            # " ###########################"
+            print(str_i)
+            print("###########################################################")
+            print("Total Jobs: " + str(Jobs.num_jobs))  # PERM_PRINT
             #__|
 
             #| - LOOP OVER JOBS
             if self.run_jobs:
 
-                tally = {"successes": 0, "failures": 0, "running": 0, "pending": 0}
+                tally = {
+                    "successes": 0,
+                    "failures": 0,
+                    "running": 0,
+                    "pending": 0,
+                    }
 
                 wf_vars = vars(self)
                 for job_i in Jobs.job_var_lst:
-                    path_i = Jobs.var_lst_to_path(job_i, job_rev="Auto", relative_path=False)
+                    # path_i = Jobs.var_lst_to_path(job_i,
+                    # job_rev="Auto", relative_path=False)
 
                     #| - Job_i Parameters
                     job_i_params = {}
                     for variable in Jobs.tree_level_labels:
-                        job_i_params[variable] = Jobs.extract_prop_from_var_lst(job_i, variable)
+                        job_i_param_j = Jobs.extract_prop_from_var_lst(
+                            job_i,
+                            variable,
+                            )
+                        job_i_params[variable] =
                     #__|
 
-                    tally = self.maint_function(step, job_i, job_i_params, wf_vars, tally)
+                    tally = self.maint_function(
+                        step,
+                        job_i,
+                        job_i_params,
+                        wf_vars,
+                        tally,
+                        )
 
                 print(tally)
             print("")

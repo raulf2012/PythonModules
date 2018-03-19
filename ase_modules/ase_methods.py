@@ -17,7 +17,7 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 
 from ase.io import read, write
-from ase.io.trajectory import Trajectory
+# from ase.io.trajectory import Trajectory
 from ase.dft.kpoints import ibz_points, get_bandpath
 
 from ase.vibrations import Vibrations
@@ -246,14 +246,15 @@ def simple_mag_moms(atoms):
         "Co": 4, "Rh": 4, "Ir": 4,  # 3d7, 4s1
         "Fe": 5, "Ru": 5, "Os": 5,  # 3d6, 4s1
         "Mo": 5, "Tc": 5, "Hf": 2,
-        "Ta": 3, "W":  4, "Re": 5, "Ti": 2,
+        "Ta": 3, "W": 4, "Re": 5, "Ti": 2,
         }
     #__|
 
     #| - Find cations
     cations = []
     for atom in atoms:
-        if master_dict_high_spin.has_key(atom.symbol):
+        if atom.symbol in master_dict_high_spin.keys():
+            # if master_dict_high_spin.has_key(atom.symbol):
             cations.append(atom.symbol)
     #__|
 
@@ -395,7 +396,8 @@ def reduce_magmoms(atoms, ntypx=10):
         assert min_delta != 1e6
         assert min_sym != ""
         if min_delta > 0.5:
-            print "WARNING, reducing pair of magmoms whose difference is %.2f"%min_delta
+            warn = "WARNING, reducing pair of magmoms whose difference is "
+            print(warn + "%.2f" % min_delta)
 
         if np.abs(magmom_pairs[min_sym][0]) > np.abs(magmom_pairs[min_sym][1]):
             master_dict[min_sym][magmom_pairs[min_sym][0]].extend(
@@ -481,9 +483,9 @@ def spin_pdos(
     #| - spin_pdos
 
     valence_dict = {
-        "Cu": 11, "C": 4,  "O": 6,  "H": 1,
-        "Rh":17,  "Co":9,  "Pd":10, "Pt":10,
-        "Ni":1,   "Fe":16, "N":5,   "Ru":16,
+        "Cu": 11, "C": 4, "O": 6, "H": 1,
+        "Rh": 17, "Co": 9, "Pd": 10, "Pt": 10,
+        "Ni": 1, "Fe": 16, "N": 5, "Ru": 16,
         }
 
     #| - Reading PDOS File, Otherwise Creates It
@@ -491,20 +493,22 @@ def spin_pdos(
         assert valence_dict is not None, "MUST SPECIFY valence_dict"
         single_point_calc = True
         pdos = pickle.load(open(pdos_pkl))
-        nvalence_dict=valence_dict
+        nvalence_dict = valence_dict
     else:
         single_point_calc = False
-        nvalence_dict = atoms.calc.get_nvalence()[1] #dict with (chemical symbol) : (num valence)
-        if nscf: #double k-points for higher quality pdos --> O(single point calc)
-            pdos = atoms.calc.calc_pdos(nscf=True,kpts=kpts,**kwargs)
-        else: #no single point calc, should take 1 or 2 minutes
+        # dict with (chemical symbol) : (num valence)
+        nvalence_dict = atoms.calc.get_nvalence()[1]
+        # double k-points for higher quality pdos --> O(single point calc)
+        if nscf:
+            pdos = atoms.calc.calc_pdos(nscf=True, kpts=kpts, **kwargs)
+        else:  # no single point calc, should take 1 or 2 minutes
             pdos = atoms.calc.calc_pdos(**kwargs)
     #__|
 
     #| - Finding Index of Fermi Level
     for i_ind, e_i in enumerate(pdos[0]):
         if e_i > 0:
-            fi = i_ind #index of fermi level
+            fi = i_ind  # index of fermi level
             break
     #__|
 
@@ -516,7 +520,7 @@ def spin_pdos(
         for i, atom in enumerate(atoms):
 
             #| - Integrating Up and Down Spin PDOS
-            spin_up = 0; spin_down = 0;
+            spin_up = 0; spin_down = 0
             for sym in pdos[2][i]:
                 spin_up += np.trapz(pdos[2][i][sym][0][:fi], x=pdos[0][:fi])
                 spin_down += np.trapz(pdos[2][i][sym][1][:fi], x=pdos[0][:fi])
@@ -536,7 +540,7 @@ def spin_pdos(
             ##Update charge
             charge_i = nvalence_dict[atom.symbol] - (spin_up + spin_down)
             if write_charges:
-                # atom.charge = nvalence_dict[atom.symbol] - (spin_up + spin_down)
+                # atom.charge = nvalence_dict[atom.symbol]-(spin_up+spin_down)
                 atom.charge = charge_i
 
             charge_list.append(charge_i)
@@ -597,10 +601,10 @@ def spin_pdos(
             if not skip:
                 light_lines.append(line)
 
-        f = open("%s/pdos_Lowdin.log"%outdir,"w")
+        f = open("%s/pdos_Lowdin.log" % outdir, "w")
         f.writelines(light_lines)
         f.close()
-        os.system("rm %s/pdos.log"%outdir)
+        os.system("rm %s/pdos.log" % outdir)
 
     if save_pkl:
         pickle.dump(pdos, open("pdos.pkl", "w"))
@@ -619,7 +623,7 @@ def an_bands( atoms, bands_kpts, espresso_params, ):
     print("Executing Band Structure Analysis"); sys.stdout.flush()
 
     spinpol_calc = calc_spinpol(atoms)
-    if spinpol_calc == False:
+    if spinpol_calc is False:
         print("set_init_mag_moms | Spin-polarization turned off")
         set_mag_mom_to_0(atoms)
 
@@ -665,7 +669,7 @@ def an_beef_ensemble(atoms, xc):
     """
     #| - an_beef_ensemble
     if xc == "BEEF" or xc == "BEEF-vdW":
-        calc = atoms.calc
+        # calc = atoms.calc
         from ase.dft.bee import BEEFEnsemble
 
         energy = atoms.get_potential_energy()
@@ -981,9 +985,8 @@ def displace_overlayer(
     y_frac = 1. * y_ind / mesh_size_y
 
     # atoms = io.read("dir_atoms/init.traj")
-
-    mag_lv0 = np.linalg.norm(atoms.cell[0])
-    mag_lv1 = np.linalg.norm(atoms.cell[1])
+    # mag_lv0 = np.linalg.norm(atoms.cell[0])
+    # mag_lv1 = np.linalg.norm(atoms.cell[1])
 
     lv0 = atoms.cell[0]
     lv1 = atoms.cell[1]
@@ -1245,8 +1248,8 @@ def create_gif_from_atoms_movies(
 # calc = espresso(pw=500,             #plane-wave cutoff
 #     dw=5000,            #density cutoff
 #     xc="BEEF-vdW",      #exchange-correlation functional
-#     kpts=(3,3,1),       # ark - k-points for hexagonal symmetry in 2-D materials
-#     nbands=-20,         #20 extra bands besides the bands needed for valence electrons
+#     kpts=(3,3,1),  # ark - k-points for hexagonal symmetry in 2-D materials
+#     nbands=-20, #20 extra bands besides the bands needed for valence electrons
 #     spinpol = True,     # ark - added spinpolarizatoin
 #     sigma=0.1,
 #     psppath="/home/vossj/suncat/psp/gbrv1.5pbe",    #pseudopotential path

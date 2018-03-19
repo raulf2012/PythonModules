@@ -9,34 +9,43 @@ from ase.build import add_adsorbate
 from misc_modules.numpy_methods import angle_between
 #__|
 
+
 def add_adsorbate_centered(active_element, slab, adsorbate, ads_height=2.5):
-	"""
-	  Places an adsorbate above an active element/atom of a slab. If multiple
-	active elements are present within a unit cell, the adsorbate will be placed
-	above the atom closest to the center.
+    """
+    Places an adsorbate above an active element/atom of a slab. If multiple
+    active elements are present within a unit cell, the adsorbate will be placed
+    above the atom closest to the center.
 
-	Args:
-		active_element: String
-		slab: ASE atoms object
-		adsorbate: ASE atoms object
-		ads_height: Float
-	"""
-	#| - add_adsorbate_centered
-	center = (sum(slab.cell))/2
-	act_metals = []
-	for atom in slab:
-		if atom.symbol == active_element:
-			act_metals.append([atom.index, np.linalg.norm(atom.position-center)])
+    Args:
+        active_element: String
+        slab: ASE atoms object
+        adsorbate: ASE atoms object
+        ads_height: Float
+    """
+    #| - add_adsorbate_centered
+    center = (sum(slab.cell)) / 2
+    act_metals = []
+    for atom in slab:
+        if atom.symbol == active_element:
+            act_metals.append([
+                atom.index,
+                np.linalg.norm(atom.position - center),
+                ])
 
-	active_metal = slab[sorted(act_metals, key=itemgetter(1))[0][0]]
-	ads_pos = (active_metal.position[0], active_metal.position[1])
-	add_adsorbate(slab, adsorbate, ads_height, position=ads_pos)
+    active_metal = slab[sorted(act_metals, key=itemgetter(1))[0][0]]
+    ads_pos = (active_metal.position[0], active_metal.position[1])
+    add_adsorbate(slab, adsorbate, ads_height, position=ads_pos)
 
-	return slab
-	#__|
+    return slab
+    #__|
 
 
-def add_graphene_layer(slab, graphene_units=1, graph_surf_d=3.0, graph_bond_d_real=1.4237):
+def add_graphene_layer(
+    slab,
+    graphene_units=1,
+    graph_surf_d=3.0,
+    graph_bond_d_real=1.4237,
+    ):
     """
 
     Args:
@@ -49,7 +58,7 @@ def add_graphene_layer(slab, graphene_units=1, graph_surf_d=3.0, graph_bond_d_re
     slab = copy.deepcopy(slab)
 
     # num_graph_units = graphene_units + 1
-    graphene_units =int(graphene_units)
+    graphene_units = int(graphene_units)
 
     num_graph_units = int(graphene_units)
     ngu = num_graph_units
@@ -94,13 +103,15 @@ def add_graphene_layer(slab, graphene_units=1, graph_surf_d=3.0, graph_bond_d_re
             if patt_cnt_x == 0 or patt_cnt_x == 1:
 
                 pos_x = x_ind * graph_bond_d * x_unit_v
-                pos_y = y_ind* graph_bond_d * y_unit_v
+                pos_y = y_ind * graph_bond_d * y_unit_v
 
                 pos_i = np.array(pos_x) + np.array(pos_y)
                 pos_i = np.append(pos_i, 0.)
 
                 C_pos_lst.append(pos_i)
-                # atom_cent = (origin[0] + x_ind * graph_bond_d - graph_bond_d * y_ind * y_unit_v[0], origin[1] + y_ind * graph_bond_d)
+                # atom_cent = (origin[0] + x_ind * graph_bond_d
+                # - graph_bond_d * y_ind * y_unit_v[0], origin[1] + y_ind
+                # * graph_bond_d)
 
                 add_adsorbate(
                     slab,
@@ -130,6 +141,3 @@ def add_graphene_layer(slab, graphene_units=1, graph_surf_d=3.0, graph_bond_d_re
 
     return(slab)
     #__|
-
-
-# def add_graphene_square

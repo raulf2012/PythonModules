@@ -47,7 +47,7 @@ class Adsorbate:
             H_x = O_1_x + OH_bl * np.sin(np.radians(H_angle))
             H_y = O_1_y + OH_bl * np.cos(np.radians(H_angle))
 
-        ooh_mol = Atoms(['O','O','H'],
+        ooh_mol = Atoms(["O", "O", "H"],
             positions=[
                 (0.0, 0.0, 0.0),
                 # (0, 0, 1.359),
@@ -79,7 +79,7 @@ class Adsorbate:
         """
         """
         #| - oh
-        oh_mol = Atoms(['O','H'],
+        oh_mol = Atoms(["O", "H"],
             positions=[
                 (0, 0, 0),
                 (0, 0, OH_bl),

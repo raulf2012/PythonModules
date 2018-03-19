@@ -55,7 +55,7 @@ class ComputerCluster():
             self.cluster_sys = cluster_sys
 
             self.cluster = cluster(
-                root_dir = self.root_dir,
+                root_dir=self.root_dir,
                 )
 
         home = os.environ.get("HOME")
@@ -73,11 +73,11 @@ class ComputerCluster():
         """
         #| - default_submission_parameters
         def_params = {
-            "path_i":       ".",
-            "job_name":     "Default",
-            "job_script":   "model.py",
-            "out_file":     "job.out",
-            "err_file":     "job.err",
+            "path_i": ".",
+            "job_name": "Default",
+            "job_script": "model.py",
+            "out_file": "job.out",
+            "err_file": "job.err",
             }
 
         return(def_params)
@@ -109,12 +109,13 @@ class ComputerCluster():
 
         # print(job_state)
         # print("$!#!**")
-        if job_state == None:
+        if job_state is None:
             try:
-                with open(path_i + "/.QUEUESTATE","r") as fle:
+                with open(path_i + "/.QUEUESTATE", "r") as fle:
                     job_state = fle.read().rsplit()
 
-                    assert type(job_state) == list and len(job_state) == 1, "error"
+                    len_js = len(job_state)
+                    assert type(job_state) == list and len_js == 1, "error"
                     # if type(job_state) == list and len(job_state) == 1:
                     job_state = job_state[0]
 
@@ -170,46 +171,6 @@ class ComputerCluster():
         #__|
 
         #__|
-
-    # def get_jobid(self, path_i="."):
-    #     """
-    #     """
-    #     #| - get_jobid
-    #     # path_i = "."
-    #     fileid_path = path_i + "/.jobid"
-    #     # print(fileid_path)
-    #     if os.path.isfile(fileid_path):
-    #         with open(path_i + "/.jobid") as fle:
-    #             jobid = fle.read().strip()
-    #     else:
-    #         jobid=None
-    #
-    #     return(jobid)
-    #     #__|
-
-
-    #| - OLD
-    # def job_info_batch(self, path_i="."):
-    #     #| - job_info_batch
-    #     data_dict = self.cluster.job_info_batch(path_i = path_i)
-    #
-    #     return(data_dict)
-    #
-    #     #__|
-
-
-
-    # def write_job_queue_state_file(self, path="."):
-    #     """
-    #     """
-    #     #| - write_job_queue_state_file
-    #     print(self)
-    #     data_dict = self.cluster.job_info_batch(path_i=path)
-    #     key = self.cluster.job_state_key
-    #     with open(path_i + "/.QUEUESTATE", "w") as fle:
-    #         fle.write(data_dict[key])
-    #__|
-
     #__| **********************************************************************
 
 ################################################################################
@@ -240,18 +201,16 @@ class SLACCluster(ComputerCluster):
         """
         #| - job_state_dict
         job_state_dict = {
-
             # "PENDING": "PEND",
             # "FINISHED": "DONE",
             # "RUNNING": "RUN",
             # "FAILED": "EXIT",
-
-             "PEND": "PENDING",
-             "DONE": "SUCCEEDED",
-             "RUN": "RUNNING",
-             "EXIT": "FAILED",
-             "UNKWN": "UNKNOWN",
-        }
+            "PEND": "PENDING",
+            "DONE": "SUCCEEDED",
+            "RUN": "RUNNING",
+            "EXIT": "FAILED",
+            "UNKWN": "UNKNOWN",
+            }
 
         return(job_state_dict)
         #__|
@@ -278,12 +237,12 @@ class SLACCluster(ComputerCluster):
         """
         #| - default_submission_parameters
         def_params = {
-            "queue":       "suncat",
-            "cpus":         "8",
-            "wall_time":    "3000",
+            "queue": "suncat",
+            "cpus": "8",
+            "wall_time": "3000",
             # "memory": "6000",
             # "job_name":     "Default",
-            "job_script":   "model.py"
+            "job_script": "model.py"
             }
 
         return(def_params)
@@ -322,7 +281,7 @@ class SLACCluster(ComputerCluster):
 
         # bash_command = "/u/if/flores12/bin/qv model.py"
 
-        bash_command =  "/afs/slac/g/suncat/bin/dobsub "
+        bash_command = "/afs/slac/g/suncat/bin/dobsub "
         bash_command += "-q " + str(params["queue"]) + " "
         bash_command += "-n " + str(params["cpus"]) + " "
         bash_command += "-W " + str(params["wall_time"]) + " "
@@ -337,7 +296,11 @@ class SLACCluster(ComputerCluster):
         bash_command += params["job_script"]
 
         try:
-            output = subprocess.Popen(bash_command, stdout=subprocess.PIPE, shell=True)
+            output = subprocess.Popen(
+                bash_command,
+                stdout=subprocess.PIPE,
+                shell=True,
+                )
             sub_time = datetime.datetime.now().isoformat()
         except subprocess.CalledProcessError, e:
             print "Ping stdout output:\n", e.output
@@ -396,7 +359,7 @@ class SLACCluster(ComputerCluster):
             with open(path_i + "/.jobid") as fle:
                 jobid = fle.read().strip()
         else:
-            jobid=None
+            jobid = None
 
         return(jobid)
         #__|
@@ -408,12 +371,16 @@ class SLACCluster(ComputerCluster):
         job_id = self.get_jobid(path_i)
 
         #| - If No Job ID File Return None
-        if job_id == None:
+        if job_id is None:
             return(None)
         #__|
 
         bash_comm = "/usr/local/bin/bjobs -w" + " " + job_id
-        out = subprocess.check_output(bash_comm, shell=True, stderr=subprocess.STDOUT)
+        out = subprocess.check_output(
+            bash_comm,
+            shell=True,
+            stderr=subprocess.STDOUT,
+            )
 
         #| - Checking if Job Id Still in Batch System
         if "is not found" in out:
@@ -428,13 +395,13 @@ class SLACCluster(ComputerCluster):
         data_1 = data[0:7]
 
         data_dict = {
-            "JOBID":data_1[0],
-            "USER":data_1[1],
-            "STAT":data_1[2],
-            "QUEUE":data_1[3],
-            "FROM_HOST":data_1[4],
-            "EXEC_HOST":data_1[5],
-            "JOB_NAME":data_1[6],
+            "JOBID": data_1[0],
+            "USER": data_1[1],
+            "STAT": data_1[2],
+            "QUEUE": data_1[3],
+            "FROM_HOST": data_1[4],
+            "EXEC_HOST": data_1[5],
+            "JOB_NAME": data_1[6],
             }
 
         time = data[7:]
@@ -470,7 +437,7 @@ class SLACCluster(ComputerCluster):
 
         job_info = self.job_info_batch(path_i=path_i)
 
-        if job_info != None:
+        if job_info is not None:
             key = self.job_queue_state_key
             if key in job_info:
                 job_state_out = job_info[key]
@@ -523,7 +490,7 @@ class SherlockCluster(ComputerCluster):
         #| - job_state_dict
         job_state_dict = {
             "PD": "PENDING",
-            "R":  "RUNNING",
+            "R": "RUNNING",
             "CF": "CONFIGURING",
             "SUCCEEDED": "SUCCEEDED",
 
@@ -553,15 +520,15 @@ class SherlockCluster(ComputerCluster):
         """
         #| - default_submission_parameters
         def_params = {
-            "queue":        "owners,iric,normal", # -p flag
-            "nodes":        "1",  # --nodes
-            "cpus":         "16",  # --ntasks-per-node
-            "memory":       "4000", # --mem-per-cpu
-            "wall_time":    "720", # --time (720min -> 12hrs)
-            "job_name":     "Default", # --job-name
-            "priority":     "normal", # --qos
-            "email":        "flores12@stanford.edu", # --mail-user
-            "email_mess":   "FAIL",  # --mail-type
+            "queue": "owners,iric,normal",  # -p flag
+            "nodes": "1",  # --nodes
+            "cpus": "16",  # --ntasks-per-node
+            "memory": "4000",  # --mem-per-cpu
+            "wall_time": "720",  # --time (720min -> 12hrs)
+            "job_name": "Default",  # --job-name
+            "priority": "normal",  # --qos
+            "email": "flores12@stanford.edu",  # --mail-user
+            "email_mess": "FAIL",  # --mail-type
             }
 
         return(def_params)
@@ -598,7 +565,7 @@ class SherlockCluster(ComputerCluster):
 
 
         #| - Bash Submisssion Command
-        bash_command =  "/usr/bin/sbatch "
+        bash_command = "/usr/bin/sbatch "
 
         bash_command += "-p " +                 str(params["queue"]) + " "
         bash_command += "--nodes " +            str(params["nodes"]) + " "
@@ -624,7 +591,11 @@ class SherlockCluster(ComputerCluster):
         #__|
 
         try:
-            output = subprocess.Popen(bash_command, stdout=subprocess.PIPE, shell=True)
+            output = subprocess.Popen(
+                bash_command,
+                stdout=subprocess.PIPE,
+                shell=True,
+                )
             sub_time = datetime.datetime.now().isoformat()
         except subprocess.CalledProcessError, e:
             print "Ping stdout output:\n", e.output
@@ -699,7 +670,11 @@ class SherlockCluster(ComputerCluster):
         bash_comm = "squeue -j " + str(job_id)
 
         try:
-            out = subprocess.check_output(bash_comm, shell=True, stderr=subprocess.STDOUT)
+            out = subprocess.check_output(
+                bash_comm,
+                shell=True,
+                stderr=subprocess.STDOUT,
+                )
 
             # 'JOBID PARTITION NAME USER ST TIME NODES NODELIST(REASON)'
             out = out.splitlines()
@@ -707,12 +682,12 @@ class SherlockCluster(ComputerCluster):
             out = [i for i in out if i != '']
 
             data_dict = {
-                "PARTITION":    out[1],
-                "STAT":         out[4],
+                "PARTITION": out[1],
+                "STAT": out[4],
                 # "CF":
-            }
+                }
 
-            if path_i != None:
+            if path_i is not None:
                 key = self.job_queue_state_key
                 with open(path_i + "/.QUEUESTATE", "w") as fle:
                     fle.write(self.job_state_keys[data_dict[key]])
@@ -744,10 +719,10 @@ class SherlockCluster(ComputerCluster):
         job_id = self.get_jobid(path_i=path_i)
 
         job_state_out = None
-        if job_id != None:
+        if job_id is not None:
             job_info = self.job_info_batch(job_id, path_i=path_i)
 
-            if job_info != None:
+            if job_info is not None:
                 key = self.job_queue_state_key
                 if key in job_info:
                     job_state_out = job_info[key]
@@ -811,7 +786,7 @@ class SherlockCluster(ComputerCluster):
             with open(path_i + "/.jobid") as fle:
                 jobid = fle.read().strip()
         else:
-            jobid=None
+            jobid = None
 
         return(jobid)
         #__|
@@ -881,12 +856,12 @@ class AWSCluster(ComputerCluster):
         """
         #| - default_submission_parameters
         def_params = {
-            "queue":       "medium",
-            "cpus":         "default",
+            "queue": "medium",
+            "cpus": "default",
             # "wall_time":    "2000",
             # "memory": "6000",
             # "job_name":     "Default",
-            "job_script":   "model.py",
+            "job_script": "model.py",
 
             # "copy_PythonModules": False,
             "copy_PythonModules": True,
@@ -897,8 +872,8 @@ class AWSCluster(ComputerCluster):
 
     # MAKE THIS WORK JUST COPIED PASTED FROM AWS_CLASS
     def submit_job_clust(self, **kwargs):
-    # , path_i=None, queue="test", cpus="default", copy_PythonModules=True):
-    # def submit_job_clust(self, **kwargs):
+        # , path_i=None, queue="test", cpus="default", copy_PythonModules=True):
+        # def submit_job_clust(self, **kwargs):
 
         """
         Submits job to aws cluster. Copies PythonModules folder into
@@ -916,7 +891,7 @@ class AWSCluster(ComputerCluster):
         queue = params["queue"]
 
         root_dir = os.getcwd()
-        if path == None:
+        if path is None:
             path = root_dir
 
         #| - Checking if job has already been submitted
@@ -931,7 +906,7 @@ class AWSCluster(ComputerCluster):
 
         #| - Copy PYTHONMODULES to Job Directory
         if copy_PythonModules:
-            if os.path.isdir(path + "/PythonModules") == True:
+            if os.path.isdir(path + "/PythonModules") is True:
                 print("PythonModules already exists, erasing and recopying")
                 shutil.rmtree(path + "/PythonModules")
                 py_mod = os.environ["python_modules"]
@@ -958,10 +933,12 @@ class AWSCluster(ComputerCluster):
                 bash_command = aws_dir + "/bin/trisub -q " + queue
                 # bash_command = aws_dir + "/matr.io/bin/trisub -q " + queue
             else:
-                bash_command = aws_dir + "/bin/trisub -c " + str(cpus) + " -q " + queue
+                bash_command = aws_dir + "/bin/trisub -c " + str(cpus) + \
+                    " -q " + queue
 
 
-            # bash_command = aws_dir + "/matr.io/bin/trisub " + "-c" +  + "-q " + queue
+            # bash_command = aws_dir + "/matr.io/bin/trisub " + "-c" +  +
+            # "-q " + queue
 
 
             try:
@@ -1026,7 +1003,7 @@ class AWSCluster(ComputerCluster):
             with open(path_i + "/.jobid") as fle:
                 jobid = fle.read().strip()
         else:
-            jobid=None
+            jobid = None
 
         return(jobid)
         #__|
@@ -1037,10 +1014,10 @@ class AWSCluster(ComputerCluster):
         #| - job_state
         job_id = self.get_jobid(path_i=path_i)
         job_state_out = None
-        if job_id != None:
+        if job_id is not None:
             job_info = self.job_info_batch(job_id)
 
-            if job_info != None:
+            if job_info is not None:
                 key = self.job_queue_state_key
                 if key in job_info:
                     job_state_out = job_info[key]
@@ -1144,3 +1121,53 @@ class AWSCluster(ComputerCluster):
 
 
     #__| **********************************************************************
+
+
+
+
+
+
+
+#| - __old__
+
+    # def get_jobid(self, path_i="."):
+    #     """
+    #     """
+    #     #| - get_jobid
+    #     # path_i = "."
+    #     fileid_path = path_i + "/.jobid"
+    #     # print(fileid_path)
+    #     if os.path.isfile(fileid_path):
+    #         with open(path_i + "/.jobid") as fle:
+    #             jobid = fle.read().strip()
+    #     else:
+    #         jobid=None
+    #
+    #     return(jobid)
+    #     #__|
+
+    #| - OLD
+    # def job_info_batch(self, path_i="."):
+    #     #| - job_info_batch
+    #     data_dict = self.cluster.job_info_batch(path_i = path_i)
+    #
+    #     return(data_dict)
+    #
+    #     #__|
+
+
+
+    # def write_job_queue_state_file(self, path="."):
+    #     """
+    #     """
+    #     #| - write_job_queue_state_file
+    #     print(self)
+    #     data_dict = self.cluster.job_info_batch(path_i=path)
+    #     key = self.cluster.job_state_key
+    #     with open(path_i + "/.QUEUESTATE", "w") as fle:
+    #         fle.write(data_dict[key])
+    #__|
+
+
+
+#__|

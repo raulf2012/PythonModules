@@ -1,6 +1,6 @@
 #| - IMPORT MODULES
 from raman_dft.vasp_raman_job_methods import get_modes_from_OUTCAR
-from raman_dft.vasp_raman_job_methods import parse_poscar
+# from raman_dft.vasp_raman_job_methods import parse_poscar
 
 from ase_modules.ase_methods import create_gif_from_atoms_movies
 
@@ -58,7 +58,9 @@ def create_vib_modes_atoms(
     # step_size = 1.2
     # number_images = 31
     vis_dir = "/mode_movies"
-    # path_i = "/mnt/c/Users/raul_desktop/Dropbox/01_acad_folder/01_grad_school/01_norskov/04_comp_clusters/00_scripts/09_raman_dft/view_modes"
+    # path_i = "/mnt/c/Users/raul_desktop/Dropbox/01_acad_folder
+    # /01_grad_school/01_norskov/04_comp_clusters/00_scripts/
+    # 09_raman_dft/view_modes"
     #__|
 
     #| - Reading in OUTCAR
@@ -92,7 +94,7 @@ def create_vib_modes_atoms(
         for disp_step in disps:
             pos_lst = []
             for k in range(N_atoms):
-                pos_disp = [ pos[k][l] + eigvec_i[k][l]*step_size*disp_step/norm_i for l in range(3)]
+                pos_disp = [ pos[k][l] + eigvec_i[k][l] * step_size * disp_step / norm_i for l in range(3)]
                 pos_lst.append(pos_disp)
 
             atoms_i = copy.deepcopy(atoms)
@@ -142,7 +144,10 @@ def create_vdw_kernel_symlink():
     if os.getenv("COMPENV") == "slac":
         print("TEMP - 180313 !@#")
         if not (os.path.exists("vdw_kernel.bindat")):
-            os.symlink("/nfs/slac/g/suncatfs/sw/vasp/vdw_kernel.bindat", "vdw_kernel.bindat")
+            os.symlink(
+                "/nfs/slac/g/suncatfs/sw/vasp/vdw_kernel.bindat",
+                "vdw_kernel.bindat",
+                )
 
 
             # target = "/nfs/slac/g/suncatfs/sw/vasp/vdw_kernel.bindat"
@@ -154,7 +159,7 @@ def create_vdw_kernel_symlink():
     elif os.getenv("COMPENV") == "sherlock":
         pass
 
-    if os.getenv("AWS_BATCH_JOB_ID") == None:
+    if os.getenv("AWS_BATCH_JOB_ID") is None:
         pass
 
     #__|

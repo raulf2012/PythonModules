@@ -29,12 +29,11 @@ def angle_between(v1, v2):
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
     #__|
 
-
 def smooth_data_series(y_data, box_pts):
     """Smooth data series by convolution
     """
     #| - smooth_data_series
-    box = np.ones(box_pts)/box_pts
-    y_smooth = np.convolve(y_data, box, mode='same')
+    box = np.ones(box_pts) / box_pts
+    y_smooth = np.convolve(y_data, box, mode="same")
     return(y_smooth)
     #__|

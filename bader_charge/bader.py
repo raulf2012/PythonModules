@@ -20,38 +20,39 @@ def cd2cube(atoms, spin=""):
 
     file_name = "density" + spin + ".cube"
 
-    nx,ny,nz = np.shape(cd)
+    nx, ny, nz = np.shape(cd)
     #cut away periodic image planes to correct QE output
-    u=nx-1
-    v=ny-1
-    w=nz-1
-    cd2 = np.empty((u,v,w), np.float)
+    u = nx - 1
+    v = ny - 1
+    w = nz - 1
+    cd2 = np.empty((u, v, sw), np.float)
     for i in range(u):
         for j in range(v):
             cd2[i][j][:] = cd[i][j][:w]
 
     write(file_name, atoms, data=cd2)
 
-    #edit density.cube grid size if odd number of grid points to correct for old versions of ASE
+    # edit density.cube grid size if odd number of grid points to
+    # correct for old versions of ASE
     bohr = 0.52917721092
     cell = atoms.get_cell()
-    da = cell[0]/(u*bohr)
-    db = cell[1]/(v*bohr)
-    dc = cell[2]/(w*bohr)
+    da = cell[0] / (u * bohr)
+    db = cell[1] / (v * bohr)
+    dc = cell[2] / (w * bohr)
 
-    f = open(file_name,"r")
+    f = open(file_name, "r")
     lines = f.readlines()
     f.close()
 
-    line3 = "%5.0f    %.6f    %.6f    %.6f\n"%(u,da[0],da[1],da[2])
-    line4 = "%5.0f    %.6f    %.6f    %.6f\n"%(v,db[0],db[1],db[2])
-    line5 = "%5.0f    %.6f    %.6f    %.6f\n"%(w,dc[0],dc[1],dc[2])
+    line3 = "%5.0f    %.6f    %.6f    %.6f\n" % (u, da[0], da[1], da[2])
+    line4 = "%5.0f    %.6f    %.6f    %.6f\n" % (v, db[0], db[1], db[2])
+    line5 = "%5.0f    %.6f    %.6f    %.6f\n" % (w, dc[0], dc[1], dc[2])
 
     lines[3] = line3
     lines[4] = line4
     lines[5] = line5
 
-    f = open(file_name,"w")
+    f = open(file_name, "w")
     f.writelines(lines)
     f.close()
     #__|
@@ -66,10 +67,10 @@ def cleanup(suffix="", save_cube=False):
     if not save_cube:
         os.system("rm density" + suffix + ".cube")
 
-    os.system("mv ACF.dat dir_bader/.ACF%s.dat"%suffix)
+    os.system("mv ACF.dat dir_bader/.ACF%s.dat" % suffix)
     os.system("rm AVF.dat")
     os.system("rm BCF.dat")
-    os.system("mv bader.out dir_bader/.bader%s.out"%suffix)
+    os.system("mv bader.out dir_bader/.bader%s.out" % suffix)
     #__|
 
 def bader_exec(atoms, spin=""):
@@ -98,7 +99,8 @@ def bader_exec(atoms, spin=""):
         for i, line in enumerate(lines[2:-4]):
             line = line.split()
             atoms[i].magmom -= float(line[4])
-            atoms[i].charge -= float(line[4]) - atoms.calc.get_nvalence()[1][atoms[i].symbol]
+            val_i = atoms.calc.get_nvalence()[1][atoms[i].symbol]
+            atoms[i].charge -= float(line[4]) - val_i
 
             magmom_list.append(atoms[i].magmom)
             charge_list.append(atoms[i].charge)
@@ -114,9 +116,11 @@ def bader_exec(atoms, spin=""):
     elif spin == "":
         charge_list = []
         f = open("ACF.dat"); lines = f.readlines(); f.close()
-        for i,line in enumerate(lines[2:-4]):
+        for i, line in enumerate(lines[2:-4]):
             line = line.split()
-            atoms[i].charge = atoms.calc.get_nvalence()[1][atoms[i].symbol] - float(line[4])
+
+            charge_i = atoms.calc.get_nvalence()[1][atoms[i].symbol]
+            atoms[i].charge = charge_i - float(line[4])
             charge_list.append(atoms[i].charge)
 
         atoms.info.update({"bader_charges": charge_list})
@@ -168,7 +172,7 @@ def bader(atoms, spinpol=False, outdir=None, run_exec=True):
     #     write("dir_bader/bader.traj", atoms)
 
     if outdir:
-        os.system("rm %s/charge.log"%outdir)
+        os.system("rm %s/charge.log" % outdir)
 
     atoms.set_calculator(calc=calc)
     atoms.write("out.traj")

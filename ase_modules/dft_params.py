@@ -31,7 +31,7 @@ class DFT_Params:
             data = open(dir + "/dft-params.json").read()
             data = json.loads(data)
 
-            if update_params == True:
+            if update_params is True:
                 self.update_params(data)
             else:
                 self.params = data
@@ -104,14 +104,16 @@ class DFT_Params:
         num_files = [fle for fle in os.listdir(path) if "dft-params" in fle]
         num_files = len(num_files)
 
-        if overwrite == False:
+        if overwrite is False:
             if not os.path.exists(self.file_name + ".json"):
                 with open(path + "/" + self.file_name + ".json", "w") as fle:
                     # json.dump(self.params, fle, indent=2)
                     json_dump_command(self.params, fle)
 
             else:
-                with open(path + "/" + self.file_name + "_" + str(num_files) + ".json", "w") as fle:
+                fle_name = path + "/" + self.file_name + "_" + \
+                    str(num_files) + ".json"
+                with open(fle_name, "w") as fle:
                     json_dump_command(self.params, fle)
                     # json.dump(self.params, fle, indent=2)
 
@@ -144,7 +146,8 @@ class VASP_Params(DFT_Params):
 
         self.mod_dict = self.create_mod_dict()
 
-        # self.params = self.load_params(self.pymoddir, "default_espresso_params.json")
+        # self.params = self.load_params(self.pymoddir,
+        # "default_espresso_params.json")
         #__|
 
     def default_params(self):
@@ -155,64 +158,64 @@ class VASP_Params(DFT_Params):
         # Do calculation
         my_encut = 500
         my_enaug = 750
-        my_kpts = (1,1,1)
+        my_kpts = (1, 1, 1)
         my_ediff = 0.00001
         my_nsw = 200  # 0 for ASE, > 0 for VASP internal
-        my_prec = "Normal" # "Normal" or "Accurate"
-        my_istart = 0 # 0 = new job, 1:
+        my_prec = "Normal"  # "Normal" or "Accurate"
+        my_istart = 0  # 0 = new job, 1:
         my_npar = 4
         my_ibrion = 1  # RMM-DIIS
         my_isif = 2
-        my_fmax = -0.001 # ev/ang, tighter converergence
+        my_fmax = -0.001  # ev/ang, tighter converergence
         my_ispin = 2
 
         params = {}
 
-        params["ivdw"]      = 0
+        params["ivdw"] = 0
         # params["ivdw"]      = 12
 
         # Dipole Correction
-        params["ldipol"]    = False
+        params["ldipol"] = False
         # params["idipol"]    = 4
         # params[dipol]       = [0.5, 0.5, 0,5]  # Center of cell
 
-        params["kpts"]      = my_kpts
-        params["encut"]     = my_encut
-        params["enaug"]     = my_enaug
+        params["kpts"] = my_kpts
+        params["encut"] = my_encut
+        params["enaug"] = my_enaug
 
-        params["ispin"]     = my_ispin
-        params["nsw"]       = my_nsw
-        params["prec"]      = my_prec
-        params["istart"]    = my_istart
-        params["isif"]      = my_isif
+        params["ispin"] = my_ispin
+        params["nsw"] = my_nsw
+        params["prec"] = my_prec
+        params["istart"] = my_istart
+        params["isif"] = my_isif
 
         # IBRION
-        params["ibrion"]    = my_ibrion
+        params["ibrion"] = my_ibrion
         #
 
-        params["ismear"]    = 0
-        params["sigma"]     = 0.05
+        params["ismear"] = 0
+        params["sigma"] = 0.05
 
-        params["icharg"]    = 2
-        params["lasph"]     = True
-        params["voskown"]   = 1
-        params["algo"]      = "Normal"
-        params["lreal"]     = False
+        params["icharg"] = 2
+        params["lasph"] = True
+        params["voskown"] = 1
+        params["algo"] = "Normal"
+        params["lreal"] = False
 
         # convergence Parameters
-        params["ediff"]     = my_ediff
-        params["ediffg"]    = my_fmax
+        params["ediff"] = my_ediff
+        params["ediffg"] = my_fmax
 
         # Bader Charge Analysis
-        params["laechg"]    = False
+        params["laechg"] = False
 
         # Output Options
-        params["nwrite"]    = 1
-        params["lcharg"]    = True
-        params["lwave"]     = False
+        params["nwrite"] = 1
+        params["lcharg"] = True
+        params["lwave"] = False
 
         # Symmetry
-        params["isym"]      = 0
+        params["isym"] = 0
 
         # Functional Type
 
@@ -224,27 +227,26 @@ class VASP_Params(DFT_Params):
         else:
             pbe_val = "PBE"
         # print(pbe_val)  # TEMP_PRINT
-        params["xc"]        = pbe_val # TEMP
-        params["gga"]       = " PE", # sets the PBE functiona
+        params["xc"] = pbe_val  # TEMP
+        params["gga"] = " PE"  # sets the PBE functiona
 
         # Compuational Parameters
-        params["npar"]      = my_npar
-        params["nsim"]      = 1
-        params["nelmin"]    = 4
-        params["nelm"]      = 100
-        params["lplane"]    = True
+        params["npar] = my_npar
+        params["nsim"] = 1
+        params["nelmin"] = 4
+        params["nelm"] = 100
+        params["lplane"] = True
 
         # Dielectric Matrix density functional perturbation theory
-        params["lepsilon"]  = False
-
+        params["lepsilon"] = False
 
         return(params)
         #__|
 
     def create_mod_dict(self):
         """
-        Dictionary which keeps track of whether parameter has been updated externally
-        in script or if it kept at its default value.
+        Dictionary which keeps track of whether parameter has been updated
+        externally in script or if it kept at its default value.
         This is useful to know for the dependent-parameters.
         """
         #| - create_mod_dict
@@ -281,13 +283,14 @@ class Espresso_Params(DFT_Params):
         self.mod_dict = self.create_mod_dict()
 
         # self.params = self.default_params()
-        # self.params = self.load_params(self.pymoddir, "default_espresso_params.json")
+        # self.params = self.load_params(self.pymoddir,
+        # "default_espresso_params.json")
         #__|
 
     def create_mod_dict(self):
         """
-        Dictionary which keeps track of whether parameter has been updated externally
-        in script or if it kept at its default value.
+        Dictionary which keeps track of whether parameter has been updated
+        externally in script or if it kept at its default value.
         This is useful to know for the dependent-parameters.
         """
         #| - create_mod_dict
@@ -297,7 +300,7 @@ class Espresso_Params(DFT_Params):
         return(mod_dict)
         #__|
 
-    def default_params(self): # ***********************************************
+    def default_params(self):  # ***********************************************
         """
         """
         #| - default_params
@@ -306,12 +309,14 @@ class Espresso_Params(DFT_Params):
         params["dw"] = 5000           # density cutoff
         params["dipole"] = {"status": True}    # Turn on only for slabs not bulk
         params["xc"] = "BEEF-vdW"     # exchange-correlation functional
-        params["kpts"] = (3, 3, 1)    # ark - k-points for hexagonal symmetry in 2-D mater
-        params["nbands"] = -20        # 20 extra bands besides bands needed for val elec
+        params["kpts"] = (3, 3, 1)    # k-points for hexagonal symm in 2-D mater
+        # 20 extra bands besides bands needed for val elec
+        params["nbands"] = -20
         params["spinpol"] = False     # Spin-polarized calculation
 
         params["sigma"] = 0.1  # Should be low for spin calculations
-        # params["psppath"] = "/home/vossj/suncat/psp/gbrv1.5pbe/"  # pseudopotential path
+        # params["psppath"] = "/home/vossj/suncat/psp/gbrv1.5pbe/"
+        # pseudopotential path
 
         params["beefensemble"] = True
 
@@ -319,7 +324,7 @@ class Espresso_Params(DFT_Params):
         # params["parflags"] = "-npool "
         params["parflags"] = None
 
-        ## Convergence Criteria <----------------------------------------------
+        # Convergence Criteria <----------------------------------------------
         params["convergence"] = {
             "energy": 1e-5,  # convergence parameters
 
@@ -334,7 +339,7 @@ class Espresso_Params(DFT_Params):
 
 
         # File Output <--------------------------------------------------------
-        params["output"] = {"removesave": True}  # Aayush gave, saves almost nothing
+        params["output"] = {"removesave": True}  # Aayush, saves almost nothing
         # params["output"] = {
         #     "avoidio": False,
         #     "removewf": True,
@@ -348,9 +353,9 @@ class Espresso_Params(DFT_Params):
 
     def test_check(self):
         """
-        Automatically tries to set parameters based on other dependent parameters.
-        Ex.) If spinpol == True, then sigma should be smaller, 0.01ish (Charlotte
-        told me)
+        Automatically tries to set params based on other dependent parameters.
+        Ex.) If spinpol == True, then sigma should be smaller, 0.01ish
+        (Charlotte stold me)
 
         Only set this dependent param if the user has not explicitly done so,
         is what the condition for setting a parameter automatically is.
@@ -358,20 +363,21 @@ class Espresso_Params(DFT_Params):
         #| - test_check
 
         #| - Setting dw to 10 * pw
-        if self.mod_dict["dw"] == False:
+        if self.mod_dict["dw"] is False:
             dw_i = 10. * self.params["pw"]
             self.update_params({"dw": dw_i}, user_update=False)
         #__|
 
         #| - Decreasing Sigma for Spin Polarization Calculations
-        if self.mod_dict["sigma"] == False:
-            if self.params["spinpol"] == True:
+        if self.mod_dict["sigma"] is False:
+            if self.params["spinpol"] is True:
                 sigma_i = 0.02
                 self.update_params({"sigma": sigma_i}, user_update=False)
         #__|
 
         #| - Removing Beef-Ensemble if XC-Functional Not BEEF
-        if self.params["beefensemble"] == True and "BEEF" not in self.params["xc"]:
+        xc_list = self.params["xc"]
+        if self.params["beefensemble"] is True and "BEEF" not in xc_list:
             print("Functional not compatible with BEEF-ensemble method")
             self.update_params({"beefensemble": False}, user_update=False)
         #__|
