@@ -73,7 +73,6 @@ def ionic_opt(
     mode="opt",
     fmax=0.05,
     ):
-
     """
     """
     #| - ionic_opt
@@ -173,6 +172,8 @@ def ionic_opt(
 
     #__|
 
+
+
 #__|
 
 #| - Magnetic Moments *********************************************************
@@ -186,7 +187,6 @@ def set_mag_mom_to_0(atoms):
     new_mag_mom_list = np.zeros(len(mag_mom_list))
     atoms.set_initial_magnetic_moments(new_mag_mom_list)
     #__|
-
 
 # def increase_abs_val_magmoms(magmoms_list, increase_amount=1.1):
 def increase_abs_val_magmoms(magmoms_list, increase_amount=0.2):
@@ -210,7 +210,6 @@ def increase_abs_val_magmoms(magmoms_list, increase_amount=0.2):
 
     return(new_magmom_list)
     #__|
-
 
 def calc_spinpol(atoms):
     """
@@ -789,9 +788,6 @@ def thermochemical_corrections(vib_e_list, Temperature=300.0):
 
 
 #__| **************************************************************************
-
-
-
 
 
 

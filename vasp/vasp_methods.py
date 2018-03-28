@@ -29,9 +29,8 @@ def num_of_atoms_OUTCAR_tmp(outcar_fh):
                 if next_line == "\n":
                     break
 
-                ion_entry = next_line.split()[0].isdigit()
+                # ion_entry = next_line.split()[0].isdigit()
                 num_atoms += 1
-
     return(num_atoms)
     #__|
 
@@ -94,7 +93,16 @@ def create_vib_modes_atoms(
         for disp_step in disps:
             pos_lst = []
             for k in range(N_atoms):
-                pos_disp = [ pos[k][l] + eigvec_i[k][l] * step_size * disp_step / norm_i for l in range(3)]
+
+                p_k = pos[k]
+                e_ik = eigvec_i[k]
+                ss = step_size
+                ds = disp_step
+                l_lst = range(3)
+
+                pos_disp = [p_k[l] + e_ik[l] * ss * ds / norm_i for l in l_lst]
+                # pos_disp = [ pos[k][l] + eigvec_i[k][l] * step_size
+                # * disp_step / norm_i for l in range(3)]
                 pos_lst.append(pos_disp)
 
             atoms_i = copy.deepcopy(atoms)

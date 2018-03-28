@@ -1,3 +1,5 @@
+"""Adsorbate related methods"""
+
 #| - IMPORT MODULES
 from ase import Atoms
 from ase.build import molecule
