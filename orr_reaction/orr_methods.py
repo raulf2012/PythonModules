@@ -20,6 +20,14 @@ class ORR_Free_E_Plot:
     #| - ORR_Free_E_Plot *******************************************************
     # FIXME | I'm deprecating free_energy_dict in favor of a more generalizable
     # free_energy_df
+    #
+    #
+    #
+    #
+    #
+
+
+
     def __init__(self,
         free_energy_dict,
         free_energy_df=None,
