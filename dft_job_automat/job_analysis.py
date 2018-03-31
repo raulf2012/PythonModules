@@ -4,23 +4,22 @@
 import os
 # import pickle
 import cPickle as pickle
-import subprocess
+# import subprocess
 import copy
 
-from ase import io
+# from ase import io
 import pandas as pd
 import numpy as np
 
 # My Modules
-
 # from aws.aws_class import AWS_Queues
 from dft_job_automat.job_setup import DFT_Jobs_Setup
-from dft_job_automat.job_types_classes.dft_methods import DFT_Methods
-
+# from dft_job_automat.job_types_classes.dft_methods import DFT_Methods
 #__|
 
 class DFT_Jobs_Analysis(DFT_Jobs_Setup):
     """Summary line.
+
     TEMP
     """
 
@@ -36,7 +35,6 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         job_type_class=None,
         ):
         """TMP_docstring.
-        TEMP TEMP
 
         Args:
             system:
@@ -324,7 +322,10 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         #__|
 
     def job_revisions(self, path):
-        """
+        """Return number of revision folders for a given job.
+
+        Args:
+            path:
         """
         #| - job_revisions
         path = "/".join(path.split("/")[0:-1]) + "/"
@@ -404,8 +405,10 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
 
     def filter_early_revisions(self, dataframe):
-        """
-        Removes all entries (rows) which aren't the highest revision number.
+        """Remove all entries (rows) which aren't the highest revision number.
+
+        Args:
+            dataframe:
         """
         #| - filter_early_revisions
         max_rev = dataframe["revision_number"] == dataframe["max_revision"]

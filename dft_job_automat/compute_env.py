@@ -2,7 +2,7 @@
 
 #| - Import Modules
 import os
-import sys
+# import sys
 import subprocess
 import datetime
 import re
@@ -19,11 +19,12 @@ from misc_modules.misc_methods import merge_two_dicts
 # from dft_job_automat.job_setup import DFT_Jobs_Setup
 #__|
 
+
 ################################################################################
 class ComputerCluster():
-    """
-    """
+    """TEMP."""
     #| - ComputerCluster ******************************************************
+
     def __init__(self,
         ):
         """
@@ -909,10 +910,12 @@ class AWSCluster(ComputerCluster):
             if os.path.isdir(path + "/PythonModules") is True:
                 print("PythonModules already exists, erasing and recopying")
                 shutil.rmtree(path + "/PythonModules")
-                py_mod = os.environ["python_modules"]
+                # py_mod = os.environ["python_modules"]  # Old pyth mods dir
+                py_mod = os.environ["PYTHONMODULES"]
                 shutil.copytree(py_mod, path + "/PythonModules")
             else:
-                py_mod = os.environ["python_modules"]
+                # py_mod = os.environ["python_modules"]
+                py_mod = os.environ["PYTHONMODULES"]
                 shutil.copytree(py_mod, path + "/PythonModules")
         #__|
 

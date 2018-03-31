@@ -1,23 +1,28 @@
+"""ORR energetics classes and methods."""
+
 #| - IMPORT MODULES
 import numpy as np
-# import matplotlib.patches as mpatches
 import copy
 
-# import plotly
-# from plotly.graph_objs import Scatter, Layout, Figure
 from plotly.graph_objs import Scatter
 #__|
 
 class ORR_Free_E_Plot:
-    """
+    """ORR FED Class.
+
     Development Notes:
         1. Should we consider the case where the bulk energy is not 0, and we
         have to normalize all of the species energies by it?
 
         2. H2O2 methods <-------------------------------------------------------
     """
+
     #| - ORR_Free_E_Plot *******************************************************
-    def __init__(self, free_energy_dict, system_properties=None):
+    def __init__(self,
+        free_energy_dict,
+        free_energy_df=None,
+        system_properties=None,
+        ):
         """
         """
         #| - __init__
@@ -56,13 +61,13 @@ class ORR_Free_E_Plot:
 
         free_energy_list[0] += 4.92
         free_energy_list.append(3.52)
-        # print(free_energy_list)
-        return free_energy_list
+
+        return(free_energy_list)
         #__|
 
     def rxn_energy_lst(self):
-        """
-        Produces a list corresponding to the steps of ORR
+        """List corresponding to the steps of ORR.
+
         (1. O2, 2. *OOH, 3. *O, 4. *OH, 5. 2H2O)
         """
         #| - rxn_energy_lst
@@ -75,7 +80,8 @@ class ORR_Free_E_Plot:
         #__|
 
     def apply_bias(self, bias, energy_list):
-        """
+        """Apply bias to free energies.
+
         Applies a potential to every species in the 4 and 2-electron process
         and adjusts their free energies accordingly
         """
@@ -145,6 +151,7 @@ class ORR_Free_E_Plot:
         energy_lst,
         name="TEMP",
         group="group1",
+        hover_text=None,
         color="rgb(22, 96, 167)",
         plot_mode="all",
         ):
@@ -162,7 +169,6 @@ class ORR_Free_E_Plot:
         #| - create_plotly_series
         e_list = self.convert_to_plotting_list(energy_lst)
 
-        # print(e_list)
 
         x_dat = e_list[0]
         y_dat = e_list[1]
@@ -200,6 +206,8 @@ class ORR_Free_E_Plot:
             showlegend=True,
             name=name,
             hoverinfo="none",  # TEMP - 180317
+            # text=hover_text,
+
             connectgaps=False,
             line=dict(
                 color=color,
@@ -216,6 +224,8 @@ class ORR_Free_E_Plot:
             connectgaps=True,
             showlegend=show_leg_2,
             hoverinfo="none",
+            # text=hover_text,
+
             line=dict(
                 color=color,
                 width=1,
@@ -224,7 +234,6 @@ class ORR_Free_E_Plot:
             )
 
 
-        # print(new_x_dat)
 
         #| - Creating x-data in middle of states
         # new_x_dat_tmp = copy.copy(new_x_dat)
@@ -250,8 +259,8 @@ class ORR_Free_E_Plot:
             name=name,
             # connectgaps = False,
             showlegend=False,
-            hoverinfo="y+name",
-
+            # hoverinfo="y+name",
+            text=hover_text,
             marker=dict(
                 size=14,
                 opacity=0.,
@@ -267,7 +276,6 @@ class ORR_Free_E_Plot:
         elif plot_mode == "full_lines":
             data_lst = [data_2, data_3]
 
-        print(len(data_lst))
         return(data_lst)
         #__|
 
@@ -292,8 +300,6 @@ class ORR_Free_E_Plot:
         for i in range(1, rxn_steps):
             if i == 1:
                 lst.append(step_size)
-                # print(step_size)
-                # print(spacing)
                 lst.append(step_size + spacing)
             if i != 1:
                 lst.append(lst[-1] + step_size)
@@ -306,3 +312,55 @@ class ORR_Free_E_Plot:
         #__|
 
     #__| **********************************************************************
+
+
+def calc_ads_e(
+    df_row,
+    bare_raw_e,
+    oxy_ref_e=-443.70964,
+    hyd_ref_e=-16.46018,
+    ):
+    """Calculate adsorption energies from raw DFT energetics.
+
+    TEMP
+    """
+    #| - calc_ads_e
+    row = df_row
+    bare_slab = bare_raw_e
+    oxy_ref = oxy_ref_e
+    hyd_ref = hyd_ref_e
+
+    # ads_e_list = []
+    # for index, row in df.iterrows():
+    try:
+        num_O = row["atom_type_num_dict"][0]["O"]
+    except:
+        num_O = 0
+
+    try:
+        num_H = row["atom_type_num_dict"][0]["H"]
+    except:
+        num_H = 0
+
+    try:
+        raw_e = row["elec_energy"]
+        ads_e_i = raw_e - bare_slab - num_O * oxy_ref - num_H * hyd_ref
+    except:
+        ads_e_i = None
+
+    return(ads_e_i)
+
+    # ads_e_list.append(ads_e_i)
+    # ads_e_list = np.array(ads_e_list)
+    # df["ads_e"] = ads_e_list
+    #__|
+
+def lowest_e_path(tmp=42):
+    """Find the lowest energy pathway FED.
+
+    From a set of FE pathways corresponding to different sites, the lowest
+    energy states will be selected to construct a new FED.
+    """
+    #| - lowest_e_path
+    print(tmp)
+    #__|

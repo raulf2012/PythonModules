@@ -480,9 +480,7 @@ class DFT_Jobs_Workflow:
             Jobs = self.jobs_man_list[step]
 
             # df = Jobs.data_frame
-            tally = {"successes": 0, "failures": 0, "runnin
-
-            g": 0, "pending": 0}
+            tally = {"successes": 0, "failures": 0, "running": 0, "pending": 0}
 
             #| - PRINT
             print("")  # PERM_PRINT
@@ -519,7 +517,7 @@ class DFT_Jobs_Workflow:
                             job_i,
                             variable,
                             )
-                        job_i_params[variable] =
+                        job_i_params[variable] = 
                     #__|
 
                     tally = self.maint_function(

@@ -231,7 +231,7 @@ class VASP_Params(DFT_Params):
         params["gga"] = " PE"  # sets the PBE functiona
 
         # Compuational Parameters
-        params["npar] = my_npar
+        params["npar"] = my_npar
         params["nsim"] = 1
         params["nelmin"] = 4
         params["nelm"] = 100
@@ -318,7 +318,7 @@ class Espresso_Params(DFT_Params):
         # params["psppath"] = "/home/vossj/suncat/psp/gbrv1.5pbe/"
         # pseudopotential path
 
-        params["beefensemble"] = True
+        params["beefensemble"] = False
 
         # Parallelization <----------------------------------------------------
         # params["parflags"] = "-npool "
@@ -377,9 +377,12 @@ class Espresso_Params(DFT_Params):
 
         #| - Removing Beef-Ensemble if XC-Functional Not BEEF
         xc_list = self.params["xc"]
-        if self.params["beefensemble"] is True and "BEEF" not in xc_list:
-            print("Functional not compatible with BEEF-ensemble method")
-            self.update_params({"beefensemble": False}, user_update=False)
+        if "beefensemble" in self.params:
+            if self.params["beefensemble"] is True and "BEEF" not in xc_list:
+                print("Functional not compatible with BEEF-ensemble method")
+                self.update_params({"beefensemble": False}, user_update=False)
+        else:
+            pass
         #__|
 
         #__|

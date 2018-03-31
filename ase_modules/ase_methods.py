@@ -1,6 +1,40 @@
 #!/usr/bin/env python
+
 """Methods for ASE scripts, mostly DFT scripts.
-I'm adding this here and pushing to repo - 180317"""
+
+Author: Raul Flores
+"""
+
+#| - Table of Contents
+"""
+set_QE_calc_params:
+ionic_opt:
+set_mag_mom_to_0:
+increase_abs_val_magmoms:
+calc_spinpol:
+simple_mag_moms:
+set_init_mag_moms:
+reduce_magmoms:
+an_pdos:
+spin_pdos:
+an_bands:
+an_beef_ensemble:
+plot_beef_ensemble:
+an_ads_vib:
+thermochemical_corrections:
+read_atoms_from_file:
+convert_atoms_object:
+angle_between_lattice_vectors:
+magnitude_of_lattice_vectors:
+move_atoms_of_element_i:
+displace_overlayer:
+change_vacuum:
+number_of_atoms:
+number_of_constrained_atoms:
+highest_position_of_element:
+create_gif_from_atoms_movies:
+"""
+#__|
 
 #| - IMPORT MODULES
 import sys
@@ -28,18 +62,25 @@ from misc_modules.numpy_methods import angle_between
 from ase_modules.dft_params import Espresso_Params
 #__|
 
-
 #| - Parse DFT Job Parameters
 
-
-def set_QE_calc_params(atoms, params={}):
+def set_QE_calc_params(
+    atoms,
+    params={},
+    load_defaults=True,
+    ):
     """
+    Handles reading, and setting of dft calculator parameters to atoms object.
+
+    Args:
+        atoms:
+        params:
     """
     #| - set_QE_calc_params
     from espresso import espresso
 
     print("Loading QE parameters from file")
-    espresso_params_inst = Espresso_Params(load_defaults=True)
+    espresso_params_inst = Espresso_Params(load_defaults=load_defaults)
 
     if os.path.isfile("dft-params.json"):
         params_file = json.load(open("dft-params.json"))
@@ -55,8 +96,12 @@ def set_QE_calc_params(atoms, params={}):
     espresso_params_inst.write_params()
     espresso_params = espresso_params_inst.params
 
+    print("###################################*#*#*#*#*#")
+    print(espresso_params)
+    print("###################################*#*#*#*#*#")
+
     calc = espresso(**espresso_params)
-    atoms.set_calculator(calc=calc)
+    # atoms.set_calculator(calc=calc)
 
     return(calc, espresso_params)
     #__|
@@ -65,22 +110,28 @@ def set_QE_calc_params(atoms, params={}):
 
 #| - Ionic Optimization
 
-
 def ionic_opt(
     atoms,
     calc,
-    espresso_params,
+    espresso_params=None,
     mode="opt",
     fmax=0.05,
     ):
     """
+    Run ionic dft relaxation on atoms object.
+
+    Args:
+        atoms:
+        calc:
+        espresso_params:
+        mode:
+        fmax:
     """
     #| - ionic_opt
     from espresso import espresso
     from ase.optimize import QuasiNewton
 
     print("Running DFT calculation"); sys.stdout.flush()
-
 
     atoms.set_calculator(calc)
 
@@ -178,7 +229,7 @@ def ionic_opt(
 
 #| - Magnetic Moments *********************************************************
 
-
+# COMBAK | Remove this method, it is too simple
 def set_mag_mom_to_0(atoms):
     """
     """
@@ -310,7 +361,8 @@ def set_init_mag_moms(atoms, preference="bader", magmoms=None):
     spinpol_calc = calc_spinpol(atoms)
     if not spinpol_calc:
         print("set_init_mag_moms | Spin-polarization turned off")
-        set_mag_mom_to_0(atoms)
+        mag_mom_list = atoms.get_initial_magnetic_moments()
+        magmoms_i = np.zeros(len(mag_mom_list))
 
     elif magmoms is not None:
         magmoms_i = magmoms
@@ -971,7 +1023,6 @@ def displace_overlayer(
     element="C",
     save_file=False,
     ):
-
     """
     """
     #| - displace_overlayer
@@ -1099,8 +1150,6 @@ def highest_position_of_element(atoms, element_symbol):
 #__| **************************************************************************
 
 #| - Visualization ************************************************************
-
-
 def create_gif_from_atoms_movies(
     atoms_file="Default",
     path_i=".",
@@ -1113,7 +1162,6 @@ def create_gif_from_atoms_movies(
     #| - SCRIPT PARAMETERS
     fold_name = "images"
     #__|
-
 
     #| - Reading Atoms Objects - OLD
     # default = 'qn.traj'
@@ -1131,7 +1179,6 @@ def create_gif_from_atoms_movies(
     #         except:
     #             print 'Invalid traj file: ' + arg
     #__|
-
 
     #| - Read Atoms File with *.traj File Name
 
@@ -1215,7 +1262,6 @@ def create_gif_from_atoms_movies(
     # TODO - Remove png files after creating gif !!!!!
 
     #__|
-
 
 
 #__| **************************************************************************

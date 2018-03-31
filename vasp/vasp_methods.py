@@ -39,6 +39,7 @@ def create_vib_modes_atoms(
     path_i=".",
     file_name="OUTCAR",
     modes_to_run="all",
+    create_gifs=True,
     step_size=0.8,
     number_images=21,
     ):
@@ -48,6 +49,7 @@ def create_vib_modes_atoms(
         path_i:
         file_name:
         modes_to_run:
+        create_gifs:
         step_size:
         number_images:
     """
@@ -133,11 +135,12 @@ def create_vib_modes_atoms(
 
         io.write(out_traj_file, master_pos_lst)
 
-        create_gif_from_atoms_movies(
-            atoms_file="Default",
-            path_i=folder_i,
-            delay=10,
-            )
+        if create_gifs:
+            create_gif_from_atoms_movies(
+                atoms_file="Default",
+                path_i=folder_i,
+                delay=10,
+                )
 
     with open(".FINISHED", "w") as fle:
         fle.write("")

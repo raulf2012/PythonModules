@@ -1,3 +1,9 @@
-# 00_PythonModules
+# Python modules used in my research
 
-TEMP
+## Author:
+Raul Flores
+
+## Date:
+180330
+
+
