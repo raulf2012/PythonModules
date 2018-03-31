@@ -18,14 +18,19 @@ class ORR_Free_E_Plot:
     """
 
     #| - ORR_Free_E_Plot *******************************************************
+    # FIXME | I'm deprecating free_energy_dict in favor of a more generalizable
+    # free_energy_df
     def __init__(self,
         free_energy_dict,
         free_energy_df=None,
         system_properties=None,
         ):
         """
+
         """
         #| - __init__
+        print("#()* - 180330 - New branch")
+
         self.fe_dict = free_energy_dict
         self.sys_props = system_properties
 
