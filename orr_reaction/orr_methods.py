@@ -20,31 +20,31 @@ class ORR_Free_E_Plot:
     #| - ORR_Free_E_Plot *******************************************************
     # FIXME | I'm deprecating free_energy_dict in favor of a more generalizable
     # free_energy_df
-    #
-    # ksjfkjsdofjisjlfkjsdkfjsijf
-    #
-    #
-    #
-
-
 
     def __init__(self,
-        free_energy_dict,
+        free_energy_dict=None,
         free_energy_df=None,
         system_properties=None,
+
+        state_title="adsorbate",
+        free_e_title="ads_e"
         ):
         """
-
         """
         #| - __init__
         print("#()* - 180330 - New branch")
-
+        # FIXME | Remove this later
         self.fe_dict = free_energy_dict
+
+        self.fe_df = free_energy_df
+
         self.sys_props = system_properties
+        self.state_title = state_title
+        self.fe_title = free_e_title
 
         self.num_of_states = len(self.fe_dict) + 1  # bulk, OOH, O, OH, bulk
-
         self.rxn_mech_states = ["bulk", "ooh", "o", "oh", "bulk"]
+
         self.energy_lst = self.rxn_energy_lst()
         self.num_of_elec = range(self.num_of_states)[::-1]
 
@@ -55,6 +55,13 @@ class ORR_Free_E_Plot:
 
         self.energy_lst_h2o2 = self.rxn_energy_lst_h2o2()
         self.overpotential_h2o2 = self.calc_overpotential_h2o2()
+        #__|
+
+    def add_bulk_entry(self):
+        """
+        """
+        #| - add_bulk_entry
+        # TODO
         #__|
 
     def rxn_energy_lst_h2o2(self):
@@ -84,12 +91,34 @@ class ORR_Free_E_Plot:
         (1. O2, 2. *OOH, 3. *O, 4. *OH, 5. 2H2O)
         """
         #| - rxn_energy_lst
+        df = self.fe_df
+
         free_energy_list = []
         for state in self.rxn_mech_states:
-            free_energy_list.append(self.fe_dict[state])
+            # print(df)
+            # print(self.state_title)
+            print(df[self.state_title])
+            print(state)
+            tmp = df.loc[df[self.state_title] == state]
+            # print(tmp)
+            tmp1 = tmp.iloc[0][self.fe_title]
+            # print("!@#)(*&*)")
+            free_energy_list.append(tmp1)
 
         free_energy_list[0] += 4.92
-        return free_energy_list
+
+        # print("!@##@!!@#")
+        # print(free_energy_list)
+        # print("!@##@!!@#")
+
+        return(free_energy_list)
+
+        #| - __old__
+        # free_energy_list = []
+        # for state in self.rxn_mech_states:
+        #     free_energy_list.append(self.fe_dict[state])
+        #__|
+
         #__|
 
     def apply_bias(self, bias, energy_list):
