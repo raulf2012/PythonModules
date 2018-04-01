@@ -1,8 +1,10 @@
 """ORR energetics classes and methods."""
 
 #| - IMPORT MODULES
-import numpy as np
 import copy
+
+import numpy as np
+import pandas as pd
 
 from plotly.graph_objs import Scatter
 #__|
@@ -18,20 +20,42 @@ class ORR_Free_E_Plot:
     """
 
     #| - ORR_Free_E_Plot *******************************************************
+    # FIXME | I'm deprecating free_energy_dict in favor of a more generalizable
+    # free_energy_df
+
     def __init__(self,
-        free_energy_dict,
+        free_energy_dict=None,
         free_energy_df=None,
         system_properties=None,
+
+        state_title="adsorbate",
+        free_e_title="ads_e"
         ):
         """
         """
         #| - __init__
+        print("#()* - 180330 - New branch")
+        # FIXME | Remove this later
         self.fe_dict = free_energy_dict
-        self.sys_props = system_properties
 
-        self.num_of_states = len(self.fe_dict) + 1  # bulk, OOH, O, OH, bulk
+        self.fe_df = free_energy_df
+        self.sys_props = system_properties
+        self.state_title = state_title
+        self.fe_title = free_e_title
+
+
+        self.add_bulk_entry()
+
+
+        # FIXME | Remove try-except, use only 2nd statement
+        try:
+            self.num_of_states = len(self.fe_dict) + 1  # bulk, OOH, O, OH, bulk
+        except:
+            self.num_of_states = len(self.fe_df) + 1  # bulk, OOH, O, OH, bulk
+
 
         self.rxn_mech_states = ["bulk", "ooh", "o", "oh", "bulk"]
+
         self.energy_lst = self.rxn_energy_lst()
         self.num_of_elec = range(self.num_of_states)[::-1]
 
@@ -44,18 +68,41 @@ class ORR_Free_E_Plot:
         self.overpotential_h2o2 = self.calc_overpotential_h2o2()
         #__|
 
+    def add_bulk_entry(self):
+        """
+        """
+        #| - add_bulk_entry
+        # TODO
+        df = self.fe_df
+        # bulk_df = pd.DataFrame([{"adsorbate": "bulk", "ads_e": 0.0}])
+        bulk_df = pd.DataFrame([{"adsorbate": "bulk", "ads_e": 0.0}])
+        df = df.append(bulk_df, ignore_index=True)
+
+        self.fe_df = df
+        #__|
+
     def rxn_energy_lst_h2o2(self):
         """
         """
         #| - rxn_energy_lst_h2o2
         # h2o2_e = 3.52
 
+        #| - __old__
+        # free_energy_list = []
+        # for key in self.fe_dict:
+        #     # if key == "bulk" or key == key == "ooh":  # Weird <---
+        #     if key == "bulk" or key == "ooh":
+        #         free_energy_list.append(self.fe_dict[key])
+        #__|
+
+        df = self.fe_df
+
         free_energy_list = []
-        for key in self.fe_dict:
-            if key == "bulk" or key == key == "ooh":
-                free_energy_list.append(self.fe_dict[key])
-        # for state in self.rxn_mech_states:
-            # free_energy_list.append(self.fe_dict[state])
+        for index, row in df.iterrows():
+            if row["adsorbate"] == "bulk" or row["adsorbate"] == "ooh":
+                free_energy_list.append(row["ads_e"])
+
+        # Checking length of energy list
         if len(free_energy_list) != 2:
             raise ValueError("Not the correct # of steps for H2O2")
 
@@ -65,18 +112,52 @@ class ORR_Free_E_Plot:
         return(free_energy_list)
         #__|
 
+    def property_list(self, column_name):
+        """
+        General method to create a list from a column in the dataframe
+        corresponding to the steps in the ORR mechanism.
+        """
+        #| - property_list
+        df = self.fe_df
+
+        property_list = []
+        for state in self.rxn_mech_states:
+            tmp = df.loc[df[self.state_title] == state]
+            tmp1 = tmp.iloc[0][column_name]
+            property_list.append(tmp1)
+
+        # free_energy_list[0] += 4.92
+
+        return(property_list)
+        #__|
+
     def rxn_energy_lst(self):
         """List corresponding to the steps of ORR.
 
         (1. O2, 2. *OOH, 3. *O, 4. *OH, 5. 2H2O)
         """
         #| - rxn_energy_lst
+        df = self.fe_df
+        # print(df)
         free_energy_list = []
         for state in self.rxn_mech_states:
-            free_energy_list.append(self.fe_dict[state])
+            # print(state)
+            tmp = df.loc[df[self.state_title] == state]
+            # print(tmp)
+            tmp1 = tmp.iloc[0][self.fe_title]
+            free_energy_list.append(tmp1)
+            # print("!@#)(*)")
 
         free_energy_list[0] += 4.92
-        return free_energy_list
+
+        return(free_energy_list)
+
+        #| - __old__
+        # free_energy_list = []
+        # for state in self.rxn_mech_states:
+        #     free_energy_list.append(self.fe_dict[state])
+        #__|
+
         #__|
 
     def apply_bias(self, bias, energy_list):
@@ -113,16 +194,58 @@ class ORR_Free_E_Plot:
         lim_step_index = overpotential_lst.index(overpotential)
 
         limiting_step = [rxn_spec[lim_step_index], rxn_spec[lim_step_index + 1]]
+        out_list = [overpotential, limiting_step]
 
-        return [overpotential, limiting_step]
+        return(out_list)
         #__|
 
     def calc_overpotential_h2o2(self):
         """
         """
         #| - calc_overpotential_h2o2
-        return self.fe_dict["ooh"] - 4.22
+        df = self.fe_df
+        ooh_row = df[df["adsorbate"] == "ooh"]
+        ooh_ads_e = ooh_row.iloc[0]["ads_e"]
+
+        op_4e = ooh_ads_e - 4.22
+        return(op_4e)
+
+        # return self.fe_dict["ooh"] - 4.22
         #__|
+
+    def create_rxn_coord_array(self, rxn_steps, spacing=0, step_size=1):
+        """
+        Creates a reaction coordinate array ([0, 1, 1, 2, 2, 3]) for plotting
+
+        Args:
+            rxn_steps:
+                # <type 'int'>
+                # Number of steps in reaction coordinate including initial
+                and final state.
+                # Ex. A -> Intermediate -> C has 3 steps/states
+
+            spacing:
+                # <type 'float'>
+                # Spacing inbetween the energy levels. The default of 0 creates
+                a free energy diagram that looks like steps
+        """
+        #| - create_rxn_coord_array
+        lst = []
+        for i in range(1, rxn_steps):
+            if i == 1:
+                lst.append(step_size)
+                lst.append(step_size + spacing)
+            if i != 1:
+                lst.append(lst[-1] + step_size)
+                lst.append(lst[-2] + step_size + spacing)
+
+        lst.insert(0, 0)
+        lst.append(lst[-1] + step_size)
+
+        return(lst)
+        #__|
+
+    #| - Plotting @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     def convert_to_plotting_list(self, energy_lst, spacing=0.5, step_size=1):
         """
@@ -145,6 +268,54 @@ class ORR_Free_E_Plot:
         out_list = [rxn_coord_steps, energy_dupl_lst]
 
         return(out_list)
+        #__|
+
+    def plot_fed_series(
+        self,
+        bias=0.,
+        properties=None,
+        color_list=None,
+        i_cnt=0,
+        hover_text_col=None
+        ):
+        """
+        #FIXME | This is  fairly rough as of right now
+        """
+        #| - plot_fed_series
+        key = properties
+        if type(key) == tuple:
+            pass
+        else:
+            key = (key,)
+
+        e_list = self.energy_lst
+        e_list = self.apply_bias(bias, e_list)
+
+        overpot_i = self.overpotential
+
+        for n, i in enumerate(e_list):
+            if np.isnan(i) is True:
+                e_list[n] = None
+
+        name_i = "_".join([str(i) for i in key]) + \
+            " (OP: " + str(round(overpot_i, 2)) + ")"
+
+        #| - Hover Text
+        if hover_text_col is not None:
+            hover_text_list = self.property_list(hover_text_col)
+        #__|
+
+        print("Creating plotly series")
+        dat_lst = self.create_plotly_series(
+            e_list,
+            group=name_i,
+            name=name_i,
+            hover_text=hover_text_list,
+            color=color_list[i_cnt - 1],
+            # plot_mode="full_lines",
+            )
+
+        return(dat_lst)
         #__|
 
     def create_plotly_series(self,
@@ -279,40 +450,13 @@ class ORR_Free_E_Plot:
         return(data_lst)
         #__|
 
-    def create_rxn_coord_array(self, rxn_steps, spacing=0, step_size=1):
-        """
-        Creates a reaction coordinate array ([0, 1, 1, 2, 2, 3]) for plotting
-
-        Args:
-            rxn_steps:
-                # <type 'int'>
-                # Number of steps in reaction coordinate including initial
-                and final state.
-                # Ex. A -> Intermediate -> C has 3 steps/states
-
-            spacing:
-                # <type 'float'>
-                # Spacing inbetween the energy levels. The default of 0 creates
-                a free energy diagram that looks like steps
-        """
-        #| - create_rxn_coord_array
-        lst = []
-        for i in range(1, rxn_steps):
-            if i == 1:
-                lst.append(step_size)
-                lst.append(step_size + spacing)
-            if i != 1:
-                lst.append(lst[-1] + step_size)
-                lst.append(lst[-2] + step_size + spacing)
-
-        lst.insert(0, 0)
-        lst.append(lst[-1] + step_size)
-
-        return(lst)
-        #__|
+    #__| @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     #__| **********************************************************************
 
+# *****************************************************************************
+
+#| - MISC Methods
 
 def calc_ads_e(
     df_row,
@@ -364,3 +508,5 @@ def lowest_e_path(tmp=42):
     #| - lowest_e_path
     print(tmp)
     #__|
+
+#__|
