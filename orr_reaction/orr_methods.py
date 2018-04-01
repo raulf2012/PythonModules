@@ -32,27 +32,32 @@ class ORR_Free_E_Plot:
         free_e_title="ads_e"
         ):
         """
+        Input variables to class instance.
+
+        Args:
+            free_energy_dict:
+            free_energy_df:
+            system_properties:
+            state_title:
+            free_e_title:
         """
         #| - __init__
-        print("#()* - 180330 - New branch")
+
         # FIXME | Remove this later
-        self.fe_dict = free_energy_dict
+        # self.fe_dict = free_energy_dict
 
         self.fe_df = free_energy_df
         self.sys_props = system_properties
         self.state_title = state_title
         self.fe_title = free_e_title
 
-
         self.add_bulk_entry()
-
 
         # FIXME | Remove try-except, use only 2nd statement
         try:
             self.num_of_states = len(self.fe_dict) + 1  # bulk, OOH, O, OH, bulk
         except:
             self.num_of_states = len(self.fe_df) + 1  # bulk, OOH, O, OH, bulk
-
 
         self.rxn_mech_states = ["bulk", "ooh", "o", "oh", "bulk"]
 
@@ -68,32 +73,33 @@ class ORR_Free_E_Plot:
         self.overpotential_h2o2 = self.calc_overpotential_h2o2()
         #__|
 
-    def add_bulk_entry(self):
+    def add_bulk_entry(self,
+        bulk_e=0.0,
+        ):
         """
+        Append a row entry to data frame corresponding to bulk state.
+
+        Args:
+            bulk_e:
         """
         #| - add_bulk_entry
-        # TODO
         df = self.fe_df
-        # bulk_df = pd.DataFrame([{"adsorbate": "bulk", "ads_e": 0.0}])
-        bulk_df = pd.DataFrame([{"adsorbate": "bulk", "ads_e": 0.0}])
+        print(df)
+        print("!@#() - TEMP - 180401`")
+        bulk_df = pd.DataFrame([{
+            "adsorbate": "bulk",
+            "ads_e": bulk_e,
+            }])
+
         df = df.append(bulk_df, ignore_index=True)
 
         self.fe_df = df
         #__|
 
     def rxn_energy_lst_h2o2(self):
-        """
-        """
+        """Construct energy list of h2o2 FED."""
         #| - rxn_energy_lst_h2o2
         # h2o2_e = 3.52
-
-        #| - __old__
-        # free_energy_list = []
-        # for key in self.fe_dict:
-        #     # if key == "bulk" or key == key == "ooh":  # Weird <---
-        #     if key == "bulk" or key == "ooh":
-        #         free_energy_list.append(self.fe_dict[key])
-        #__|
 
         df = self.fe_df
 
@@ -114,8 +120,13 @@ class ORR_Free_E_Plot:
 
     def property_list(self, column_name):
         """
-        General method to create a list from a column in the dataframe
-        corresponding to the steps in the ORR mechanism.
+        General method to create a list from a column in the dataframe.
+
+        The length of the list will correspond to the steps in the ORR
+        mechanism.
+
+        Args:
+            column_name:
         """
         #| - property_list
         df = self.fe_df
@@ -176,7 +187,9 @@ class ORR_Free_E_Plot:
 
     def calc_overpotential(self):
         """
-        # Returns the limiting overpotential for the given species and the
+        Calculate overpotential for 4e- process.
+
+        Returns the limiting overpotential for the given species and the
         limiting reaction step in the form of a list, species_A -> species_B is
         [species_A, species_B]
         """
@@ -201,6 +214,10 @@ class ORR_Free_E_Plot:
 
     def calc_overpotential_h2o2(self):
         """
+        Calculate overpotential for 2e- process.
+
+        The overpotential for the 2e- process depends only on the energy of the
+        *OOH intermediate
         """
         #| - calc_overpotential_h2o2
         df = self.fe_df
@@ -208,14 +225,17 @@ class ORR_Free_E_Plot:
         ooh_ads_e = ooh_row.iloc[0]["ads_e"]
 
         op_4e = ooh_ads_e - 4.22
-        return(op_4e)
 
-        # return self.fe_dict["ooh"] - 4.22
+        return(op_4e)
         #__|
 
-    def create_rxn_coord_array(self, rxn_steps, spacing=0, step_size=1):
+    def create_rxn_coord_array(self,
+        rxn_steps,
+        spacing=0,
+        step_size=1,
+        ):
         """
-        Creates a reaction coordinate array ([0, 1, 1, 2, 2, 3]) for plotting
+        Create a reaction coordinate array ([0, 1, 1, 2, 2, 3]) for plotting.
 
         Args:
             rxn_steps:
@@ -247,14 +267,21 @@ class ORR_Free_E_Plot:
 
     #| - Plotting @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-    def convert_to_plotting_list(self, energy_lst, spacing=0.5, step_size=1):
+    def convert_to_plotting_list(self,
+        energy_lst,
+        spacing=0.5,
+        step_size=1,
+        ):
         """
+        Repeat entries in energy list to conform to FED plot.
+
+        Modifies an energy list for plotting by repeating each entry
+        Ex. [4.92, 3.69, ... ] -> [4.92, 4.92, 3.69, 3.69, ... ]
 
         Args:
-            energy_lst:
-                # <type 'list'>
-                # Modifies an energy list for plotting by repeating each entry
-                # Ex. [4.92, 3.69, ... ] -> [4.92, 4.92, 3.69, 3.69, ... ]
+            energy_lst: <type 'list'>
+            spacing:
+            step_size:
         """
         #| - convert_to_plotting_list
         tmp_list = range(len(energy_lst) * 2)
@@ -279,6 +306,15 @@ class ORR_Free_E_Plot:
         hover_text_col=None
         ):
         """
+        Process data for FED plot.
+
+        Args:
+            bias:
+            properties:
+            color_list:
+            i_cnt:
+            hover_text_col:
+
         #FIXME | This is  fairly rough as of right now
         """
         #| - plot_fed_series
@@ -327,6 +363,8 @@ class ORR_Free_E_Plot:
         plot_mode="all",
         ):
         """
+        Create a plotly series for the current instance.
+
         Args:
             energy_lst:
             name:
