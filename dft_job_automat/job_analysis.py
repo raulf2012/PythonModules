@@ -2,25 +2,23 @@
 
 #| - Import Modules
 import os
-# import pickle
 import cPickle as pickle
-# import subprocess
 import copy
+import glob
 
-# from ase import io
 import pandas as pd
 import numpy as np
 
+from ase.visualize import view
+
 # My Modules
-# from aws.aws_class import AWS_Queues
 from dft_job_automat.job_setup import DFT_Jobs_Setup
-# from dft_job_automat.job_types_classes.dft_methods import DFT_Methods
 #__|
 
 class DFT_Jobs_Analysis(DFT_Jobs_Setup):
-    """Summary line.
+    """Analysis methods for jobs in tree structure.
 
-    TEMP
+    Parent class to DFT_Jobs_Setup
     """
 
     def __init__(self,
@@ -30,18 +28,21 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         skip_dirs_lst=None,
         working_dir=".",
         update_job_state=True,
-        # update_job_state=False,  # TEMP
         load_dataframe=True,
         job_type_class=None,
         ):
-        """TMP_docstring.
+        """Initialize DFT_Jobs_Analysis Instance.
 
         Args:
             system:
             tree_level:
             level_entries:
+            skip_dirs_lst:
+            working_dir:
             update_job_state:
                 Updates job status for all jobs in ensemble
+            load_dataframe:
+            job_type_class:
         """
         #| - __init__
         DFT_Jobs_Setup.__init__(self,
@@ -51,44 +52,6 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             skip_dirs_lst=None,
             working_dir=working_dir,
             )
-
-        #| - TEMP
-        # if load_dataframe == True:
-        #     try:
-        #         self.__load_dataframe__()
-        #
-        #         if update_job_state == True:
-        #             self.add_data_column(self.job_state_2, column_name="job_state_2")
-        #         else:
-        #             pass
-        #         print("")
-        #
-        #     except:
-        #         self.add_data_column(self.job_revisions, column_name="job_revision_number")
-        #         self.add_data_column(self.job_state, column_name="job_state")
-        #         # self.add_data_column(self.elec_energy, column_name="elec_energy")
-        #         self.add_data_column(self.max_force, column_name="max_force")
-        #         self.add_data_column(self.job_submitted, column_name="job_submitted")
-        #         self.add_data_column(self.job_queue_info, column_name="N/A")
-        #
-        #         self.add_data_column(self.job_state_2, column_name="job_state_2")
-        #
-        #         self.__write_dataframe__()
-        #         print("")
-        #
-        # else:
-        #     self.add_data_column(self.job_revisions, column_name="job_revision_number")
-        #     self.add_data_column(self.job_state, column_name="job_state")
-        #     # self.add_data_column(self.elec_energy, column_name="elec_energy")
-        #     self.add_data_column(self.max_force, column_name="max_force")
-        #     self.add_data_column(self.job_submitted, column_name="job_submitted")
-        #     self.add_data_column(self.job_state_2, column_name="job_state_2")
-        #     self.add_data_column(self.job_queue_info, column_name="N/A")
-        #
-        #     self.__write_dataframe__()
-        #     print("")
-        #__|
-
 
         #| - General Methods
         if update_job_state == True:
@@ -101,26 +64,30 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         #__|
 
         #| - Job Type Specific Methods
-
         # method = DFT_Methods().atom_type_num_dict
         # self.add_data_column(method, column_name="TEMP", allow_failure=False)
 
-
-        if load_dataframe == True:
+        if load_dataframe is True:
             self.__load_dataframe__()
 
         else:
-            if job_type_class != None:
+            if job_type_class is not None:
                 job_type_inst = job_type_class
 
                 for method in job_type_inst.methods_to_run:
                     method_ref = getattr(job_type_inst, method)
                     self.method = method_ref
-                    self.add_data_column(method_ref, column_name=method, allow_failure=True)
+                    self.add_data_column(
+                        method_ref,
+                        column_name=method,
+                        allow_failure=True,
+                        )
                     # self.add_data_column(method_ref, column_name=method, allow_failure=False)
 
                 # TEMP
                 self.__write_dataframe__()
+
+        self.add_all_columns_from_file()
         #__|
 
         #__|
@@ -129,7 +96,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         """
         """
         #| - add_jobs_queue_data
-
+        # COMBAK Not finished
 
         #__|
 
@@ -148,22 +115,18 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
         job_info = df.iloc[index].to_dict()
 
-
         return(job_info)
         #__|
 
     def __load_dataframe__(self):
-        """Attempts to loead
-        """
+        """Attempts to load dataframe."""
         #| - __load_dataframe__
-        # return(donkle)
-        df = pd.read_csv(self.root_dir + "/jobs_bin/job_dataframe.csv")
 
-        with open(self.root_dir + "/jobs_bin/job_dataframe.pickle", "rb") as  fle:
+        # FIXME Reading csv is deprecated method of leading data frame
+        # df = pd.read_csv(self.root_dir + "/jobs_bin/job_dataframe.csv")
+
+        with open(self.root_dir + "/jobs_bin/job_dataframe.pickle", "rb") as fle:
             df = pickle.load(fle)
-
-        # df = pickle.load(open(self.root_dir + "/jobs_bin/job_dataframe.pickle", "rb"))
-        # df = pickle.load(open(self.root_dir + "/jobs_bin/job_dataframe.pickle", "rb"))
 
         self.data_frame = df
 
@@ -178,10 +141,83 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         df = self.data_frame
         df.to_csv(self.root_dir + "/jobs_bin/job_dataframe.csv", index=False)
 
-        with open(self.root_dir + "/jobs_bin/job_dataframe.pickle", "wb") as fle:
+        df_pickle_fle = self.root_dir + "/jobs_bin/job_dataframe.pickle"
+        with open(df_pickle_fle, "wb") as fle:
             pickle.dump(df, fle)
+        #__|
 
-        # pickle.dump(df, open(self.root_dir + "/jobs_bin/job_dataframe.pickle", "wb"))
+    def add_all_columns_from_file(self):
+        """
+        """
+        #| - add_all_columns_from_file
+        dir_list = glob.glob(self.root_dir + "/jobs_bin/data_columns/*.col*")
+        col_data_file_list = [dir.split("/")[-1] for dir in dir_list]
+
+        for col_file in col_data_file_list:
+            self.add_data_column_from_file(col_file)
+        #__|
+
+    def add_data_column_from_file(self,
+        file_name,
+        ):
+        """Add data in "file_name" file to dataframe.
+
+        Searches in jobs_bin/data_columns/
+        Args:
+            file_name:
+        """
+        #| - add_data_column_from_file
+
+        #| - Extracting Column Name From File Name
+        col_name = file_name.split(".")[0]
+        #__|
+
+        #| - Reading Column Data File - NEW
+        column_file = self.root_dir + "/jobs_bin/data_columns/" + file_name
+        with open(column_file, "r") as fle:
+            content = fle.readlines()
+
+        content = [x.strip().split("|") for x in content]
+
+        content_new = []
+        for line in content:
+            line_new = {}
+            line_new["value"] = line[0].strip()
+            line_new["revision"] = line[1].strip()
+            line_new["path"] = line[2].strip()
+
+            content_new.append(line_new)
+        #__|
+
+        print("!@#!@*)(&) - 180403")
+        print(content_new)
+
+        #| - Matching Dataframe with New Data Column
+        df = self.data_frame
+
+        df["full_path"] = df["path"].astype(str) + "_" + \
+            df["revision_number"].astype(str)
+
+        column_data_list = []
+        for i_ind, (index, row) in enumerate(df.iterrows()):
+
+            row_has_entry = False
+            for entry in content_new:
+
+                entry_fullpath = entry["path"] + "_" + entry["revision"]
+                if entry_fullpath == row["full_path"]:
+                    column_data_list.append(entry["value"])
+                    row_has_entry = True
+                    continue
+
+            if not row_has_entry:
+                column_data_list.append(np.nan)
+
+        df.drop("full_path", axis=1)
+
+        df[col_name] = column_data_list
+        #__|
+
         #__|
 
     def add_data_column(self,
@@ -190,6 +226,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         revision="auto",
         allow_failure=True):
         """
+        Add data column to data frame by iterating thourgh job folders.
 
         Args:
             function: <type 'function'>
@@ -403,7 +440,6 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         return(data_lst)
         #__|
 
-
     def filter_early_revisions(self, dataframe):
         """Remove all entries (rows) which aren't the highest revision number.
 
@@ -415,6 +451,26 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         data_series_maxrev = dataframe[max_rev]
 
         return(data_series_maxrev)
+        #__|
+
+    def view_atoms(self, ind):
+        """
+        """
+        #| - view_atoms
+        # print(df.iloc[ind]["full_path"])
+        df = self.data_frame
+
+        path_i = df.iloc[ind]["path"]
+        rev_num = df.iloc[ind]["revision_number"].astype(str)
+        full_path = path_i + "_" + rev_num
+
+        print(full_path)
+
+        try:
+            atoms = df.iloc[ind]["atoms_object"][-1]
+            view(atoms)
+        except:
+            print("Couldn't read atoms object")
         #__|
 
 #__|
@@ -786,7 +842,8 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         """
         """
         #| - job_pending
-        # path_i = self.var_lst_to_path(job_i, job_rev="Auto", relative_path=False)
+        # path_i = self.var_lst_to_path(job_i, job_rev="Auto",
+        # relative_path=False)
 
         crit_0 = False
         job_state = self.cluster.cluster.job_state(path_i=path_i)
@@ -929,7 +986,6 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
         crit_list = [crit_0, crit_1, crit_2]
 
-        # print(crit_list)
         if all(crit == True for crit in crit_list):
             return(True)
         else:
@@ -985,54 +1041,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         else:
             error = False
 
-        # print(error)
         return(error)
         #__|
 
 #__| ***************************************************************************
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#| - DEPRECATED METHODS
-# def max_force(self, path):
-#     """
-#     """
-#     #| - max_force
-#     with open(path + "/simulation/qn.log", "r") as file:
-#         max_f = file.readlines()[-1].split(" ")[-1]
-#         return(float(max_f))
-#     #__|
-
-# def job_id_names(self):
-#     """
-#     """
-#     #| - job_id_names
-#     try:
-#         f = open("job_id_names", "r")
-#         job_id_data = pickle.load(f)
-#         f.close()
-#
-#         id_list = job_id_data[0]
-#         name_list = job_id_data[1]
-#
-#         self.data_frame["job_id"] = id_list
-#         self.data_frame["job_name"] = name_list
-#     except:
-#         print("Couldn't parse job_id_names file")
-#
-#     #__|
-
-#__|

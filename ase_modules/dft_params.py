@@ -22,7 +22,7 @@ class DFT_Params:
         #__|
 
     def load_params(self, dir=".", update_params=True):
-        """Import JSON file containing parameters in dictionary
+        """Import JSON file containing parameters in dictionary.
 
         TEMP TEMP
         """
@@ -57,7 +57,7 @@ class DFT_Params:
         #__|
 
     def PythonPath(self):
-        """Returns PYTHONPATH system variable_lst
+        """Return PYTHONPATH system variable_lst.
 
         Checks dir is checked for default_espresso_params file
         """
@@ -127,8 +127,11 @@ class DFT_Params:
 
 
 class VASP_Params(DFT_Params):
+    """Useful method to define VASP parameters for DFT job.
+
+    TEMP
     """
-    """
+
     #| - VASP_Params ***********************************************************
     def __init__(self, load_defaults=True):
         """TMP_docstring.
@@ -151,8 +154,7 @@ class VASP_Params(DFT_Params):
         #__|
 
     def default_params(self):
-        """
-        """
+        """User-defined default DFT parameters."""
         #| - default_params
 
         # Do calculation
@@ -245,6 +247,8 @@ class VASP_Params(DFT_Params):
 
     def create_mod_dict(self):
         """
+        Create modification book-keepig dictionary.
+
         Dictionary which keeps track of whether parameter has been updated
         externally in script or if it kept at its default value.
         This is useful to know for the dependent-parameters.
@@ -261,10 +265,11 @@ class VASP_Params(DFT_Params):
 
 
 class Espresso_Params(DFT_Params):
-    """Summary line.
+    """Useful method to define quantum espresso parameters for DFT job.
 
     TEMP
     """
+
     #| - Espresso_Params *******************************************************
     def __init__(self, load_defaults=True):
         """TMP_docstring.
@@ -289,6 +294,8 @@ class Espresso_Params(DFT_Params):
 
     def create_mod_dict(self):
         """
+        Create modification book-keepig dictionary.
+
         Dictionary which keeps track of whether parameter has been updated
         externally in script or if it kept at its default value.
         This is useful to know for the dependent-parameters.
@@ -301,8 +308,7 @@ class Espresso_Params(DFT_Params):
         #__|
 
     def default_params(self):  # ***********************************************
-        """
-        """
+        """User-defined default DFT parameters."""
         #| - default_params
         params = {}
         params["pw"] = 500            # plane-wave cutoff
@@ -354,6 +360,7 @@ class Espresso_Params(DFT_Params):
     def test_check(self):
         """
         Automatically tries to set params based on other dependent parameters.
+
         Ex.) If spinpol == True, then sigma should be smaller, 0.01ish
         (Charlotte stold me)
 

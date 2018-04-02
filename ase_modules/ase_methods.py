@@ -1082,7 +1082,6 @@ def change_vacuum(atoms, vacuum):
 
 #| - Atoms Information Methods ************************************************
 
-
 def number_of_atoms(atoms):
     """
     """

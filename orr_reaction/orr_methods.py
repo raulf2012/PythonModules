@@ -2,10 +2,8 @@
 
 #| - IMPORT MODULES
 import copy
-
 import numpy as np
 import pandas as pd
-
 from plotly.graph_objs import Scatter
 #__|
 
@@ -16,18 +14,15 @@ class ORR_Free_E_Plot:
         1. Should we consider the case where the bulk energy is not 0, and we
         have to normalize all of the species energies by it?
 
-        2. H2O2 methods <-------------------------------------------------------
+        # TODO | The hover over information for FED plots are messed up (shows
+        2 different formatting based on slight changes in mouse position)
+
     """
 
     #| - ORR_Free_E_Plot *******************************************************
-    # FIXME | I'm deprecating free_energy_dict in favor of a more generalizable
-    # free_energy_df
-
     def __init__(self,
-        free_energy_dict=None,
         free_energy_df=None,
         system_properties=None,
-
         state_title="adsorbate",
         free_e_title="ads_e"
         ):
@@ -35,40 +30,26 @@ class ORR_Free_E_Plot:
         Input variables to class instance.
 
         Args:
-            free_energy_dict:
             free_energy_df:
+                Pandas dataframe containing the adsorbates as rows
+                Required columns, adsorbate, free energy
             system_properties:
             state_title:
             free_e_title:
         """
         #| - __init__
-
-        # FIXME | Remove this later
-        # self.fe_dict = free_energy_dict
-
         self.fe_df = free_energy_df
         self.sys_props = system_properties
         self.state_title = state_title
         self.fe_title = free_e_title
-
         self.add_bulk_entry()
-
-        # FIXME | Remove try-except, use only 2nd statement
-        try:
-            self.num_of_states = len(self.fe_dict) + 1  # bulk, OOH, O, OH, bulk
-        except:
-            self.num_of_states = len(self.fe_df) + 1  # bulk, OOH, O, OH, bulk
-
+        self.num_of_states = len(self.fe_df) + 1  # bulk, OOH, O, OH, bulk
         self.rxn_mech_states = ["bulk", "ooh", "o", "oh", "bulk"]
-
+        self.ideal_energy = [4.92, 3.69, 2.46, 1.23, 0]
         self.energy_lst = self.rxn_energy_lst()
         self.num_of_elec = range(self.num_of_states)[::-1]
-
         self.overpotential = self.calc_overpotential()[0]
         self.limiting_step = self.calc_overpotential()[1]
-
-        self.ideal_energy = [4.92, 3.69, 2.46, 1.23, 0]
-
         self.energy_lst_h2o2 = self.rxn_energy_lst_h2o2()
         self.overpotential_h2o2 = self.calc_overpotential_h2o2()
         #__|
@@ -84,8 +65,6 @@ class ORR_Free_E_Plot:
         """
         #| - add_bulk_entry
         df = self.fe_df
-        print(df)
-        print("!@#() - TEMP - 180401`")
         bulk_df = pd.DataFrame([{
             "adsorbate": "bulk",
             "ads_e": bulk_e,
@@ -149,26 +128,15 @@ class ORR_Free_E_Plot:
         """
         #| - rxn_energy_lst
         df = self.fe_df
-        # print(df)
         free_energy_list = []
         for state in self.rxn_mech_states:
-            # print(state)
             tmp = df.loc[df[self.state_title] == state]
-            # print(tmp)
             tmp1 = tmp.iloc[0][self.fe_title]
             free_energy_list.append(tmp1)
-            # print("!@#)(*)")
 
         free_energy_list[0] += 4.92
 
         return(free_energy_list)
-
-        #| - __old__
-        # free_energy_list = []
-        # for state in self.rxn_mech_states:
-        #     free_energy_list.append(self.fe_dict[state])
-        #__|
-
         #__|
 
     def apply_bias(self, bias, energy_list):
@@ -194,7 +162,6 @@ class ORR_Free_E_Plot:
         [species_A, species_B]
         """
         #| - calc_overpotential
-        # e_lst = self.energy_lst
         rxn_spec = self.rxn_mech_states
 
         overpotential_lst = []
@@ -445,9 +412,6 @@ class ORR_Free_E_Plot:
 
 
         #| - Creating x-data in middle of states
-        # new_x_dat_tmp = copy.copy(new_x_dat)
-        # new_y_dat_tmp = copy.copy(new_y_dat)
-
         short_y = np.array(y_dat)[::2]
 
         xdat = list(set(new_x_dat))
@@ -456,7 +420,7 @@ class ORR_Free_E_Plot:
         cnt = 0
         short_x = []
         for i_ind in range(len(xdat) / 2):
-            short_x.append(xdat[cnt] + 0.5)  # TEMP Replace 0.5 with variable
+            short_x.append(xdat[cnt] + 0.5)  # FIXME Replace 0.5 with variable
             cnt += 2
         #__|
 
@@ -504,7 +468,7 @@ def calc_ads_e(
     ):
     """Calculate adsorption energies from raw DFT energetics.
 
-    TEMP
+    Default oxygen reference energy is based on water
     """
     #| - calc_ads_e
     row = df_row
@@ -512,8 +476,6 @@ def calc_ads_e(
     oxy_ref = oxy_ref_e
     hyd_ref = hyd_ref_e
 
-    # ads_e_list = []
-    # for index, row in df.iterrows():
     try:
         num_O = row["atom_type_num_dict"][0]["O"]
     except:
@@ -531,10 +493,6 @@ def calc_ads_e(
         ads_e_i = None
 
     return(ads_e_i)
-
-    # ads_e_list.append(ads_e_i)
-    # ads_e_list = np.array(ads_e_list)
-    # df["ads_e"] = ads_e_list
     #__|
 
 def lowest_e_path(tmp=42):

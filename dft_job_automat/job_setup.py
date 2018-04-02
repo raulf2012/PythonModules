@@ -6,9 +6,6 @@ import os
 import pickle
 import json
 import shutil
-import filecmp
-import subprocess
-import sys
 import pandas as pd
 import ast
 
@@ -18,22 +15,25 @@ from dft_job_automat.compute_env import ComputerCluster
 
 
 class Job:
+    """Encapsolates data and method related to single jobs.
+
+    Still a work in progress
     """
-    """
-    #| - Job ********************************************************************************
+
+    #| - Job ******************************************************************
 
     def __init__(self):
-        """
+        """COMBAK Flesh this out later.
+
+        Still a lot of work todo here
         """
         #| - __init__
-
-
+        tmp = 42
 
         #__|
 
 
-
-    #__| ************************************************************************************
+    #__| **********************************************************************
 
 class DFT_Jobs_Setup:
     """Summary line.
@@ -45,13 +45,18 @@ class DFT_Jobs_Setup:
     def __init__(self,
         system="aws",
         tree_level=None,
-        # level_vals=None,
         level_entries=None,
         skip_dirs_lst=None,
         working_dir=".",
         ):
-        """TMP_docstring.
+        """Initialize DFT_Jobs_Setup Instance.
 
+        Args:
+            system:
+            tree_level:
+            level_entries:
+            skip_dirs_lst:
+            working_dir:
         """
         #| - __init__
 
@@ -60,11 +65,6 @@ class DFT_Jobs_Setup:
             self.root_dir = os.getcwd()
         else:
             self.root_dir = working_dir
-
-        # matrio_ind = self.root_dir.split("/").index("matr.io")
-        # path = "/".join(self.root_dir.split("/")[matrio_ind + 2:])
-        # self.root_dir_short = "/" + path
-
         try:
             self.aws_dir = os.environ["TRI_PATH"]
             self.job_queue_dir = self.aws_dir + "/bin/job_queues"
@@ -72,10 +72,7 @@ class DFT_Jobs_Setup:
             pass
         #__|
 
-        #| - Computer Cluster Settings
-        # tmp = self.__parse_cluster_type__()
         self.cluster = ComputerCluster()
-        #__|
 
         self.jobs_att = self.__load_jobs_attributes__()
 
@@ -89,14 +86,13 @@ class DFT_Jobs_Setup:
         self.level_entries = level_entries
 
 
-        # self.level_vals = level_vals
 
         # TEMP
         self.skip_dirs_lst = skip_dirs_lst
         self.load_dir_struct()
         self.num_jobs = self.__number_of_jobs__()
 
-        if self.folders_exist == True:
+        if self.folders_exist is True:
             self.data_frame = self.__generate_data_table__()
         #__|
 
@@ -115,10 +111,27 @@ class DFT_Jobs_Setup:
         """
         #| - __folders_exist__
         folders_exist = False
-        if not os.path.isfile(self.root_dir + "/jobs_bin/.folders_exist"):
-            folders_exist = False
+
+        #| - Folders Exist Criteria
+        crit_0 = False
+        if os.path.isfile(self.root_dir + "/jobs_bin/.folders_exist"):
+            crit_0 = True
+
+        crit_1 = False
+        if os.path.isdir(self.root_dir + "/data"):
+            crit_1 = True
+        #__|
+
+        #| - Deciding whether folders exist or not
+        if crit_0 is True:
+            pass
+            if crit_1 is True:
+                folders_exist = True
+            else:
+                folders_exist = False
         else:
-            folders_exist = True
+            folders_exist = False
+        #__|
 
         return(folders_exist)
         #__|
@@ -131,7 +144,7 @@ class DFT_Jobs_Setup:
         #| - load_dir_struct
         if self.tree_level_labels == None and self.level_entries == None:
 
-            #| - TEMP
+            #| - __old__
             # with open(self.root_dir + "/jobs_bin/dir_structure.json", "r") as dir_struct_f:
             #     data = json.load(dir_struct_f)
             #     tree_level = data["tree_level_labels"]
@@ -162,7 +175,7 @@ class DFT_Jobs_Setup:
                         self.level_entries = level_entries
                 except:
                     try:
-                        #| - OLD
+                        #| - __old__
                         print("old - Reading dir_structure.json file from root_dir")
 
                         with open(self.root_dir + "/dir_structure.json", "r") as dir_struct_f:
@@ -239,16 +252,6 @@ class DFT_Jobs_Setup:
                 if param_i == name:
                     level_entries_list.append(params_list)
 
-        #| - __old__
-        # level_entries_list = []
-        # for name, params_list in level_entries_dict.iteritems():
-        #     for param_i in level_labels:
-        #         if param_i == name:
-        #             level_entries_list.append(params_list)
-        #__|
-
-        # level_entries_list.reverse()  # Why did I reverse here?!!
-
         return(level_entries_list)
         #__|
 
@@ -295,10 +298,6 @@ class DFT_Jobs_Setup:
         dir_structure_data["level_entries_dict"] = self.level_entries
         # TEMP
         dir_structure_data["skip_dirs"] = self.skip_dirs_lst
-
-
-        # with open("dir_structure.json", "w") as f:
-        #     json.dump(dir_structure_data, f)
 
         with open(self.root_dir + "/jobs_bin/dir_structure.json", "w") as f:
             json.dump(dir_structure_data, f, indent=2)
@@ -592,19 +591,16 @@ class DFT_Jobs_Setup:
         #__|
 
     def __generate_data_table__(self):
-        """Initialze data table from the properties of the jobs directory.
+        """
+        Initialze data table from the properties of the jobs directory.
+
+        Appends unique row for every job revision
         """
         #| - __generate_data_table__
         rows_list = []
         for job in self.job_var_lst:
             revisions = self.job_revision_number(job)
-
-            # if self.folders_exist:
-            # else:
-                # revisions = 1
-
             for revision in range(revisions + 1)[1:]:
-
                 #| - FOR LOOP BODY
                 entry_param_dict = {}
                 for prop in job:
@@ -626,33 +622,6 @@ class DFT_Jobs_Setup:
         data_frame = pd.DataFrame(rows_list)
 
         return(data_frame)
-
-        #| - 180108 - OLD
-        # rows_list = []
-        # for job in self.job_var_lst:
-        #     entry_param_dict = {}
-        #     for prop in job:
-        #         entry_param_dict[prop["property"]] = prop["value"]
-        #
-        #     entry_param_dict["variable_list"] = job
-        #     entry_param_dict["path"] = self.var_lst_to_path(job)
-        #
-        #
-        #     # self.root_dir
-        #     matrio_ind = self.root_dir.split("/").index("matr.io")
-        #     path = "/".join(self.root_dir.split("/")[matrio_ind + 2:])
-        #
-        #     entry_param_dict["root_dir"] = path
-        #
-        #
-        #     # entry_param_dict[".submitted"] = False
-        #
-        #     rows_list.append(entry_param_dict)
-        # data_frame = pd.DataFrame(rows_list)
-        #
-        # return data_frame
-        #__|
-
         #__|
 
     def job_revision_number(self, variable_lst):
