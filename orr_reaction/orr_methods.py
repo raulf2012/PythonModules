@@ -50,6 +50,7 @@ class ORR_Free_E_Plot:
         self.num_of_elec = range(self.num_of_states)[::-1]
         self.overpotential = self.calc_overpotential()[0]
         self.limiting_step = self.calc_overpotential()[1]
+        # self.ideal_energy = [4.92, 3.69, 2.46, 1.23, 0]
         self.energy_lst_h2o2 = self.rxn_energy_lst_h2o2()
         self.overpotential_h2o2 = self.calc_overpotential_h2o2()
         #__|
