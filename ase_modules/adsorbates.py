@@ -1,4 +1,4 @@
-"""Adsorbate related methods"""
+"""Adsorbate related methods."""
 
 #| - IMPORT MODULES
 from ase import Atoms
@@ -8,16 +8,15 @@ import numpy as np
 #__|
 
 class Adsorbate:
+    """Adsorbate atoms object class."""
+
+    #| - Adsorbate ************************************************************
 
     def __init__(self):
+        """Initialize Adsorbate class instance."""
         #| - __init__
         self.tmp = 42
-        # self.ooh	= self.ooh()
-        # self.o		= self.o()
-        # self.oh		= self.oh()
-        # self.h2o    = self.h2o()
         #__|
-
 
     def ooh(self,
         OO_bl=1.359,
@@ -25,8 +24,9 @@ class Adsorbate:
         OO_angle=30.0,
         H_up_down="down",
         ):
-        """
-        Angles are wrt the z-axis, so 0 is along the z-axis
+        """*OOH adsorbate.
+
+        Angles are wrt the z-axis, so 0 is along the z-axis.
 
         Args:
             OO_bl:
@@ -63,8 +63,7 @@ class Adsorbate:
         #__|
 
     def o(self):
-        """
-        """
+        """*O adsorbate."""
         #| - o
         o_mol = Atoms(['O'],
             positions=[
@@ -78,7 +77,11 @@ class Adsorbate:
     def oh(self,
         OH_bl=0.978,
         ):
-        """
+        """*OH adsorbate.
+
+        Args:
+            OH_bl:
+                O-H bond length
         """
         #| - oh
         oh_mol = Atoms(["O", "H"],
@@ -93,7 +96,11 @@ class Adsorbate:
     def h2o(self,
         H_up_down="up",
         ):
-        """
+        """H2O adsorbate.
+
+        Args:
+            H_up_down:
+                Hydrogen atom pointing up or down
         """
         #| - h2o
         h2o_mol = molecule("H2O")
@@ -108,6 +115,11 @@ class Adsorbate:
 
     def get_adsorbate(self, adsorbate, **kwargs):
         """
+        Get adsorbate by name.
+
+        Args:
+            adsorbate:
+            kwargs:
         """
         #| - get_adsorbate
         ads = getattr(self, adsorbate)(**kwargs)

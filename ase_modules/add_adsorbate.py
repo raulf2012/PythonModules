@@ -1,17 +1,18 @@
+"""Methods to add atoms/adsorbates to surfaces."""
+
 #| - Import Modules
 import numpy as np
 import copy
 import math
 
 from operator import itemgetter
-# from ase.lattice.surface import add_adsorbate
 from ase.build import add_adsorbate
 from misc_modules.numpy_methods import angle_between
 #__|
 
-
 def add_adsorbate_centered(active_element, slab, adsorbate, ads_height=2.5):
-    """
+    """Add adsorbate to surface.
+
     Places an adsorbate above an active element/atom of a slab. If multiple
     active elements are present within a unit cell, the adsorbate will be placed
     above the atom closest to the center.
@@ -47,6 +48,7 @@ def add_graphene_layer(
     graph_bond_d_real=1.4237,
     ):
     """
+    Add graphene layer above surface of hexagonal unit cell slab.
 
     Args:
         slab:

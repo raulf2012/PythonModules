@@ -11,15 +11,12 @@ class ORR_Free_E_Plot:
     """ORR FED Class.
 
     Development Notes:
-        1. Should we consider the case where the bulk energy is not 0, and we
-        have to normalize all of the species energies by it?
-
-        # TODO | The hover over information for FED plots are messed up (shows
-        2 different formatting based on slight changes in mouse position)
-
+        # TODO Should we consider the case where the bulk energy is not 0, and
+        we have to normalize all of the species energies by it?
     """
 
     #| - ORR_Free_E_Plot *******************************************************
+
     def __init__(self,
         free_energy_df=None,
         system_properties=None,
@@ -42,10 +39,15 @@ class ORR_Free_E_Plot:
         self.sys_props = system_properties
         self.state_title = state_title
         self.fe_title = free_e_title
-        self.add_bulk_entry()
-        self.num_of_states = len(self.fe_df) + 1  # bulk, OOH, O, OH, bulk
+
         self.rxn_mech_states = ["bulk", "ooh", "o", "oh", "bulk"]
         self.ideal_energy = [4.92, 3.69, 2.46, 1.23, 0]
+
+        self.add_bulk_entry()
+
+        self.fill_missing_data()
+
+        self.num_of_states = len(self.fe_df) + 1  # bulk, OOH, O, OH, bulk
         self.energy_lst = self.rxn_energy_lst()
         self.num_of_elec = range(self.num_of_states)[::-1]
         self.overpotential = self.calc_overpotential()[0]
@@ -88,6 +90,7 @@ class ORR_Free_E_Plot:
             if row["adsorbate"] == "bulk" or row["adsorbate"] == "ooh":
                 free_energy_list.append(row["ads_e"])
 
+        # print(free_energy_list)
         # Checking length of energy list
         if len(free_energy_list) != 2:
             raise ValueError("Not the correct # of steps for H2O2")
@@ -122,6 +125,30 @@ class ORR_Free_E_Plot:
         return(property_list)
         #__|
 
+    def fill_missing_data(self):
+        """
+        """
+        #| - fill_missing_data
+        df = self.fe_df
+        # print(len(self.fe_df))
+        df_missing_data = pd.DataFrame()
+        for state in self.rxn_mech_states:
+            df_state = df.loc[df[self.state_title] == state]
+
+            #| - If df is missing state fill in row with NaN for energy
+            if df_state.empty:
+                df_state = pd.DataFrame([{
+                    self.state_title: state,
+                    self.fe_title: np.nan,
+                    }])
+                df_missing_data = df_missing_data.append(df_state)
+            #__|
+
+        # print(df_missing_data)
+        self.fe_df = self.fe_df.append(df_missing_data)
+        # print(len(self.fe_df))
+        #__|
+
     def rxn_energy_lst(self):
         """List corresponding to the steps of ORR.
 
@@ -131,8 +158,18 @@ class ORR_Free_E_Plot:
         df = self.fe_df
         free_energy_list = []
         for state in self.rxn_mech_states:
-            tmp = df.loc[df[self.state_title] == state]
-            tmp1 = tmp.iloc[0][self.fe_title]
+
+            df_state = df.loc[df[self.state_title] == state]
+
+            #| - If df is missing state fill in row with NaN for energy
+            if df_state.empty:
+                df_state = pd.DataFrame([{
+                    self.state_title: state,
+                    self.fe_title: np.nan,
+                    }])
+            #__|
+
+            tmp1 = df_state.iloc[0][self.fe_title]
             free_energy_list.append(tmp1)
 
         free_energy_list[0] += 4.92
@@ -271,7 +308,8 @@ class ORR_Free_E_Plot:
         properties=None,
         color_list=None,
         i_cnt=0,
-        hover_text_col=None
+        hover_text_col=None,
+        plot_mode="all",
         ):
         """
         Process data for FED plot.
@@ -307,16 +345,17 @@ class ORR_Free_E_Plot:
         #| - Hover Text
         if hover_text_col is not None:
             hover_text_list = self.property_list(hover_text_col)
+        else:
+            hover_text_list = [np.nan for j_cnt in list(range(5))]
         #__|
 
-        print("Creating plotly series")
         dat_lst = self.create_plotly_series(
             e_list,
             group=name_i,
             name=name_i,
             hover_text=hover_text_list,
             color=color_list[i_cnt - 1],
-            # plot_mode="full_lines",
+            plot_mode=plot_mode,
             )
 
         return(dat_lst)
@@ -345,11 +384,11 @@ class ORR_Free_E_Plot:
         """
         #| - create_plotly_series
         e_list = self.convert_to_plotting_list(energy_lst)
-
-
         x_dat = e_list[0]
         y_dat = e_list[1]
 
+        if hover_text is None:
+            hover_text = [np.nan for i_ind in range(5)]
 
         #| - Parameters
         if plot_mode == "all":
@@ -366,16 +405,28 @@ class ORR_Free_E_Plot:
 
         cnt = 2
         for i_ind in range(len(x_dat) / 2 - 1):
-
             fill = new_x_dat[cnt - 1]
-
             new_x_dat.insert(cnt, fill)
             new_y_dat.insert(cnt, None)
-
             cnt += 3
         #__|
 
-        #| - Plotly Scatter Plot
+        #| - Creating x-data in middle of states
+        short_y = np.array(y_dat)[::2]
+
+        xdat = list(set(new_x_dat))
+        xdat.sort()
+
+        cnt = 0
+        short_x = []
+        for i_ind in range(len(xdat) / 2):
+            short_x.append(xdat[cnt] + 0.5)  # FIXME Replace 0.5 with variable
+            cnt += 2
+        #__|
+
+        #| - Plotly Scatter Plot Instances
+
+        #| - Thick horizontal state lines
         data_1 = Scatter(
             x=new_x_dat,
             y=new_y_dat,
@@ -392,7 +443,9 @@ class ORR_Free_E_Plot:
                 ),
             mode="lines",
             )
+        #__|
 
+        #| - Full, thin line
         data_2 = Scatter(
             x=new_x_dat,
             y=new_y_dat,
@@ -401,7 +454,7 @@ class ORR_Free_E_Plot:
             connectgaps=True,
             showlegend=show_leg_2,
             hoverinfo="none",
-            # text=hover_text,
+            text=hover_text,
 
             line=dict(
                 color=color,
@@ -409,55 +462,45 @@ class ORR_Free_E_Plot:
                 ),
             mode="lines",
             )
-
-
-
-        #| - Creating x-data in middle of states
-        short_y = np.array(y_dat)[::2]
-
-        xdat = list(set(new_x_dat))
-        xdat.sort()
-
-        cnt = 0
-        short_x = []
-        for i_ind in range(len(xdat) / 2):
-            short_x.append(xdat[cnt] + 0.5)  # FIXME Replace 0.5 with variable
-            cnt += 2
         #__|
 
+        #| - Points in middle of energy states
         data_3 = Scatter(
             x=short_x,
             y=short_y,
-
             legendgroup=group,
             name=name,
-            # connectgaps = False,
             showlegend=False,
-            # hoverinfo="y+name",
+            hoverinfo="y+text",
             text=hover_text,
             marker=dict(
                 size=14,
+                color=color,
                 opacity=0.,
                 ),
             mode="markers",
             )
         #__|
 
+        #__|
+
+        #| - Plot Mode (which data series to plot)
         if plot_mode == "all":
             data_lst = [data_1, data_2, data_3]
         elif plot_mode == "states_only":
             data_lst = [data_1, data_3]
         elif plot_mode == "full_lines":
             data_lst = [data_2, data_3]
+        #__|
 
         return(data_lst)
         #__|
+
 
     #__| @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     #__| **********************************************************************
 
-# *****************************************************************************
 
 #| - MISC Methods
 

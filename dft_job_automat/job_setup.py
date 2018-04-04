@@ -15,7 +15,8 @@ from dft_job_automat.compute_env import ComputerCluster
 
 
 class Job:
-    """Encapsolates data and method related to single jobs.
+    """
+    Encapsolates data and method related to single jobs.
 
     Still a work in progress
     """
@@ -29,18 +30,19 @@ class Job:
         """
         #| - __init__
         tmp = 42
-
+        print(tmp)
         #__|
-
 
     #__| **********************************************************************
 
 class DFT_Jobs_Setup:
-    """Summary line.
-
+    """
     Useful class to set up multiple DFT job in a directory structure.
+
     Must be initialized with tree_level and level_entries inputs
     """
+
+    #| - DFT_Jobs_Setup *******************************************************
 
     def __init__(self,
         system="aws",
@@ -85,8 +87,6 @@ class DFT_Jobs_Setup:
         self.level_entries_list = level_entries
         self.level_entries = level_entries
 
-
-
         # TEMP
         self.skip_dirs_lst = skip_dirs_lst
         self.load_dir_struct()
@@ -96,10 +96,8 @@ class DFT_Jobs_Setup:
             self.data_frame = self.__generate_data_table__()
         #__|
 
-
     def __tmp_create_jobs_bin__(self):
-        """
-        """
+        """Create /jobs_bin folder if it doesn't exist."""
         #| - __tmp_create_jobs_bin__
         folder_dir = self.root_dir + "/jobs_bin"
         if not os.path.exists(folder_dir):
@@ -107,8 +105,7 @@ class DFT_Jobs_Setup:
         #__|
 
     def __folders_exist__(self):
-        """
-        """
+        """Check whether directory structure exists."""
         #| - __folders_exist__
         folders_exist = False
 
@@ -137,15 +134,16 @@ class DFT_Jobs_Setup:
         #__|
 
     def load_dir_struct(self):
-        """Attempts to load dir structure from file in root dir if none given
+        """Attempt to load dir structure from file in root dir if none given.
 
         TEMP TEMP
         """
         #| - load_dir_struct
-        if self.tree_level_labels == None and self.level_entries == None:
+        if self.tree_level_labels is None and self.level_entries is None:
 
             #| - __old__
-            # with open(self.root_dir + "/jobs_bin/dir_structure.json", "r") as dir_struct_f:
+            # with open(self.root_dir + "/jobs_bin/dir_structure.json", "r")
+            # as dir_struct_f:
             #     data = json.load(dir_struct_f)
             #     tree_level = data["tree_level_labels"]
             #     level_entries = data["level_entries_dict"]
@@ -161,7 +159,8 @@ class DFT_Jobs_Setup:
 
             try:
                 try:
-                    with open(self.root_dir + "/jobs_bin/dir_structure.json", "r") as dir_struct_f:
+                    fle_name = self.root_dir + "/jobs_bin/dir_structure.json"
+                    with open(fle_name, "r") as dir_struct_f:
                         data = json.load(dir_struct_f)
                         tree_level = data["tree_level_labels"]
                         level_entries = data["level_entries_dict"]
@@ -176,9 +175,11 @@ class DFT_Jobs_Setup:
                 except:
                     try:
                         #| - __old__
-                        print("old - Reading dir_structure.json file from root_dir")
+                        print("old - Reading dir_structure.json file \
+                            from root_dir")
 
-                        with open(self.root_dir + "/dir_structure.json", "r") as dir_struct_f:
+                        fle_name = self.root_dir + "/dir_structure.json"
+                        with open(fle_name, "r") as dir_struct_f:
                             data = json.load(dir_struct_f)
                             tree_level = data["tree_level_labels"]
                             level_entries = data["level_entries_dict"]
@@ -202,7 +203,6 @@ class DFT_Jobs_Setup:
         # self.__check_input__()  # TEMP had to comment out because of switching
         # to new format of input files
 
-
         # FIXME
         if not type(self.level_entries) == list:
             self.level_entries_list = self.__level_entries_list__()
@@ -221,7 +221,10 @@ class DFT_Jobs_Setup:
 
         elif type(self.level_entries) == list:
             #| - New Way of Inputing Structure Files
-            tmp = self.__create_level_entries_dict__(self.tree_level_labels, self.level_entries)
+            tmp = self.__create_level_entries_dict__(
+                self.tree_level_labels,
+                self.level_entries,
+                )
             self.level_entries = tmp
 
             self.order_dict = self.__order_dict__(
@@ -238,9 +241,11 @@ class DFT_Jobs_Setup:
 
         #__|
 
-
     def __level_entries_list__(self):
         """
+        Construct level entries list.
+
+        Construct level_entries_list from level_entries_dict and level_labels
         """
         #| - level_entries_list
         level_entries_dict = self.level_entries
@@ -255,8 +260,16 @@ class DFT_Jobs_Setup:
         return(level_entries_list)
         #__|
 
-    def __create_level_entries_dict__(self, tree_level_labels, tree_level_values):
-        """Create level_entries_dict from labels and values lists
+    def __create_level_entries_dict__(self,
+        tree_level_labels,
+        tree_level_values,
+        ):
+        """
+        Create level_entries_dict from labels and values lists.
+
+        Args:
+            tree_level_labels:
+            tree_level_values:
         """
         #| - create_level_entries_dict
         level_entries_dict = {}
@@ -266,12 +279,8 @@ class DFT_Jobs_Setup:
         return(level_entries_dict)
         #__|
 
-
     def __check_input__(self):
-        """Checks that tree_level and level_entries are of matching length
-
-        Args:
-        """
+        """Check that tree_level and level_entries are of matching length."""
         #| - __check_input__
         tmp = set(self.tree_level_labels)
         input_diff = tmp.symmetric_difference(self.level_entries.keys())
@@ -281,14 +290,16 @@ class DFT_Jobs_Setup:
                 undefined_labels.append(i)
 
             print("\n")
-            message    =    "Did not fill out level entries dict properly" + "\n"
-            message    +=    "The following properties need to be defined" + "\n"
-            message    +=    str(undefined_labels)
+            message = "Did not fill out level entries dict properly" + "\n"
+            message += "The following properties need to be defined" + "\n"
+            message += str(undefined_labels)
             raise ValueError(message)
-        #__|s
+        #__|
 
     def create_dir_structure_file(self):
         """
+        Create directory structure file.
+
         Creates dir structure file from which the parameter list & dict can be
         loaded from.
         """
@@ -304,8 +315,7 @@ class DFT_Jobs_Setup:
         #__|
 
     def __load_jobs_attributes__(self):
-        """
-        """
+        """Load jobs attributes data from file."""
         #| - __load_jobs_attributes__
         job_att_file = self.root_dir + "/jobs_bin/job_attributes.csv"
 
@@ -321,6 +331,8 @@ class DFT_Jobs_Setup:
 
     def append_jobs_attributes(self, attribute):
         """
+        Append to jobs attributes file.
+
         Append dictionary key value pair to the jobs_attributes dict.
         To be pickled and saved
         """
@@ -334,38 +346,43 @@ class DFT_Jobs_Setup:
         #__|
 
     def replace_p_for_per(self, text):
-        """Replaces p in variable with "." character
-
-        """
+        """Replace p in variable with "." character."""
         #| - replace_p_for_per
         lst = [pos for pos, char in enumerate(text) if char == "p"]
 
         for lett in lst:
-            if text[lett - 1].isdigit() == True and text[lett + 1].isdigit() == True:
+
+            # if text[lett - 1].isdigit() is True and \
+            #     text[lett + 1].isdigit() is True:
+
+            cond_1 = text[lett - 1].isdigit()
+            cond_2 = text[lett + 1].isdigit()
+            if cond_1 is True and cond_2 is True:
                 text = text[:lett] + "." + text[lett + 1:]
+
         return(text)
         #__|
 
     def replace_negative_for_n(self, text):
-        """Replaces variable quantities that are negative with an "n"
-        """
+        """Replace variable quantities that are negative with an "n"."""
         #| - replace_negative_for_n
         lst = [pos for pos, char in enumerate(text) if char == "n"]
 
         for lett in lst:
-            if text[lett + 1].isdigit() == True:
+            if text[lett + 1].isdigit() is True:
                 text = text[:lett] + "-" + text[lett + 1:]
+
         return(text)
         #__|
 
     def create_dir_struct(self, create_first_rev_folder="True"):
-        """Creates directory structure according to job variable list & dict
+        """
+        Create directory structure according to job variable list & dict.
 
         Args:
             create_first_rev_folder:
         """
         #| - create_dir_struct
-
         for job in self.job_var_lst:
 
             if create_first_rev_folder == "True":
@@ -382,11 +399,9 @@ class DFT_Jobs_Setup:
             elif not os.path.exists(path):
                 os.makedirs(path)
 
-
         #| - Creating Variable Text Files Through Directoy Structure
         for job in self.job_var_lst:
             path = self.var_lst_to_path(job)
-            # path = path
             path = self.root_dir + "/" + path
 
             f = open(path + "job_dir_level", "w")
@@ -399,11 +414,9 @@ class DFT_Jobs_Setup:
             else:
                 prop_lst = []
                 for folder in dirs:
-                    prop = self.replace_p_for_per(self.sep.join(folder.split(self.sep)[1:]))
-                    # prop = self.replace_p_for_per(folder.split(self.sep)[1])
-
+                    tmp = self.sep.join(folder.split(self.sep)[1:])
+                    prop = self.replace_p_for_per(tmp)
                     prop = self.replace_negative_for_n(prop)
-
                     prop_lst.append(prop)
 
                 for key, value in self.level_entries.items():
@@ -414,7 +427,6 @@ class DFT_Jobs_Setup:
                         f.close()
 
         #__|
-
 
         #| - Writing Directory Structure File
 
@@ -439,10 +451,10 @@ class DFT_Jobs_Setup:
     def __order_dict__(self, tree_level_labels, level_entries):
         """Order of properties to correspond to order of tree.
 
-        Creates "order_dict", which contains the depth level for each descriptor.
-        Each job directory will have a unique descriptor list. The "order_dict"
-        variable is used to make sure that the ordering of the descriptors in
-        this list matches the "dir_tree_level" structure.
+        Creates "order_dict", which contains the depth level for each
+        descriptor. Each job directory will have a unique descriptor list.
+        The "order_dict" variable is used to make sure that the ordering of the
+        descriptors in this list matches the "dir_tree_level" structure.
 
         Args:
             tree_level_labels:
@@ -462,7 +474,9 @@ class DFT_Jobs_Setup:
         #__|
 
     def __job_variable_list__(self, level_entries, order_dict):
-        """TEMP.
+        """
+        TEMP.
+
         # TODO  - This messes up when the level entries are  the same (FIX)
         # UPDATE - Tried to fix, check that it works ok
 
@@ -471,47 +485,22 @@ class DFT_Jobs_Setup:
             order_dict:
         """
         #| - __job_variable_list__
-
         all_comb = itertools.product(*level_entries)
 
-        job_dir_lst = []  # <--------------------------------------
+        job_dir_lst = []
         for job_dir in all_comb:
-
-            #| - __new__
             final_lst_2 = []
             param_names = self.tree_level_labels
 
             for ind, prop in enumerate(job_dir):
-                # new_entry[prop] = job_dir[ind]
-
                 new_entry = {}
                 new_entry["property"] = param_names[ind]
                 new_entry["value"] = job_dir[ind]
                 final_lst_2.append(new_entry)
 
             job_dir_lst.append(final_lst_2)
-            #__|
 
-            #| - __old__
-            # order_lst_entry = []
-            # for descriptor in list(job_dir):
-            #     order_lst_entry.append(order_dict[descriptor])
-            #
-            # final_lst = [j[1] for j in sorted(zip(order_lst_entry, list(job_dir)))]
-            #
-            # final_lst_2 = []
-            # for i in final_lst:
-            #     for key, value in self.level_entries.items():
-            #         if i in value:
-            #             new_entry = {}
-            #             new_entry["property"] = key
-            #             new_entry["value"] = i
-            #     final_lst_2.append(new_entry)
-            #
-            # job_dir_lst.append(final_lst_2)
-            #__|
-
-        if self.skip_dirs_lst != None:
+        if self.skip_dirs_lst is not None:
             for skip in self.skip_dirs_lst:
                 job_dir_lst.remove(skip)
 
@@ -520,14 +509,23 @@ class DFT_Jobs_Setup:
 
     def __number_of_jobs__(self):
         """
+        Count number of jobs in instance.
+
+        Depends on number of unique variable list and number of revisions for
+        each job.
         """
         #| - __number_of_jobs__
         num_jobs = len(self.job_var_lst)
         return(num_jobs)
         #__|
 
-    def var_lst_to_path(self, variable_lst, job_rev="False", relative_path=True):
-        """TEMP.
+    def var_lst_to_path(self,
+        variable_lst,
+        job_rev="False",
+        relative_path=True,
+        ):
+        """
+        Construct path string from variable list.
 
         Args:
             variable_lst: <type 'list'>
@@ -535,11 +533,10 @@ class DFT_Jobs_Setup:
             job_rev: <type 'str'>
                 False:
                 Auto:
-
         """
         #| - var_lst_to_path
-
-        if type(variable_lst) == type("str"):
+        # if type(variable_lst) == type("str"):
+        if isinstance(variable_lst, str):
             variable_lst = ast.literal_eval(variable_lst)
         else:
             pass
@@ -553,8 +550,9 @@ class DFT_Jobs_Setup:
             if index < 10: index = "0" + str(index)
             else: index = str(index)
 
-            #| - REPLACING PERIODS IN FLOATS WITH "p" and NEGATIVE SIGNS WITH "n"
-            if type(level["value"]) == type(1.23):
+            #| - REPLACING PERIODS WITH "p" and NEGATIVE SIGNS WITH "n"
+            # if type(level["value"]) == type(1.23):
+            if isinstance(level["value"], float):
                 prop_value = str(level["value"]).replace(".", "p")
 
                 if "-" in str(level["value"]):
@@ -570,7 +568,7 @@ class DFT_Jobs_Setup:
             rev = self.job_revision_number(variable_lst)
             dir_name += "_" + str(rev)
 
-        if relative_path == False:
+        if relative_path is False:
             dir_name = self.root_dir + "/" + dir_name
 
         return(dir_name)
@@ -626,8 +624,8 @@ class DFT_Jobs_Setup:
 
     def job_revision_number(self, variable_lst):
         """
-        Returns the largest revision number for the job with the given
-        variable list.
+        Return the largest revision number for the given variable_lst -> job.
+
         If there are no revision folders or the directory structure hasn't been
         created yet 1 will be returned.
 
@@ -642,16 +640,20 @@ class DFT_Jobs_Setup:
 
             dirs = filter(os.path.isdir, os.listdir(os.getcwd()))
 
-            system = self.cluster.cluster_sys
+            # system = self.cluster.cluster_sys
 
             #| - __old__
             # if system == "sherlock":
-            #     num_jobs = len([dir for dir in dirs if dir[0] == "_" and dir[1].isdigit() and " " not in dir])
+            #     num_jobs = len([dir for dir in dirs if dir[0] == "_"
+            # and dir[1].isdigit() and " " not in dir])
             # elif system == "aws":
-            #     num_jobs = len([dir for dir in dirs if dir[0] == "_" and dir[1].isdigit() and " " not in dir])
+            #     num_jobs = len([dir for dir in dirs if dir[0] == "_"
+            # and dir[1].isdigit() and " " not in dir])
             #__|
 
-            num_jobs = len([dir for dir in dirs if dir[0] == "_" and dir[1].isdigit() and " " not in dir])
+            # COMBAK Does this line break work?
+            num_jobs = len([dir for dir in dirs if dir[0] == "_" and
+                dir[1].isdigit() and " " not in dir])
             os.chdir(orig_dir)
 
             return(num_jobs)
@@ -672,8 +674,13 @@ class DFT_Jobs_Setup:
         #__|
 
     def copy_files_jd(self, file_list, variable_lst, revision="Auto"):
-        """Copy files to job directory
-        TEMP
+        """
+        Copy files to job directory.
+
+        Args:
+            file_list:
+            variable_lst:
+            revision:
         """
         #| - copy_files_jd
         path = self.var_lst_to_path(variable_lst)
@@ -684,32 +691,4 @@ class DFT_Jobs_Setup:
 
         #__|
 
-
-    #| - __old__
-
-    #| - TEMP
-    # def __parse_cluster_type__(self):
-    #     """
-    #     """
-    #     #| - __parse_cluster_type__
-    #     clusters_dict = {
-    #         "aws": "AWSCluster",
-    #         "slac": "SLACCluster",
-    #         "sherlock": "SherlockCluster",
-    #         }
-    #
-    #     cluster_sys = os.environ.get("COMPENV")
-    #
-    #     if cluster_sys in clusters_dict:
-    #         package = "dft_job_automat.compute_env"
-    #         name = clusters_dict[cluster_sys]
-    #         cluster = getattr(__import__(package, fromlist=[name]), name)
-    #
-    #         self.cluster_sys = cluster_sys
-    #         self.cluster = cluster
-    #         # from dft_job_automat.compute_env import clusters_dict[cluster_sys]
-    #    return(cluster_sys)
-    #__|
-
-
-    #__|
+    #__| **********************************************************************

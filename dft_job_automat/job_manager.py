@@ -1,28 +1,25 @@
-"""Module to carry out common file operations in jobs directory"""
+"""Module to carry out common file operations in jobs directory."""
 
 #| - Import Modules
-# from dft_job_automat.job_setup import DFT_Jobs_Setup
-from dft_job_automat.job_analysis import DFT_Jobs_Analysis
-
-from aws.aws_class import AWS_Queues
-
 import os
-# import sys
 import shutil
-# import subprocess
-# import pickle
-# import boto3
-# import datetime
 import pandas as pd
 import filecmp
+
+# My Modules
+from dft_job_automat.job_analysis import DFT_Jobs_Analysis
+from aws.aws_class import AWS_Queues
 #__|
 
-
 class DFT_Jobs_Manager(DFT_Jobs_Analysis):
-    """Summary line.
+    """
+    Summary line.
 
     Manages job submission, resubmission, revision managmnet, job status, etc.
     """
+
+    #| - DFT_Jobs_Manager *****************************************************
+
     def __init__(self,
         system="sherlock",
         tree_level=None,
@@ -47,7 +44,6 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             )
         #__|
 
-
     def restart_job(self,
         job_i,
         prev_rev_files_list,
@@ -59,6 +55,8 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         run_job=False,
         ):
         """
+        Restart job from previous revision.
+
         # TODO | Make copy_if_not_in_dest a global function or something
 
         Args:
@@ -67,8 +65,13 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             job_i
         """
         #| - restart_job
+        # FIXME I've defined this in many places.
         def copy_if_not_in_dest(source, dest_file):
             """
+            Copy file from source to destionation.
+
+            Args:
+                dest_file:
             """
             #| - copy_if_not_in_dest
             if not os.path.isfile(dest_file):
@@ -134,7 +137,6 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             pass
         #__|
 
-
     def copy_files_from_last_revision(self,
         files_list,
         job_i,
@@ -143,6 +145,8 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         from_simulation_folder=True,
         ):
         """
+        Copy files from last revision.
+
         Args:
             revisions: <type 'str' or list>
                 [source revision, destination revision]
@@ -156,8 +160,13 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         """
         #| - copy_files_from_last_revision
 
+        # COMBAK
         def copy_if_not_in_dest(source, dest_file):
             """
+            Copy file from source to destionation.
+
+            Args:
+                dest_file:
             """
             #| - copy_if_not_in_dest
             if not os.path.isfile(dest_file):
@@ -218,6 +227,10 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
 
     def submit_job(self, **kwargs):
         """
+        Submit job to appropriate cluster.
+
+        Args:
+            kwargs:
         """
         #| - submit_job
         # path_i = kwargs["path_i"]
@@ -226,8 +239,10 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         #__|
 
     def remove_rev_folder(self, revision_number):
-        """Removes revision job folder in all jobs directories
-        TEMP
+        """Remove revision job folder in all jobs directories.
+
+        Args:
+            revision_number:
         """
         #| - remove_rev_folder
         print("Removing job revision folder " + str(revision_number))
@@ -236,24 +251,20 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             path = self.var_lst_to_path(job)
 
             shutil.rmtree(path + "_" + str(revision_number))
-
         #__|
 
     def restart_job_2(self, prev_rev_file_list=[], root_dir_file_list=[]):
         """
+        Restart jobs - attempt 2.
+
+        Args:
+            prev_rev_file_list:
+            root_dir_file_list:
         """
         #| - restart_job_2
-        # stop = False
         for index, row in self.data_frame.iterrows():
-
-            # if row["job_state"] == "complete" or
-            # row["job_state"] == "running":
-            #     continue
-
-            # if row["job_state"] == "error" or
-            # row["job_state"] == "no_sim_folder":
             if row["job_state"] == "error":
-                #| - TMP
+                #| - Body
                 job = row["variable_list"]
                 path = row["path"]
                 rev_n = self.job_revision_number(job)
@@ -299,61 +310,13 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
                 continue
         #__|
 
-    #| - TEMP - Old Restart Job Method
-    # def restart_job(self, prev_rev_file_list=[], root_dir_file_list=[],
-    # revision="Auto"):
-    #     """Restart job from previous run
-    #
-    #
-    #         variable_lst: <type 'list'>
-    #             Produced from DFT_Jobs_Setup.job_var_lst.
-    #
-    #     Args:
-    #         model_file: <type 'str'>
-    #             "Auto" |
-    #         atoms_file: <type 'str'>
-    #             Name of atoms object file from previous run
-    #         revision: <type 'str' or 'int'>
-    #             Job revision number from which the job will be restarted from.
-    #             "Auto" | Restarts the job from the most recent job revision.
-    #     """
-    #     #| - restart_job
-    #     for job in self.job_var_lst:
-    #         path = self.var_lst_to_path(job)
-    #
-    #         rev_n = self.job_revision_number(job)
-    #
-    #         if revision == "Auto":
-    #             prev_path = path + "_" + str(rev_n)
-    #         else:
-    #             prev_path = path + "_" + str(revision)
-    #
-    #         new_path = path + "_" + str(rev_n + 1)
-    #
-    #         self.create_job_dir(job, revision="Auto")
-    #
-    #         for file in prev_rev_file_list:
-    #             # print(file)
-    #             if "out.traj" in file:
-    #                 dest_path = new_path + "/init.traj"
-    #             else:
-    #                 dest_path = new_path + "/"
-    #
-    #             shutil.copy(prev_path + "/" + file, dest_path)
-    #
-    #
-    #         for file in root_dir_file_list:
-    #             file_path = self.root_dir + "/" + file
-    #             shutil.copy(file_path, new_path + "/")
-    #
-    #         os.system("chmod 777 " + new_path + "/*")
-    #
-    #     #__|
-    #__|
-
     def copy_files_jd(self, file_list, variable_lst, revision="Auto"):
-        """Copy files to job directory
-        TEMP
+        """Copy files to job directory.
+
+        Args:
+            file_list:
+            variable_lst:
+            revision:
         """
         #| - copy_files_jd
         path = self.var_lst_to_path(variable_lst)
@@ -365,9 +328,12 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         #__|
 
     def create_job_dir(self, variable_lst, revision="Auto"):
-        """Creates indiviudal job folders as leaves within the dir tree
+        """
+        Create indiviudal job folders as leaves within the dir tree.
 
-        TEMP
+        Args:
+            variable_lst:
+            revision:
         """
         #| - create_job_dir
         path = self.var_lst_to_path(
@@ -395,7 +361,8 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
 
     #                     path variable not needed/used DELETE #NOTE
     def submit_jobs(self, path=None, queue="medium", copy_PythonModules=True):
-        """Submit all jobs within data folder
+        """
+        Submit all jobs within data folder.
 
         Submits the most recent version number in each job folder
 
@@ -509,76 +476,29 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
 
     def cancel_jobs(self, state="RUNNABLE"):
         """
+        Cancel jobs that are in RUNNABLE state.
+
+        Args:
+            state:
         """
         #| - cancel_jobs
-
-
-        # for job in self.job_var_lst:
-
-        # full_path = self.root_dir_short + "/" + path
-
         jobs_file_path = self.job_queue_dir + "/jobs.csv"
         df = pd.read_csv(jobs_file_path)
 
-        # df.loc[df["job_path"] == ]
         df_proj = df[df["job_path"].str.contains(self.root_dir_short)]
 
         return(df_proj)
-
-        # index = df[df["job_path"] == full_path].index.tolist()[0]
-        # queue = df.iloc[index]["job_queue"]
-        # job_id = df.iloc[index]["job_id"]
-
-        # job_queue_dict = AWS_Queues(job_id).job_info_batch()
-        # job_status = job_queue_dict["job_status"]
-
-        # df.at[index, "job_status"] = job_status
-        # jobs_file_path = self.job_queue_dir + "/jobs.csv"
-        # df.to_csv(jobs_file_path, index=False)
-
-        # return(job_status)
-
         #__|
 
     def update_jobs_queue_file(self):
         """
+        # COMBAK Set this up.
+
+        TMP
         """
         #| - update_jobs_queue_file
         tmp = 42
         print(tmp)
-
         #__|
 
-
-
-    #| - OUT OF VIEW | TEMP
-
-    # def job_revision_number(self, variable_lst):
-        """Returns the largest revision number for the job with the given
-        variable list
-
-        Args:
-            variable_lst:
-        """
-        #| - job_revision_number
-        # # path = "data/" + self.var_lst_to_path(variable_lst)
-        # path = self.var_lst_to_path(variable_lst)
-        # bash_comm = ""
-        # os.chdir(path)
-        #
-        # dirs = filter(os.path.isdir, os.listdir(os.getcwd()))
-        #
-        # if self.system == "sherlock":
-        #     num_jobs = len([dir for dir in dirs if "_jd" in dir])
-        # elif self.system == "aws":
-        #     num_jobs = len([dir for dir in dirs if dir[0] == "_" and
-        #     dir[1].isdigit()])
-        #
-        # # print(job_dirs)
-        # # os.system(bash_comm)
-        # os.chdir(self.root_dir)
-        #
-        # return(num_jobs)
-        #__|
-
-        #__|
+    #__| **********************************************************************

@@ -51,7 +51,6 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 
 from ase.io import read, write
-# from ase.io.trajectory import Trajectory
 from ase.dft.kpoints import ibz_points, get_bandpath
 
 from ase.vibrations import Vibrations
@@ -62,14 +61,15 @@ from misc_modules.numpy_methods import angle_between
 from ase_modules.dft_params import Espresso_Params
 #__|
 
-#| - Parse DFT Job Parameters
+#| - Parse DFT Job Parameters *************************************************
 
 def set_QE_calc_params(
     atoms,
     params={},
     load_defaults=True,
     ):
-    """
+    """Set Quantum Espresso calculation parameters to atoms object.
+
     Handles reading, and setting of dft calculator parameters to atoms object.
 
     Args:
@@ -96,19 +96,15 @@ def set_QE_calc_params(
     espresso_params_inst.write_params()
     espresso_params = espresso_params_inst.params
 
-    print("###################################*#*#*#*#*#")
-    print(espresso_params)
-    print("###################################*#*#*#*#*#")
-
     calc = espresso(**espresso_params)
     # atoms.set_calculator(calc=calc)
 
     return(calc, espresso_params)
     #__|
 
-#__|
+#__| **************************************************************************
 
-#| - Ionic Optimization
+#| - Ionic Optimization *******************************************************
 
 def ionic_opt(
     atoms,
@@ -223,15 +219,16 @@ def ionic_opt(
 
     #__|
 
-
-
-#__|
+#__| **************************************************************************
 
 #| - Magnetic Moments *********************************************************
 
 # COMBAK | Remove this method, it is too simple
 def set_mag_mom_to_0(atoms):
-    """
+    """Set magnetic moments to 0 for all atoms in atoms object.
+
+    Args:
+        atoms:
     """
     #| - set_mag_mom_to_0
     mag_mom_list = atoms.get_initial_magnetic_moments()
@@ -241,7 +238,14 @@ def set_mag_mom_to_0(atoms):
 
 # def increase_abs_val_magmoms(magmoms_list, increase_amount=1.1):
 def increase_abs_val_magmoms(magmoms_list, increase_amount=0.2):
-    """
+    """Increase absolute value of magmoms for atoms object.
+
+    # COMBAK Shouldn't raise initial guess for light atoms (Or don't raise as
+    much)
+
+    Args:
+        magmoms_list:
+        increase_amount:
     """
     #| - increase_abs_val_magmoms
     inc = increase_amount
@@ -263,7 +267,10 @@ def increase_abs_val_magmoms(magmoms_list, increase_amount=0.2):
     #__|
 
 def calc_spinpol(atoms):
-    """
+    """Return whether spin polarization should be turned on or off.
+
+    Args:
+        atoms:
     """
     #| - calc_spinpol
     spinpol = True
@@ -281,9 +288,11 @@ def calc_spinpol(atoms):
     return(spinpol)
     #__|
 
-
 def simple_mag_moms(atoms):
-    """
+    """Implement simple procedure to set initial guess for magnetic moments.
+
+    Args:
+        atoms
     """
     #| - simple_mag_moms
 
@@ -329,9 +338,9 @@ def simple_mag_moms(atoms):
 
     #__|
 
-
 def set_init_mag_moms(atoms, preference="bader", magmoms=None):
-    """
+    """Set initial magnetic moments to atoms object using several methods.
+
     Set inital magnetic moments to atoms object. If the atoms object has
     previously had a bader or pdos analysis performed those magnetic moments
     will be available under the atoms.info dict ("pdos_magmoms" and
@@ -394,7 +403,8 @@ def set_init_mag_moms(atoms, preference="bader", magmoms=None):
 
 
 def reduce_magmoms(atoms, ntypx=10):
-    """
+    """Reduce number of unique magnetic moments of atoms object.
+
     Reduce the number of unique magnetic moments by combining those that are
     most similar among atoms with the same atomic symbol. This is necessary for
     atoms objects with more than 10 types of magmom/symbol pairs because QE only
@@ -470,7 +480,6 @@ def reduce_magmoms(atoms, ntypx=10):
                 atoms[index].magmom = magmom
     #__|
 
-
 #__| **************************************************************************
 
 #| - Density of States ********************************************************
@@ -480,7 +489,12 @@ def an_pdos(
     dos_kpts,
     espresso_params,
     ):
-    """
+    """Perform projected density of states (PDOS) analysis.
+
+    Args:
+        atoms:
+        dos_kpts:
+        espresso_params:
     """
     #| - an_pdos
     print("Running PDOS analysis"); sys.stdout.flush()
@@ -511,7 +525,6 @@ def an_pdos(
     atoms.write("out.traj")
     #__|
 
-
 def spin_pdos(
     atoms,
     pdos_pkl=None,
@@ -524,15 +537,27 @@ def spin_pdos(
     write_charges=True,
     **kwargs
     ):
-    """
+    """Calculate spin moments on each atom from PDOS analysis.
+
     Calculate more accurate charges/magnetic moments from pdos and assign to
     atom.charge/atom.magmom. If pdos_pkl not defined, it will be calculated
     (atoms object must have a real calculator attached). If pdos_pkl is
     defined, will attempt to load from pickle file, but valence_dict must be
     specified! Specify calculation directory as outdir for easy cleanup.
+
+    Args:
+        atoms:
+        pdos_pkl:
+        valence_dict:
+        nscf:
+        kpts:
+        outdir:
+        save_pkl:
+        spinpol:
+        write_charges:
+        kwargs:
     """
     #| - spin_pdos
-
     valence_dict = {
         "Cu": 11, "C": 4, "O": 6, "H": 1,
         "Rh": 17, "Co": 9, "Pd": 10, "Pt": 10,
@@ -666,8 +691,14 @@ def spin_pdos(
 #__| **************************************************************************
 
 #| - Band Structure ***********************************************************
-def an_bands( atoms, bands_kpts, espresso_params, ):
-    """ """
+def an_bands(atoms, bands_kpts, espresso_params):
+    """Perform band analysis on atoms object.
+
+    Args:
+        atoms:
+        bands_kpts:
+        espresso_params:
+    """
     #| - an_bands
     from espresso import espresso
 
@@ -716,7 +747,11 @@ def an_bands( atoms, bands_kpts, espresso_params, ):
 
 #| - Beef Ensemble of Energies ************************************************
 def an_beef_ensemble(atoms, xc):
-    """
+    """Perform BEEF ensemble of enery analysis.
+
+    Args:
+        atoms:
+        xc:
     """
     #| - an_beef_ensemble
     if xc == "BEEF" or xc == "BEEF-vdW":
@@ -740,7 +775,12 @@ def plot_beef_ensemble(
     file_name="ensemble.pickle",
     file_out="beef_ens_hist.png",
     ):
-    """
+    """Create plot of distribution of energies from BEEF ensemble.
+
+    Args:
+        folder_dir:
+        file_name:
+        file_out:
     """
     #| - plot_beef_ensemble
     file_loc = folder_dir + "/" + file_name
@@ -767,8 +807,11 @@ def plot_beef_ensemble(
 #| - Vibrational Analysis *****************************************************
 
 def an_ads_vib(atoms, ads_index_list=[]):
-    """
+    """Adsorbate vibrational analysis.
 
+    Args:
+        atoms:
+        ads_index_list:
     """
     #| - an_ads_vib
     if len(ads_index_list) == 0:
@@ -811,13 +854,13 @@ def an_ads_vib(atoms, ads_index_list=[]):
     return(vib)
     #__|
 
-
 def thermochemical_corrections(vib_e_list, Temperature=300.0):
-    """
+    """Thermochemical free energy corrections from vibrational analysis.
 
     Args:
         vib_e_list:
             List of vibrational modes in eV
+        Temperature:
     """
     #| - thermochemical_corrections
     # Remove imaginary frequencies
@@ -838,17 +881,15 @@ def thermochemical_corrections(vib_e_list, Temperature=300.0):
         fle.write("\n")
     #__|
 
-
 #__| **************************************************************************
 
 
-
-#| - Atoms File Operations
-
+#| - Atoms File Operations ****************************************************
 
 def read_atoms_from_file():
-    """
-    Read atoms object from file. Checks several file names.
+    """Read atoms object from file.
+
+    Checks several file names
     """
     #| - read_atoms_from_file
     print("Reading atoms object from file")
@@ -920,9 +961,12 @@ def read_atoms_from_file():
     return(atoms)
     #__|
 
-
 def convert_atoms_object(atoms_filename, out_file):
-    """
+    """Convert atoms objects to new file format.
+
+    Args:
+        atoms_filename:
+        out_file:
     """
     #| - convert_atoms_object
     atoms = read(atoms_filename)
@@ -941,15 +985,20 @@ def convert_atoms_object(atoms_filename, out_file):
 
     #__|
 
-#__|
+#__| **************************************************************************
 
 #| - Atoms Geometry Methods ***************************************************
 
-
 def angle_between_lattice_vectors(atoms, vector_0=0, vector_1=1):
-    """
+    """Calculate angle between cell lattice vectors.
+
     Calculates the angle between the first 2 lattice vectors of a computational
     cell in degrees.
+
+    Args:
+        atoms:
+        vector_0:
+        vector_1:
     """
     #| - angle_between_lattice_vectors
     v1 = atoms.cell[vector_0]
@@ -961,10 +1010,11 @@ def angle_between_lattice_vectors(atoms, vector_0=0, vector_1=1):
     return(angle)
     #__|
 
-
 def magnitude_of_lattice_vectors(atoms):
-    """
-    Returns magnitude of three lattice vectors
+    """Return magnitude of three lattice vectors.
+
+    Args:
+        atoms:
     """
     #| - magnitude_of_lattice_vectors
     v1 = atoms.cell[0]
@@ -982,11 +1032,16 @@ def magnitude_of_lattice_vectors(atoms):
 
 #__| **************************************************************************
 
-#| - Modify Atoms Object
-
+#| - Modify Atoms Object ******************************************************
 
 def move_atoms_of_element_i(atoms, element, new_position, dim="z"):
-    """
+    """Modify positions of all atoms of certain element.
+
+    Args:
+        atoms:
+        element:
+        new_position:
+        dim:
     """
     #| - move_atoms_of_element_i
     if type(atoms) == str:
@@ -1013,7 +1068,6 @@ def move_atoms_of_element_i(atoms, element, new_position, dim="z"):
     # return(atoms)
     #__|
 
-
 def displace_overlayer(
     atoms,
     x_ind,
@@ -1023,7 +1077,15 @@ def displace_overlayer(
     element="C",
     save_file=False,
     ):
-    """
+    """Displace atoms in an overlayer.
+
+    Args:
+        x_ind:
+        y_ind:
+        mesh_size_x:
+        mesh_size_y:
+        element:
+        save_file:
     """
     #| - displace_overlayer
     atoms = copy.deepcopy(atoms)
@@ -1052,9 +1114,9 @@ def displace_overlayer(
     return(atoms)
     #__|
 
-
 def change_vacuum(atoms, vacuum):
-    """
+    """Change the amount of vacuum in a slab.
+
     Assumes that the vacuum is in the z-direction orthogonal to
     x and y axis
 
@@ -1078,12 +1140,15 @@ def change_vacuum(atoms, vacuum):
     return(atoms)
     #__|
 
-#__|
+#__| **************************************************************************
 
 #| - Atoms Information Methods ************************************************
 
 def number_of_atoms(atoms):
-    """
+    """Return atom count dictionary.
+
+    Args:
+        atoms
     """
     #| - number_of_atoms
     # atoms = io.read(path + "/out.traj")
@@ -1101,9 +1166,11 @@ def number_of_atoms(atoms):
     return(atom_dict)
     #__|
 
-
 def number_of_constrained_atoms(atoms):
-    """
+    """Count number of constrained atoms in atoms object.
+
+    Args:
+        atoms:
     """
     #| - number_of_constrained_atoms
     if type(atoms) == str:
@@ -1117,9 +1184,12 @@ def number_of_constrained_atoms(atoms):
     return(N_constraints)
     #__|
 
-
 def highest_position_of_element(atoms, element_symbol):
-    """
+    """Return highest z-value for given element type.
+
+    Args:
+        atoms:
+        element_symbol
     """
     #| - highest_position_of_element
 
@@ -1154,7 +1224,12 @@ def create_gif_from_atoms_movies(
     path_i=".",
     delay=10,
     ):
-    """Creates png images from an multi-atoms atoms object in the
+    """Create png images from an multi-atoms atoms object.
+
+    Args:
+        atoms_file:
+        path_i:
+        delay:
     """
     #| - create_images_from_atoms_movies
 
@@ -1262,63 +1337,4 @@ def create_gif_from_atoms_movies(
 
     #__|
 
-
 #__| **************************************************************************
-
-
-
-
-
-
-
-
-
-#| - __old__
-
-
-# def pdos_analysis():
-#     """
-#     OLD VERSION DON'T USE
-#     """
-
-#| - pdos_analysis
-# from espresso import espresso
-#
-# a = read("qn.traj")
-#
-# calc = espresso(pw=500,             #plane-wave cutoff
-#     dw=5000,            #density cutoff
-#     xc="BEEF-vdW",      #exchange-correlation functional
-#     kpts=(3,3,1),  # ark - k-points for hexagonal symmetry in 2-D materials
-#     nbands=-20, #20 extra bands besides the bands needed for valence electrons
-#     spinpol = True,     # ark - added spinpolarizatoin
-#     sigma=0.1,
-#     psppath="/home/vossj/suncat/psp/gbrv1.5pbe",    #pseudopotential path
-#     convergence= {
-#         "energy": 1.e-5, #convergence parameters
-#         "mixing": 0.1,
-#         "nmix": 20,
-#         "mix": 4,
-#         "maxsteps": 500,
-#         "diag": "david"
-#         },
-#     output = {"removesave": False},
-#     outdir="calcdir"
-#     )    #output directory for Quantum Espresso files
-#
-# # attach the espresso calculator to the surface
-# a.set_calculator(calc)
-# a.get_potential_energy()
-#
-# pdos=calc.calc_pdos(nscf=True,
-#                     kpts=(6,6,1),
-#                     Emin=-10.0,
-#                     Emax=10.0,
-#                     tetrahedra=True,
-#                     sigma=0.2,
-#                     DeltaE=0.01)
-#
-# pickle.dump(pdos,open("pdos.pkl", "w"))
-#__|
-
-#__|

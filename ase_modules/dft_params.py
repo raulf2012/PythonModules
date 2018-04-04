@@ -1,4 +1,4 @@
-"""DFT calculator's default parameters"""
+"""DFT calculator's default parameters."""
 
 #| - Import Modules
 import os
@@ -7,15 +7,12 @@ import json
 
 
 class DFT_Params:
-    """
-    """
+    """Base class for DFT parameters encapsulation."""
+
     #| - DFT_Params ************************************************************
 
     def __init__(self):
-        """TMP_docstring.
-
-        TEMP TEMP
-        """
+        """Initialize base class."""
         #| - __init__
         self.file_name = "dft-params"
         self.compute_env = os.environ.get("COMPENV")
@@ -24,7 +21,9 @@ class DFT_Params:
     def load_params(self, dir=".", update_params=True):
         """Import JSON file containing parameters in dictionary.
 
-        TEMP TEMP
+        Args:
+            dir:
+            update_params:
         """
         #| - load_params
         try:
@@ -77,9 +76,11 @@ class DFT_Params:
         #__|
 
     def update_params(self, new_params, user_update=True):
-        """Update parameter dict with new keys or new values for old keys
+        """Update parameter dict with new keys or new values for old keys.
 
-        TEMP
+        Args:
+            new_params:
+            user_update:
         """
         #| - update_params
         self.params.update(new_params)
@@ -90,8 +91,13 @@ class DFT_Params:
         #__|
 
     def write_params(self, path=".", overwrite=False):
-        """Write parameters to file in getcwd
+        """Write parameters to file in getcwd.
 
+        # TODO change to path_i
+
+        Args:
+            path:
+            overwrite:s
         """
         #| - write_params
 
@@ -125,12 +131,8 @@ class DFT_Params:
 
     #__| ***********************************************************************
 
-
 class VASP_Params(DFT_Params):
-    """Useful method to define VASP parameters for DFT job.
-
-    TEMP
-    """
+    """Useful method to define VASP parameters for DFT job."""
 
     #| - VASP_Params ***********************************************************
     def __init__(self, load_defaults=True):
@@ -265,10 +267,7 @@ class VASP_Params(DFT_Params):
 
 
 class Espresso_Params(DFT_Params):
-    """Useful method to define quantum espresso parameters for DFT job.
-
-    TEMP
-    """
+    """Useful method to define quantum espresso parameters for DFT job."""
 
     #| - Espresso_Params *******************************************************
     def __init__(self, load_defaults=True):

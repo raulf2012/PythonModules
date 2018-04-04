@@ -517,7 +517,8 @@ class DFT_Jobs_Workflow:
                             job_i,
                             variable,
                             )
-                        job_i_params[variable] = 
+                        # FIXME Not sure what was removed
+                        job_i_params[variable] =
                     #__|
 
                     tally = self.maint_function(
