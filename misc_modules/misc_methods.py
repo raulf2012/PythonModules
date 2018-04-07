@@ -1,5 +1,10 @@
 """Miscellaneous and helpful methods for everday work."""
 
+#| - IMPORT MODULES
+import os
+import sys
+#__|
+
 
 def even_spaced_range(start_finish, spacing):
     """
@@ -36,3 +41,40 @@ def merge_two_dicts(x, y):
 
     return z
     #__|
+
+
+
+#| - File and Directory Management
+
+def remove_file_from_all_folders(
+    file_name_list,
+    remove_files=False,
+    root_dir=".",
+    ):
+    """Removes charge files (CHG and CHGCAR) from Raman DFT job folders.
+
+    Args:
+        file_name_list:
+        remove_files: Whether to perform file deletion or not.
+        root_dir: Starting directory, assumed to be current directory
+    """
+    #| - remove_file_from_all_folders
+    for dirName, subdirList, fileList in os.walk(root_dir):
+        for file_name in file_name_list:
+            if file_name in fileList:
+                print(dirName)
+                print(subdirList)
+                print(fileList)
+                print(file_name)
+                print("_________")
+
+                if remove_files:
+                    try:
+                        os.remove(dirName + "/" + file_name)
+                        print("File removed!!")
+                    except:
+                        pass
+    #__|
+
+
+#__|

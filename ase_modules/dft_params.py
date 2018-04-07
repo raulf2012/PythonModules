@@ -1,10 +1,13 @@
-"""DFT calculator's default parameters."""
+"""DFT calculator's default parameters.
+
+Development Notes:
+  * TODO Automatically scale bands with system size
+"""
 
 #| - Import Modules
 import os
 import json
 #__|
-
 
 class DFT_Params:
     """Base class for DFT parameters encapsulation."""

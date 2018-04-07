@@ -152,3 +152,52 @@
 #__|
 
 #__|
+
+#| - compute_env
+
+#| - __old__
+
+    # def get_jobid(self, path_i="."):
+    #     """
+    #     """
+    #     #| - get_jobid
+    #     # path_i = "."
+    #     fileid_path = path_i + "/.jobid"
+    #     # print(fileid_path)
+    #     if os.path.isfile(fileid_path):
+    #         with open(path_i + "/.jobid") as fle:
+    #             jobid = fle.read().strip()
+    #     else:
+    #         jobid=None
+    #
+    #     return(jobid)
+    #     #__|
+
+    #| - OLD
+    # def job_info_batch(self, path_i="."):
+    #     #| - job_info_batch
+    #     data_dict = self.cluster.job_info_batch(path_i = path_i)
+    #
+    #     return(data_dict)
+    #
+    #     #__|
+
+
+
+    # def write_job_queue_state_file(self, path="."):
+    #     """
+    #     """
+    #     #| - write_job_queue_state_file
+    #     print(self)
+    #     data_dict = self.cluster.job_info_batch(path_i=path)
+    #     key = self.cluster.job_state_key
+    #     with open(path_i + "/.QUEUESTATE", "w") as fle:
+    #         fle.write(data_dict[key])
+    #__|
+
+
+
+#__|
+
+
+#__|

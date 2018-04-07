@@ -39,3 +39,9 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# readthedocs Documentation #
+#############################
+_build
+_static
+_templates

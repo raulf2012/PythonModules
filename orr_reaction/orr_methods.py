@@ -507,12 +507,20 @@ class ORR_Free_E_Plot:
 def calc_ads_e(
     df_row,
     bare_raw_e,
+    correction=0.,
     oxy_ref_e=-443.70964,
     hyd_ref_e=-16.46018,
     ):
     """Calculate adsorption energies from raw DFT energetics.
 
     Default oxygen reference energy is based on water
+
+    Args:
+        df_row: Pandas dataframe row
+        bare_raw_e: Bare slab raw DFT energy
+        correction: Energy correction (ZPE, entropy, solvation, etc.)
+        oxy_ref_e:
+        hyd_ref_e:
     """
     #| - calc_ads_e
     row = df_row
@@ -532,7 +540,11 @@ def calc_ads_e(
 
     try:
         raw_e = row["elec_energy"]
-        ads_e_i = raw_e - bare_slab - num_O * oxy_ref - num_H * hyd_ref
+        ads_e_i = raw_e - (bare_slab + num_O * oxy_ref + num_H * hyd_ref)
+        ads_e_i += correction
+
+        # ads_e_i = raw_e - bare_slab - num_O * oxy_ref - num_H * hyd_ref
+        # ads_e_i += correction
     except:
         ads_e_i = None
 
@@ -541,6 +553,8 @@ def calc_ads_e(
 
 def lowest_e_path(tmp=42):
     """Find the lowest energy pathway FED.
+
+    COMBAK
 
     From a set of FE pathways corresponding to different sites, the lowest
     energy states will be selected to construct a new FED.
