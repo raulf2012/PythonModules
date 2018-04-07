@@ -1,4 +1,8 @@
-"""Class to analyse data using the DFT_Jobs_Setup class."""
+"""Class to analyse data using the DFT_Jobs_Setup class.
+
+Development Notes:
+    TODO Automaticall read README files contained within job folders
+"""
 
 #| - Import Modules
 import os
@@ -19,11 +23,16 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
     """Analysis methods for jobs in tree structure.
 
     # TODO path --> path_i
+    # TODO Modify .FINISHED implementation
 
     Parent class to DFT_Jobs_Setup
     """
 
     #| - DFT_Jobs_Analysis ****************************************************
+
+    #| - Class Variables
+    finished_fle = ".FINISHED"
+    #__|
 
     def __init__(self,
         system="sherlock",
@@ -373,95 +382,95 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
     #| - Data Frame Methods
 
-        def create_data_sets(self, data_frame, free_variable):
-            """
-            Splinter data_frame into distinct data sets based on columns.
+    def create_data_sets(self, data_frame, free_variable):
+        """
+        Splinter data_frame into distinct data sets based on columns.
 
-            Returns data sets from the data frame where the data is split by the
-            job variables. One variable is excluded from this grouping and is
-            treated as a "continous" variable to be plotted on the x-axis
+        Returns data sets from the data frame where the data is split by the
+        job variables. One variable is excluded from this grouping and is
+        treated as a "continous" variable to be plotted on the x-axis
 
-            ex. Parameter sweep with varying k-points, pw-cutoff, and
-            lattice-constant. The lattice-constant is designated as the free
-            variable and so data sets are created for each combination of
-            k-points and pw-cutoff where each set contains the full range of
-            latt-const.
-            """
-            #| - create_data_sets
-            # df = copy.deepcopy(self.data_frame)
-            df = data_frame
+        ex. Parameter sweep with varying k-points, pw-cutoff, and
+        lattice-constant. The lattice-constant is designated as the free
+        variable and so data sets are created for each combination of
+        k-points and pw-cutoff where each set contains the full range of
+        latt-const.
+        """
+        #| - create_data_sets
+        # df = copy.deepcopy(self.data_frame)
+        df = data_frame
 
-            var_lst = copy.deepcopy(self.tree_level_labels)
-            var_lst.remove(free_variable)
+        var_lst = copy.deepcopy(self.tree_level_labels)
+        var_lst.remove(free_variable)
 
-            df_unique_params = df[var_lst].drop_duplicates()
-            indices = df_unique_params.index.values
+        df_unique_params = df[var_lst].drop_duplicates()
+        indices = df_unique_params.index.values
 
-            data_lst = []
-            for index in indices:
-                df_tmp = df_unique_params.ix[[index]]
+        data_lst = []
+        for index in indices:
+            df_tmp = df_unique_params.ix[[index]]
 
-                #| - Data Labels
-                data_label_full = ""
-                for column in df_tmp:
-                    col_i = df_tmp[column]
+            #| - Data Labels
+            data_label_full = ""
+            for column in df_tmp:
+                col_i = df_tmp[column]
 
-                    col_name = col_i.name
-                    col_val = col_i.iloc[0]
+                col_name = col_i.name
+                col_val = col_i.iloc[0]
 
-                    data_label_i = str(col_name) + ": " + str(col_val)
+                data_label_i = str(col_name) + ": " + str(col_val)
 
-                    data_label_full += data_label_i + " | "
+                data_label_full += data_label_i + " | "
 
-                data_label_full = data_label_full[:-3]
-                #__|
-
-                i1 = df.set_index(var_lst).index
-                i2 = df_tmp.set_index(var_lst).index
-
-                df_i = df[i1.isin(i2)]
-
-                data_lst.append({"label": data_label_full, "data": df_i})
-
-            return(data_lst)
+            data_label_full = data_label_full[:-3]
             #__|
 
-        def filter_early_revisions(self, dataframe):
-            """Remove all entries (rows) which aren't the highest revision number.
+            i1 = df.set_index(var_lst).index
+            i2 = df_tmp.set_index(var_lst).index
 
-            Args:
-                dataframe:
-            """
-            #| - filter_early_revisions
-            max_rev = dataframe["revision_number"] == dataframe["max_revision"]
-            data_series_maxrev = dataframe[max_rev]
+            df_i = df[i1.isin(i2)]
 
-            return(data_series_maxrev)
-            #__|
+            data_lst.append({"label": data_label_full, "data": df_i})
 
-        def view_atoms(self, ind):
-            """
-            View last image in atoms object in GUI.
+        return(data_lst)
+        #__|
 
-            Args:
-                ind:
-                    Index of dataframe corresponding to entry of interest.
-            """
-            #| - view_atoms
-            df = self.data_frame
+    def filter_early_revisions(self, dataframe):
+        """Remove all entries (rows) which aren't the highest revision number.
 
-            path_i = df.iloc[ind]["path"]
-            rev_num = df.iloc[ind]["revision_number"].astype(str)
-            full_path = path_i + "_" + rev_num
+        Args:
+            dataframe:
+        """
+        #| - filter_early_revisions
+        max_rev = dataframe["revision_number"] == dataframe["max_revision"]
+        data_series_maxrev = dataframe[max_rev]
 
-            print(full_path)
+        return(data_series_maxrev)
+        #__|
 
-            try:
-                atoms = df.iloc[ind]["atoms_object"][-1]
-                view(atoms)
-            except:
-                print("Couldn't read atoms object")
-            #__|
+    def view_atoms(self, ind):
+        """
+        View last image in atoms object in GUI.
+
+        Args:
+            ind:
+                Index of dataframe corresponding to entry of interest.
+        """
+        #| - view_atoms
+        df = self.data_frame
+
+        path_i = df.iloc[ind]["path"]
+        rev_num = df.iloc[ind]["revision_number"].astype(str)
+        full_path = path_i + "_" + rev_num
+
+        print(full_path)
+
+        try:
+            atoms = df.iloc[ind]["atoms_object"][-1]
+            view(atoms)
+        except:
+            print("Couldn't read atoms object")
+        #__|
 
     #__|
 

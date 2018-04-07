@@ -1,4 +1,9 @@
-"""Class for computer cluster operations, mainly batch."""
+"""Class for computer cluster operations, mainly batch.
+
+Development Notes:
+
+# TODO Modify .FINISHED implementation
+"""
 
 #| - Import Modules
 import os
@@ -19,10 +24,10 @@ from misc_modules.misc_methods import merge_two_dicts
 # from dft_job_automat.job_setup import DFT_Jobs_Setup
 #__|
 
-
 ################################################################################
 class ComputerCluster():
-    """TEMP."""
+    """Base class for interfacing with computing resources."""
+
     #| - ComputerCluster ******************************************************
 
     def __init__(self,
@@ -108,8 +113,6 @@ class ComputerCluster():
         #| - job_state
         job_state = self.cluster.job_state(path_i=path_i)
 
-        # print(job_state)
-        # print("$!#!**")
         if job_state is None:
             try:
                 with open(path_i + "/.QUEUESTATE", "r") as fle:
@@ -132,7 +135,6 @@ class ComputerCluster():
 
         data_dict = self.cluster.job_info_batch(path_i=path_i)
 
-        # print(dir(self))
         # jobs_file_path = self.jobs_list_dir
 
 
@@ -177,8 +179,8 @@ class ComputerCluster():
 ################################################################################
 
 class SLACCluster(ComputerCluster):
-    """
-    """
+    """SLAC computing cluster."""
+
     #| - SLACCluster **********************************************************
     def __init__(self,
         root_dir=".",
@@ -385,7 +387,7 @@ class SLACCluster(ComputerCluster):
 
         #| - Checking if Job Id Still in Batch System
         if "is not found" in out:
-            # print("Job ID no longer in batch system, or ID is wrong")
+            print("Job ID no longer in batch system, or ID is wrong")
             return(None)
         #__|
 
@@ -431,11 +433,12 @@ class SLACCluster(ComputerCluster):
 
     def job_state(self, path_i="."):
         """
+        # FIXME This should update jobs table
+
+        Args:
+            path_i
         """
         #| - job_state
-
-        # FIX This should update jobs table
-
         job_info = self.job_info_batch(path_i=path_i)
 
         if job_info is not None:
@@ -446,17 +449,15 @@ class SLACCluster(ComputerCluster):
         else:
             job_state_out = None
 
-        # print(job_state_out)
         return(job_state_out)
-
         #__|
 
     #__| **********************************************************************
 
 class SherlockCluster(ComputerCluster):
-    """
-    """
-    #| - SherlockCluster
+    """Sherlock computing cluster."""
+
+    #| - SherlockCluster ******************************************************
     def __init__(self, root_dir="."):
         """
         """
@@ -704,6 +705,12 @@ class SherlockCluster(ComputerCluster):
 
     def completed_file(self, path_i="."):
         """
+        Check whether ".FINISHED" file exists.
+
+        Indicates that the job has gone to completion
+
+        Args:
+            path_i:
         """
         #| - completed_file
         completed_fle = False
@@ -715,6 +722,10 @@ class SherlockCluster(ComputerCluster):
 
     def job_state(self, path_i="."):
         """
+        Return job state of path_i --> job_i.
+
+        Args:
+            path_i
         """
         #| - job_state
         job_id = self.get_jobid(path_i=path_i)
@@ -732,7 +743,6 @@ class SherlockCluster(ComputerCluster):
         #| - Checking for "completed" file indicating success
         completed_fle = self.completed_file(path_i=path_i)
         if completed_fle:
-            # print("!$!#@#")
             job_state_out = self.job_state_keys["SUCCEEDED"]
         #__|
 
@@ -740,49 +750,15 @@ class SherlockCluster(ComputerCluster):
 
         #__|
 
-        #| - OLD
-        # job_id = self.get_jobid(path_i=path_i)
-        # job_state_out = None
-        # if job_id != None:
-        #     job_info = self.job_info_batch(job_id)
-        #
-        #     if job_info != None:
-        #         key = self.job_queue_state_key
-        #         if key in job_info:
-        #             job_state_out = job_info[key]
-        #             job_state_out = self.job_state_keys[job_state_out]
-        #
-        # #| - Checking for Spot Termination
-        # spot_term = self.spot_terminated(path_i=path_i)
-        # if spot_term:
-        #     job_state_out = self.job_state_keys["FAILED"]
-        # #__|
-        #
-        # #| - Checking for "completed" file indicating success
-        # completed_fle = self.completed_file(path_i=path_i)
-        # if completed_fle:
-        #     # print("!$!#@#")
-        #     job_state_out = self.job_state_keys["SUCCEEDED"]
-        # #__|
-        #
-        # if os.path.isfile(path_i + "/.QUEUESTATE"):
-        #     bash_comm = "chmod 777 " + path_i + "/.QUEUESTATE"
-        #     os.system(bash_comm)
-        #
-        # with open(path_i + "/.QUEUESTATE", "w") as fle:
-        #     fle.write(str(job_state_out))
-        #     fle.write("\n")
-        #
-        # return(job_state_out)
-        #__|
-
     def get_jobid(self, path_i="."):
         """
+        Return job ID of job_i.
+
+        Args:
+            path_i:
         """
         #| - get_jobid
-        # path_i = "."
         fileid_path = path_i + "/.jobid"
-        # print(fileid_path)
         if os.path.isfile(fileid_path):
             with open(path_i + "/.jobid") as fle:
                 jobid = fle.read().strip()
@@ -792,11 +768,11 @@ class SherlockCluster(ComputerCluster):
         return(jobid)
         #__|
 
-    #__|
+    #__| **********************************************************************
 
 class AWSCluster(ComputerCluster):
-    """
-    """
+    """AWS EC2 computing resource."""
+
     #| - AWSCluster ***********************************************************
     # boto3 = __import__("boto3")
     def __init__(self,
@@ -1001,7 +977,6 @@ class AWSCluster(ComputerCluster):
         #| - get_jobid
         # path_i = "."
         fileid_path = path_i + "/.jobid"
-        # print(fileid_path)
         if os.path.isfile(fileid_path):
             with open(path_i + "/.jobid") as fle:
                 jobid = fle.read().strip()
@@ -1035,7 +1010,6 @@ class AWSCluster(ComputerCluster):
         #| - Checking for "completed" file indicating success
         completed_fle = self.completed_file(path_i=path_i)
         if completed_fle:
-            # print("!$!#@#")
             job_state_out = self.job_state_keys["SUCCEEDED"]
         #__|
 
@@ -1058,12 +1032,10 @@ class AWSCluster(ComputerCluster):
 
         spot_terminated = False
         if os.path.isdir(symlink_dir):
-            # print("Gopple -180210 - $@#$$#")
 
             if os.path.exists(symlink_dir + "/spotTerminated"):
-
                 spot_terminated = True
-                # print("Spot Termination")
+                print("Spot Termination")
 
         return(spot_terminated)
         #__|
@@ -1122,55 +1094,4 @@ class AWSCluster(ComputerCluster):
         return(job_queue_dict)
         #__|
 
-
     #__| **********************************************************************
-
-
-
-
-
-
-
-#| - __old__
-
-    # def get_jobid(self, path_i="."):
-    #     """
-    #     """
-    #     #| - get_jobid
-    #     # path_i = "."
-    #     fileid_path = path_i + "/.jobid"
-    #     # print(fileid_path)
-    #     if os.path.isfile(fileid_path):
-    #         with open(path_i + "/.jobid") as fle:
-    #             jobid = fle.read().strip()
-    #     else:
-    #         jobid=None
-    #
-    #     return(jobid)
-    #     #__|
-
-    #| - OLD
-    # def job_info_batch(self, path_i="."):
-    #     #| - job_info_batch
-    #     data_dict = self.cluster.job_info_batch(path_i = path_i)
-    #
-    #     return(data_dict)
-    #
-    #     #__|
-
-
-
-    # def write_job_queue_state_file(self, path="."):
-    #     """
-    #     """
-    #     #| - write_job_queue_state_file
-    #     print(self)
-    #     data_dict = self.cluster.job_info_batch(path_i=path)
-    #     key = self.cluster.job_state_key
-    #     with open(path_i + "/.QUEUESTATE", "w") as fle:
-    #         fle.write(data_dict[key])
-    #__|
-
-
-
-#__|

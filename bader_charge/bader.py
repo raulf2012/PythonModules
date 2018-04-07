@@ -1,3 +1,8 @@
+"""Bader charge analysis methods.
+
+Author(s): Colin Dickins wrote most of this; Raul A. Flores
+"""
+
 #| - IMPORT MODULES
 import numpy as np
 import sys
@@ -25,7 +30,7 @@ def cd2cube(atoms, spin=""):
     u = nx - 1
     v = ny - 1
     w = nz - 1
-    cd2 = np.empty((u, v, sw), np.float)
+    cd2 = np.empty((u, v, w), np.float)
     for i in range(u):
         for j in range(v):
             cd2[i][j][:] = cd[i][j][:w]
@@ -130,13 +135,25 @@ def bader_exec(atoms, spin=""):
     #__|
 
 def bader(atoms, spinpol=False, outdir=None, run_exec=True):
-    """
+    """Perform bader charge analysis on atoms.
+
     Calculate charge density using atoms.calc, calculate bader charges on each
     atom in atoms, and assign to atom.data["bader_charge"].
+
     If spinpol: also assign atom.data["bader_magmom"].
+
+    Args:
+        atoms: ASE atoms object
+        spinpol: Spin polarized calculation
+        outdir: Output directory location
+        run_exec: Whether to run bader executable or just create preliminary
+        file (some clusters don't/can't have the bader fortran code)
     """
     #| - bader
-    print("Executing Badder analysis"); sys.stdout.flush()
+    mess = "Executing Bader Analysis "
+    mess += "****************************************************"
+    print(mess); sys.stdout.flush()
+
     calc = atoms.calc
 
     #| - Using Spin Polarization

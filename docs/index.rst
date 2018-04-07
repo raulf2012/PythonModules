@@ -10,6 +10,8 @@ Welcome to Research Python Modules's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   all-about-me
+
 
 
 Indices and tables
