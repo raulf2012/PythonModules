@@ -1,8 +1,13 @@
+#!/usr/bin/env python
+
 """Class for computer cluster operations, mainly batch.
 
 Development Notes:
+    TODO Modify .FINISHED implementation
+    TODO Move the location of following command to base ComputerCluster class
+        with open(".SUBMITTED", "w") as fle:
+            fle.write("")
 
-# TODO Modify .FINISHED implementation
 """
 
 #| - Import Modules
@@ -18,28 +23,27 @@ import time
 import pandas as pd
 
 # My Modules
-
 from misc_modules.misc_methods import merge_two_dicts
-# from aws.aws_class import AWS_Queues
-# from dft_job_automat.job_setup import DFT_Jobs_Setup
 #__|
 
 ################################################################################
 class ComputerCluster():
-    """Base class for interfacing with computing resources."""
+    """Base class for interfacing with computing resources.
+
+    Development Notes:
+        TODO Create dummy cluster for WSL system
+    """
 
     #| - ComputerCluster ******************************************************
 
     def __init__(self,
         ):
-        """
-        """
+        """Initialize the base ComputerCluster class."""
         #| - __init__
         self.root_dir = os.getcwd()
         self.default_sub_params = self.default_submission_parameters()
         self.__parse_cluster_type__()
         #__|
-
 
     def __parse_cluster_type__(self):
         """
@@ -75,8 +79,7 @@ class ComputerCluster():
         #__|
 
     def default_submission_parameters(self):
-        """
-        """
+        """Global submission parameters for cluster jobs."""
         #| - default_submission_parameters
         def_params = {
             "path_i": ".",
@@ -89,13 +92,18 @@ class ComputerCluster():
         return(def_params)
         #__|
 
-    def is_job_submitted(self, path="."):
-        """Return TRUE if the job at 'path' has been submtted
+    def is_job_submitted(self, path_i="."):
+        """Check if job has been submitted.
+
+        Return TRUE if the job at 'path' has been submtted
         A job is considered submitted if there exists a '.submitted' file
+
+        Args:
+            path
         """
         #| - add_jobs_queue_data
         root_dir = os.getcwd()
-        os.chdir(path)
+        os.chdir(path_i)
         if os.path.isfile(".SUBMITTED"):
             print("Directory already submitted, will be skipped")
             os.chdir(root_dir)
@@ -170,7 +178,6 @@ class ComputerCluster():
 
             with open(".cluster_sys", "w") as fle:
                 fle.write(self.cluster_sys)
-
         #__|
 
         #__|
@@ -298,19 +305,66 @@ class SLACCluster(ComputerCluster):
         bash_command += "-J " + params["job_name"] + " "
         bash_command += params["job_script"]
 
-        try:
-            output = subprocess.Popen(
-                bash_command,
-                stdout=subprocess.PIPE,
-                shell=True,
-                )
-            sub_time = datetime.datetime.now().isoformat()
-        except subprocess.CalledProcessError, e:
-            print "Ping stdout output:\n", e.output
 
-            os.chdir(self.root_dir)
-            print("JOB SKIPPED: ")
-            return(None)
+
+
+        #| - FIXME Python 2 --> 3
+        print(sys.version_info)
+        if (sys.version_info > (3, 0)):
+            try:
+                output = subprocess.Popen(
+                    bash_command,
+                    stdout=subprocess.PIPE,
+                    shell=True,
+                    )
+                sub_time = datetime.datetime.now().isoformat()
+
+
+            except subprocess.CalledProcessError as e:
+                print("Ping stdout output:\n", e.output)
+                os.chdir(self.root_dir)
+                print("JOB SKIPPED: ")
+                return(None)
+
+        else:
+            try:
+                output = subprocess.Popen(
+                    bash_command,
+                    stdout=subprocess.PIPE,
+                    shell=True,
+                    )
+                sub_time = datetime.datetime.now().isoformat()
+
+            # except subprocess.CalledProcessError, e:
+            except subprocess.CalledProcessError as e:
+                print("Ping stdout output:\n", e.output)
+                # print "Ping stdout output:\n", e.output
+                os.chdir(self.root_dir)
+                print("JOB SKIPPED: ")
+                return(None)
+
+        #| - __old
+        # try:
+        #     output = subprocess.Popen(
+        #         bash_command,
+        #         stdout=subprocess.PIPE,
+        #         shell=True,
+        #         )
+        #     sub_time = datetime.datetime.now().isoformat()
+        #
+        # # except subprocess.CalledProcessError, e:
+        # except subprocess.CalledProcessError as e:
+        #
+        #     print "Ping stdout output:\n", e.output
+        #
+        #     os.chdir(self.root_dir)
+        #     print("JOB SKIPPED: ")
+        #     return(None)
+
+        #__|
+
+        #__|
+
         #__|
 
         #| - Parsing Output
@@ -332,9 +386,6 @@ class SLACCluster(ComputerCluster):
         #| - Writing Files
         with open(".SUBMITTED", "w") as fle:
             fle.write("\n")
-
-        # file = open(".SUBMITTED", "w")
-        # file.close()
 
         with open(".bash_comm", "w") as fle:
             fle.write(str(bash_command) + str("\n"))
@@ -432,7 +483,8 @@ class SLACCluster(ComputerCluster):
         #__|
 
     def job_state(self, path_i="."):
-        """
+        """Query job state.
+
         # FIXME This should update jobs table
 
         Args:
@@ -486,6 +538,25 @@ class SherlockCluster(ComputerCluster):
         # self.job_queue_state_key = "job_status"
         #__|
 
+    def default_submission_parameters(self):
+        """
+        """
+        #| - default_submission_parameters
+        def_params = {
+            "queue": "owners,iric,normal",  # -p flag
+            "nodes": "1",  # --nodes
+            "cpus": "16",  # --ntasks-per-node
+            "memory": "4000",  # --mem-per-cpu
+            "wall_time": "720",  # --time (720min -> 12hrs)
+            "job_name": "Default",  # --job-name
+            "priority": "normal",  # --qos
+            "email": "flores12@stanford.edu",  # --mail-user
+            "email_mess": "FAIL",  # --mail-type
+            }
+
+        return(def_params)
+        #__|
+
     def job_state_dict(self):
         """
         """
@@ -515,25 +586,6 @@ class SherlockCluster(ComputerCluster):
             ]
 
         return(queue_list)
-        #__|
-
-    def default_submission_parameters(self):
-        """
-        """
-        #| - default_submission_parameters
-        def_params = {
-            "queue": "owners,iric,normal",  # -p flag
-            "nodes": "1",  # --nodes
-            "cpus": "16",  # --ntasks-per-node
-            "memory": "4000",  # --mem-per-cpu
-            "wall_time": "720",  # --time (720min -> 12hrs)
-            "job_name": "Default",  # --job-name
-            "priority": "normal",  # --qos
-            "email": "flores12@stanford.edu",  # --mail-user
-            "email_mess": "FAIL",  # --mail-type
-            }
-
-        return(def_params)
         #__|
 
     def submit_job_clust(self, **kwargs):
@@ -569,17 +621,17 @@ class SherlockCluster(ComputerCluster):
         #| - Bash Submisssion Command
         bash_command = "/usr/bin/sbatch "
 
-        bash_command += "-p " +                 str(params["queue"]) + " "
-        bash_command += "--nodes " +            str(params["nodes"]) + " "
-        bash_command += "--ntasks-per-node " +  str(params["cpus"]) + " "
-        bash_command += "--mem-per-cpu " +      str(params["memory"]) + " "
-        bash_command += "--time " +             str(params["wall_time"]) + " "
-        bash_command += "--job-name " +         str(params["job_name"]) + " "
-        bash_command += "--qos " +              str(params["priority"]) + " "
-        bash_command += "--mail-user " +        str(params["email"]) + " "
-        bash_command += "--mail-type " +        str(params["email_mess"]) + " "
-        bash_command += "--output " +           str(params["out_file"]) + " "
-        bash_command += "--error " +            str(params["err_file"]) + " "
+        bash_command += "-p " +                 str(params["queue"])       + " "
+        bash_command += "--nodes " +            str(params["nodes"])       + " "
+        bash_command += "--ntasks-per-node " +  str(params["cpus"])        + " "
+        bash_command += "--mem-per-cpu " +      str(params["memory"])      + " "
+        bash_command += "--time " +             str(params["wall_time"])   + " "
+        bash_command += "--job-name " +         str(params["job_name"])    + " "
+        bash_command += "--qos " +              str(params["priority"])    + " "
+        bash_command += "--mail-user " +        str(params["email"])       + " "
+        bash_command += "--mail-type " +        str(params["email_mess"])  + " "
+        bash_command += "--output " +           str(params["out_file"])    + " "
+        bash_command += "--error " +            str(params["err_file"])    + " "
 
         # bash_command += "-o job.out "
         # bash_command += "-e job.err "
@@ -599,8 +651,9 @@ class SherlockCluster(ComputerCluster):
                 shell=True,
                 )
             sub_time = datetime.datetime.now().isoformat()
-        except subprocess.CalledProcessError, e:
-            print "Ping stdout output:\n", e.output
+        # except subprocess.CalledProcessError, e:
+        except subprocess.CalledProcessError as e:
+            print("Ping stdout output:\n", e.output)
 
             os.chdir(self.root_dir)
             print("JOB SKIPPED: ")
@@ -699,6 +752,11 @@ class SherlockCluster(ComputerCluster):
             data_dict = None
             pass
 
+        except:
+            data_dict = None
+            pass
+
+
         return(data_dict)
 
         #__|
@@ -774,7 +832,6 @@ class AWSCluster(ComputerCluster):
     """AWS EC2 computing resource."""
 
     #| - AWSCluster ***********************************************************
-    # boto3 = __import__("boto3")
     def __init__(self,
         root_dir=".",
         ):
@@ -840,32 +897,73 @@ class AWSCluster(ComputerCluster):
             # "job_name":     "Default",
             "job_script": "model.py",
 
-            # "copy_PythonModules": False,
             "copy_PythonModules": True,
+            "copy_PythonPackages": True,
             }
 
         return(def_params)
         #__|
 
-    # MAKE THIS WORK JUST COPIED PASTED FROM AWS_CLASS
-    def submit_job_clust(self, **kwargs):
-        # , path_i=None, queue="test", cpus="default", copy_PythonModules=True):
-        # def submit_job_clust(self, **kwargs):
 
+    def __copy_pyth_mods_packs_to_job_dir__(
+        self,
+        path_i,
+        copy_mods=True,
+        copy_packs=True,
+        ):
         """
-        Submits job to aws cluster. Copies PythonModules folder into
-        job directory
         """
-        #| - submit_job
+        #| - __copy_pyth_mods_packs_to_job_dir__
+        copy_PythonModules = copy_mods
+        copy_PythonPackages = copy_packs
 
-        #| - Merging Submission Parameters
-        params = merge_two_dicts(self.default_sub_params, kwargs)
+        #| - Copy PYTHONMODULES to Job Directory
+        if copy_PythonModules:
+            if os.path.isdir(path_i + "/PythonModules") is True:
+                print("PythonModules already exists, erasing and recopying")
+                shutil.rmtree(path_i + "/PythonModules")
+                # py_mod = os.environ["python_modules"]  # Old pyth mods dir
+                py_mod = os.environ["PYTHONMODULES"]
+                shutil.copytree(py_mod, path_i + "/PythonModules")
+            else:
+                # py_mod = os.environ["python_modules"]
+                py_mod = os.environ["PYTHONMODULES"]
+                shutil.copytree(py_mod, path_i + "/PythonModules")
         #__|
+
+        #| - Copy Python Packages to Job Directory
+        if copy_PythonPackages:
+            if os.path.isdir(path_i + "/PythonPackages") is True:
+                print("PythonPackages already exists, erasing and recopying")
+                shutil.rmtree(path_i + "/PythonPackages")
+                py_pack = os.environ["PYTHONPACKAGES"]
+                shutil.copytree(py_pack, path_i + "/PythonPackages")
+            else:
+                py_pack = os.environ["PYTHONPACKAGES"]
+                shutil.copytree(py_pack, path_i + "/PythonPackages")
+        #__|
+
+        #__|
+
+    def submit_job_clust(self, **kwargs):
+        """Submit job to AWS cluster.
+
+        Copies PythonModules and PythonPackages folder into job directory
+
+        Args:
+            kwargs
+        """
+        #| - submit_job_clust
+
+        #| - Job Parameters
+        params = merge_two_dicts(self.default_sub_params, kwargs)
 
         path = params["path_i"]
         copy_PythonModules = params["copy_PythonModules"]
+        copy_PythonPackages = params["copy_PythonPackages"]
         cpus = params["cpus"]
         queue = params["queue"]
+        #__|
 
         root_dir = os.getcwd()
         if path is None:
@@ -881,21 +979,15 @@ class AWSCluster(ComputerCluster):
             os.chdir(root_dir)
         #__|
 
-        #| - Copy PYTHONMODULES to Job Directory
-        if copy_PythonModules:
-            if os.path.isdir(path + "/PythonModules") is True:
-                print("PythonModules already exists, erasing and recopying")
-                shutil.rmtree(path + "/PythonModules")
-                # py_mod = os.environ["python_modules"]  # Old pyth mods dir
-                py_mod = os.environ["PYTHONMODULES"]
-                shutil.copytree(py_mod, path + "/PythonModules")
-            else:
-                # py_mod = os.environ["python_modules"]
-                py_mod = os.environ["PYTHONMODULES"]
-                shutil.copytree(py_mod, path + "/PythonModules")
-        #__|
+        self.__copy_pyth_mods_packs_to_job_dir__(
+            path,
+            copy_mods=copy_PythonModules,
+            copy_packs=copy_PythonPackages,
+            )
 
         #| - Submit Job
+        # Args: path, root_dir, queue, cpus
+
         os.chdir(path)
 
         if os.path.isfile(".SUBMITTED"):
@@ -904,9 +996,7 @@ class AWSCluster(ComputerCluster):
             return(None)
         else:
             print("submitting job")
-            # aws_dir = os.environ["aws_dir"]
             aws_dir = os.environ["aws_sc"]
-
 
             if cpus == "default":
                 bash_command = aws_dir + "/bin/trisub -q " + queue
@@ -915,21 +1005,16 @@ class AWSCluster(ComputerCluster):
                 bash_command = aws_dir + "/bin/trisub -c " + str(cpus) + \
                     " -q " + queue
 
-
-            # bash_command = aws_dir + "/matr.io/bin/trisub " + "-c" +  +
-            # "-q " + queue
-
-
             try:
                 output = subprocess.check_output(bash_command, shell=True)
                 sub_time = datetime.datetime.now().isoformat()
-            except subprocess.CalledProcessError, e:
-                print "Ping stdout output:\n", e.output
+            # except subprocess.CalledProcessError, e:
+            except subprocess.CalledProcessError as e:
+                print("Ping stdout output:\n", e.output)
 
                 os.chdir(root_dir)
                 print("JOB SKIPPED: ")
                 return(None)
-
         #__|
 
         os.system("chmod 777 " + path + "/*")
@@ -1039,7 +1124,6 @@ class AWSCluster(ComputerCluster):
 
         return(spot_terminated)
         #__|
-
 
     def completed_file(self, path_i="."):
         """

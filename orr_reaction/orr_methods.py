@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """ORR energetics classes and methods."""
 
 #| - IMPORT MODULES
@@ -404,7 +406,9 @@ class ORR_Free_E_Plot:
         new_y_dat = copy.copy(y_dat)
 
         cnt = 2
-        for i_ind in range(len(x_dat) / 2 - 1):
+        # print(len(x_dat) / 2 - 1)
+        # print(")@(!#$*I(#LKSDFJGL))")
+        for i_ind in range(int(len(x_dat) / 2 - 1)):
             fill = new_x_dat[cnt - 1]
             new_x_dat.insert(cnt, fill)
             new_y_dat.insert(cnt, None)
@@ -419,7 +423,7 @@ class ORR_Free_E_Plot:
 
         cnt = 0
         short_x = []
-        for i_ind in range(len(xdat) / 2):
+        for i_ind in range(int(len(xdat) / 2)):
             short_x.append(xdat[cnt] + 0.5)  # FIXME Replace 0.5 with variable
             cnt += 2
         #__|

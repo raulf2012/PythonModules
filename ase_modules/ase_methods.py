@@ -7,7 +7,37 @@ Author: Raul A. Flores
 Development Notes:
     TODO Master print statements should have "****..." to be easily readable
     TODO Delete all set_mag_mom_to_0 references (Already commented them out)
+    TODO Add work function analysis (Ask Colin about Karen's method)
 """
+
+#| - IMPORT MODULES
+import sys
+import os
+import glob
+import copy
+import json
+import math
+import pickle as pickle
+import numpy as np
+import shutil
+
+from scipy.stats import norm
+
+# NOTE Changed for python3.6
+# import matplotlib.pyplot as plt
+import matplotlib as plt
+
+
+from ase.io import read, write, Trajectory
+from ase.dft.kpoints import ibz_points, get_bandpath
+
+from ase.vibrations import Vibrations
+from ase.thermochemistry import HarmonicThermo
+
+# My Modules
+from misc_modules.numpy_methods import angle_between
+from ase_modules.dft_params import Espresso_Params
+#__|
 
 #| - Table of Contents
 """
@@ -25,7 +55,7 @@ an_bands:
 an_beef_ensemble:
 plot_beef_ensemble:
 an_ads_vib:
-thermochemical_corrections:
+thermochem_harm_corr:
 read_atoms_from_file:
 convert_atoms_object:
 angle_between_lattice_vectors:
@@ -38,31 +68,6 @@ number_of_constrained_atoms:
 highest_position_of_element:
 create_gif_from_atoms_movies:
 """
-#__|
-
-#| - IMPORT MODULES
-import sys
-import os
-import glob
-import copy
-import json
-import math
-import pickle as pickle
-import numpy as np
-import shutil
-
-from scipy.stats import norm
-import matplotlib.pyplot as plt
-
-from ase.io import read, write
-from ase.dft.kpoints import ibz_points, get_bandpath
-
-from ase.vibrations import Vibrations
-from ase.thermochemistry import HarmonicThermo
-
-# My Modules
-from misc_modules.numpy_methods import angle_between
-from ase_modules.dft_params import Espresso_Params
 #__|
 
 #| - METHODS
@@ -129,7 +134,7 @@ def set_QE_calc_params(
     espresso_params = espresso_params_inst.params
 
     calc = espresso(**espresso_params)
-    atoms.set_calculator(calc=calc) # NOTE Calculator set for the 1st time here
+    atoms.set_calculator(calc=calc)  # NOTE Calculator set for the 1st time here
 
     return(calc, espresso_params)
     #__|
@@ -141,9 +146,11 @@ def set_QE_calc_params(
 def ionic_opt(
     atoms,
     calc,
+    traj=None,
     espresso_params=None,
     mode="opt",
     fmax=0.05,
+    maxsteps=100000000,
     ):
     """
     Run ionic dft relaxation on atoms object.
@@ -151,18 +158,21 @@ def ionic_opt(
 
     Development Notes:
         * What to do when the job has already been previously completed?
-        Should I run a single point calculation just to make sure the calculator is fully
-        operational/loaded?
+        Should I run a single point calculation just to make sure the
+        calculator is fully operational/loaded?
 
-        TODO .FINSISHED file should include information about what kind of optimization was
-        performed
+        TODO .FINSISHED file should include information about what kind of
+        optimization was performed
+
+        TODO Implemetn qn.replay_trajectory('qn.traj') functionality
 
     Args:
-        atoms:
-        calc:
-        espresso_params:
+        atoms: ASE atoms object
+        calc: Calculator object
+        espresso_params: Quantum Espresso job parameters dictionary
         mode:
-        fmax:
+        fmax: Force convergence criteria
+        maxsteps: Maximum number of ionic steps
     """
     #| - ionic_opt
     from espresso import espresso
@@ -173,37 +183,51 @@ def ionic_opt(
     print(mess)
     sys.stdout.flush()
 
+    # TODO Skip calculation if previously converged
+    # COMBAK Uncomment this section
     #| - Checking if Previous Calculation Has Been Completed
-    filename = ".FINISHED.new"
-    if os.path.exists("./" + filename):
-        with open(filename, "r") as fle:
-            lines = [line.strip() for line in fle.readlines()]
-            if "ionic_opt" in lines:
-                print("ionic_opt | Optimization previusly completed "
-                    "(Running a single-point calculation)"
-                    )
-                mode = "sp"
+    # filename = ".FINISHED.new"
+    # if os.path.exists("./" + filename):
+    #     with open(filename, "r") as fle:
+    #         lines = [line.strip() for line in fle.readlines()]
+    #         if "ionic_opt" in lines:
+    #             print("ionic_opt | Optimization previusly completed "
+    #                 "(Running a single-point calculation)"
+    #                 )
+    #             mode = "sp"
     #__|
 
     atoms.set_calculator(calc)
-    # TODO Skip calculation if previously converged
 
     if mode == "opt":
         #| - Regular Optimization
+        mess = "Running regular optimization "
+        print(mess); sys.stdout.flush()
+
         qn = QuasiNewton(
             atoms,
-            trajectory="out_opt.traj",
+            # trajectory="out_opt.traj",
             logfile="qn.log",
             )
+
+        if traj is not None:
+            qn.attach(traj)  # COMBAK Test feature (restarting traj files)
 
         if os.path.exists("prev.traj"):
             qn.replay_trajectory("prev.traj")
 
-        qn.run(fmax=fmax)
+        qn.run(
+            fmax=fmax,
+            steps=maxsteps,
+            )
+
+        # qn.run(fmax=fmax)
         #__|
 
     elif mode == "easy_opt":
         #| - Easy Optimization -> Full Optimization
+        mess = "Running easy optimization scheme"
+        print(mess); sys.stdout.flush()
 
         #| - Easy Optimization Settings
         espresso_params_copy = copy.deepcopy(espresso_params)
@@ -236,8 +260,10 @@ def ionic_opt(
         magmoms = atoms.get_initial_magnetic_moments()
 
         # set_mag_mom_to_0(atoms)
-        # FIXME I should be able to just use the "set_initial_magnetic_moments" method here
-        # That should automatically set to magmoms to 0 from the QE parameters dict
+
+        # FIXME I should be able to just use the "set_initial_magnetic_moments"
+        # method here. That should automatically set to magmoms to 0 from the
+        # QE parameters dict
         atoms.set_initial_magnetic_moments(np.zeros(len(atoms)))
 
         atoms.set_calculator(easy_calc)
@@ -274,27 +300,14 @@ def ionic_opt(
 
     elif mode == "sp":
         #| - Single Point Calculation
-        print("ionic_opt | Running Single-Point Calculation"); sys.stdout.flush()
+        mess = "Running Single-Point Calculation"
+        print(mess); sys.stdout.flush()
 
         atoms.get_potential_energy()
         write("out.traj", atoms)
         #__|
 
-    #| - Update .FINISHED File
-
     update_FINISHED("ionic_opt")
-
-    # filename = ".FINISHED.new"
-    #
-    # if os.path.exists("./" + filename):
-    #     append_write = "a"  # append if already exists
-    # else:
-    #     append_write = "w"  # make a new file if not
-    #
-    # with open(filename, append_write) as fle:
-    #     fle.write("ionic_opt")
-    #     fle.write("\n")
-    #__|
 
 #__| **************************************************************************
 
@@ -302,7 +315,12 @@ def ionic_opt(
 
 #| - Magnetic Moments *********************************************************
 
-def set_init_mag_moms(atoms, preference="bader", magmoms=None):
+def set_init_mag_moms(
+    atoms,
+    preference="bader",
+    magmoms=None,
+    read_from_file=False,
+    ):
     """Set initial magnetic moments to atoms object using several methods.
 
     Set inital magnetic moments to atoms object. If the atoms object has
@@ -319,8 +337,10 @@ def set_init_mag_moms(atoms, preference="bader", magmoms=None):
             "bader"
             "pdos"
             "average"
-        magmoms:
-            If specified, set the atom's initial magnetic moments to  this
+        magmoms: <list> <dict>
+            If specified as a list, set the atom's initial magnetic
+            moments to list. If a element: magmom_i dict is given the magmoms
+            will be initilized from this dict.
     """
     #| - set_init_mag_moms
     mess = "Setting Inital Magnetic Moments "
@@ -343,27 +363,39 @@ def set_init_mag_moms(atoms, preference="bader", magmoms=None):
     preferred_an = preference_map_dict[preference]
 
     if magmoms is not None:
-        print("set_init_mag_moms | Using given magmoms"); sys.stdout.flush()
-        magmoms_i = magmoms
+
+        if type(magmoms) == list:
+            print("set_init_mag_moms | Using given magmoms"); sys.stdout.flush()
+            magmoms_i = magmoms
+
+        # TODO Implement this featrure in simple_mag_moms, providing dict will
+        # update the init magmom dict
+        elif type(magmoms) == dict:
+            text = ("set_init_mag_moms | "
+                    "Using simple method for initial magnetic moments "
+                    "with updated values for dict"
+                    )
+            print(text); sys.stdout.flush()
+            magmoms_i = simple_mag_moms(atoms)
+
     else:
         spinpol_calc = calc_spinpol(atoms)
 
         #| - Spin-polarization turned off, set magmoms to 0
         if not spinpol_calc:
-            print("set_init_mag_moms | Spin-polarization turned off"); sys.stdout.flush()
+            print("set_init_mag_moms | Spin-polarization turned off")
+            sys.stdout.flush()
             mag_mom_list = atoms.get_initial_magnetic_moments()
             magmoms_i = np.zeros(len(mag_mom_list))
         #__|
 
-
         # COMBAK This is a poor way of enforcing the analysis method preference
         # Assumes that there are only 2 analysis methods
         elif preferred_an in magmoms_master_dict.keys():
-            text = (
-                        "set_init_mag_moms | "
-                        "Using preferred method for initial magnetic moments "
-                        "(" + preferred_an + ")"
-                        )
+            text = ("set_init_mag_moms | "
+                    "Using preferred method for initial magnetic moments "
+                    "(" + preferred_an + ")"
+                    )
             print(text); sys.stdout.flush()
             magmoms_i = magmoms_master_dict[preferred_an]
 
@@ -371,25 +403,9 @@ def set_init_mag_moms(atoms, preference="bader", magmoms=None):
             an_method = magmoms_master_dict.keys()[0]
             text = ("set_init_mag_moms | "
                     "Using " + an_method + " for initial magnetic moments")
-            print(text);
+            print(text)
 
             magmoms_i = magmoms_master_dict[an_method]
-
-        #| - __old__
-        # elif preference == "bader":
-        #     if "bader_magmoms" in magmoms_master_dict.keys():
-        #         text = ("set_init_mag_moms | "
-        #                 "Initial magnetic moments set from bader analysis")
-        #         print(text)
-        #         magmoms_i = magmoms_master_dict["bader_magmoms"]
-        #
-        # elif preference == "pdos" and "pdos_magmoms" in magmoms_master_dict.keys():
-        #     text = ("set_init_mag_moms | "
-        #             "Initial magnetic moments set from PDOS analysis")
-        #     print(text)
-        #     magmoms_i = magmoms_master_dict["pdos_magmoms"]
-        #__|
-
 
         #| - Use simple method
         else:
@@ -399,12 +415,20 @@ def set_init_mag_moms(atoms, preference="bader", magmoms=None):
             magmoms_i = simple_mag_moms(atoms)
         #__|
 
+        if read_from_file:
+            text = ("set_init_mag_moms | "
+                    "Using magmom_init.in file for initial magnetic moments")
+            print(text); sys.stdout.flush()
+
+            magmoms_tmp = read_magmoms_from_file()
+            if magmoms_tmp is not None:
+                magmoms_i = magmoms_tmp
+
     magmoms_i_new = increase_abs_val_magmoms(atoms, magmoms_i)
 
     atoms.set_initial_magnetic_moments(magmoms_i_new)
 
     #| - Printing Magnetic Moments
-
     print("set_init_mag_moms | Initial Magnetic Moments:")
     for atom in atoms:
         elem = atom.symbol
@@ -416,25 +440,13 @@ def set_init_mag_moms(atoms, preference="bader", magmoms=None):
     reduce_magmoms(atoms)
     #__|
 
-# COMBAK | Remove this method, it is too simple
-# def set_mag_mom_to_0(atoms):
-#     """Set magnetic moments to 0 for all atoms in atoms object.
-#
-#     Args:
-#         atoms:
-#     """
-#     #| - set_mag_mom_to_0
-#     mag_mom_list = atoms.get_initial_magnetic_moments()
-#     new_mag_mom_list = np.zeros(len(mag_mom_list))
-#     atoms.set_initial_magnetic_moments(new_mag_mom_list)
-#     #__|
-
-# def increase_abs_val_magmoms(magmoms_list, increase_amount=0.2):
-def increase_abs_val_magmoms(atoms, magmoms_list, increase_amount=0.2):
+def increase_abs_val_magmoms(atoms, magmoms_list, increase_amount=0.8):
     """Increase absolute value of magmoms for atoms object.
 
     # COMBAK Shouldn't raise initial guess for light atoms (Or don't raise as
     much)
+
+    Will not modify magmoms == 0.
 
     Select light atoms will have their |magmom| raised by a set small amount to
     not oversaturate the atomic magnetic moment (init_magmom > # valence e)
@@ -459,7 +471,6 @@ def increase_abs_val_magmoms(atoms, magmoms_list, increase_amount=0.2):
         }
 
     new_magmom_list = []
-
     # for magmom in magmoms_list:
     for atom, magmom in zip(atoms, magmoms_list):
         if atom.symbol in light_atoms_list.keys():
@@ -523,6 +534,13 @@ def simple_mag_moms(atoms):
         "Mo": 5, "Tc": 5, "Hf": 2,
         "Ta": 3, "W": 4, "Re": 5, "Ti": 2,
         }
+
+    spin_dict = {
+        "O": 2.5,
+        "H": 0.2,
+        "C": 0.2,
+        "N": 0.2,
+        }
     #__|
 
     #| - Find cations
@@ -541,15 +559,22 @@ def simple_mag_moms(atoms):
 
     #| - Setting Magnetic Moments of Atoms
     magmoms = atoms.get_initial_magnetic_moments()
+
     for atom in atoms:
         if atom.symbol in cations:
             magmoms[atom.index] = cation_magmom_dict[atom.symbol]
-        elif atom.symbol == "O":
-            magmoms[atom.index] = 2.5
-        else:
-            magmoms[atom.index] = 0.0
+            continue
 
-    return(np.array(magmoms))
+        for elem_i in spin_dict.keys():
+            if atom.symbol == elem_i:
+                magmoms[atom.index] = spin_dict[elem_i]
+                break
+
+            else:
+                magmoms[atom.index] = 0.0
+    magmoms = np.array(magmoms)
+
+    return(magmoms)
     #__|
 
     #__|
@@ -630,6 +655,155 @@ def reduce_magmoms(atoms, ntypx=10):
         for magmom in master_dict[sym]:
             for index in master_dict[sym][magmom]:
                 atoms[index].magmom = magmom
+    #__|
+
+def read_magmoms_from_file(file_name="magmom_init.in"):
+    """
+
+    Args:
+        file_name:
+    """
+    #| - read_magmoms_from_file
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    # file_name = "magmom_init.in"
+    print(os.path.isfile(file_name))
+    magmoms = None
+    if os.path.isfile(file_name):
+        print("11")
+        try:
+            with open(file_name, "r") as fle:
+                print("22")
+                magmoms = [float(i.strip()) for i in fle.readlines()]
+        except:
+            print("33")
+            print("Couldn't read init magmom file")
+
+    return(magmoms)
+    #__|
+
+
+# def compare_magmoms(self):
+def compare_magmoms():
+    """Compares spin states of two atoms objects.
+
+    (I think I got this from Colin on 180413)
+
+    Part of bigger script
+    /home/colinfd/usr/bin/get_G.py
+
+    TODO Port this code to my workflow
+
+    Author: Colin Dickens
+    """
+    #| - compare_magmoms
+
+    def nearest_atom(atoms,position):
+        """Returns atom nearest to position."""
+        #| - nearest_atom
+        position = np.array(position)
+        dist_list = []
+        for atom in atoms:
+            dist = np.linalg.norm(position - atom.position)
+            dist_list.append(dist)
+
+        return atoms[np.argmin(dist_list)]
+        #__|
+
+    if len(self.ads_atoms) >= len(self.slab_atoms):
+        ads = self.ads_atoms
+        slab = self.slab_atoms
+        indexed_by = self.slab
+        not_indexed_by = self.ads
+    else:
+        slab = self.ads_atoms
+        ads = self.slab_atoms
+        indexed_by = self.ads
+        not_indexed_by = self.slab
+
+    delta_magmoms = []
+    ads_indices_used = []
+    for atom in slab:
+        ads_atom = nearest_atom(ads,atom.position)
+        if not self.quiet:
+           if ads_atom.symbol != atom.symbol:
+               print("WARNING! MAGMOM COMPARISON FAILURE")
+        ads_indices_used.append(ads_atom.index)
+        delta_magmoms.append(atom.magmom - ads_atom.magmom)
+
+    ads_indices_not_used = []
+    for i in range(len(ads)):
+        if i not in ads_indices_used:
+            ads_indices_not_used.append(i)
+
+    self.delta_magmoms = zip(range(len(slab)),delta_magmoms)
+    self.delta_magmoms.sort(key=lambda x: abs(x[1]),reverse=True)
+
+    common = ""
+    uncommon = ""
+    for i in range(8):
+        atom = slab[self.delta_magmoms[i][0]]
+        common += "%s%d: %.2f\t"%(atom.symbol,atom.index,self.delta_magmoms[i][1])
+    for i in ads_indices_not_used:
+        uncommon += "%s%d: %.2f\t"%(ads[i].symbol,ads[i].index,ads[i].magmom)
+
+    if self.quiet:
+        return
+    print("~" * 6 + "MAGNETIC MOMENT COMPARISON" + "~" * 6)
+    print("Largest magnetic moment discrepancies (indexed by %s)" % indexed_by)
+    print(common)
+    print("Magnetic moments only present in %s" % not_indexed_by)
+    print(uncommon + "\n")
+    #__|
+
+def estimate_magmom(
+    atoms,
+    ):
+    """
+    Author: Colin Dickens
+
+    Estimate magmom from log file (based on charge spheres centered on atoms) and assign to
+    atoms object to assist with calculation restart upon unexpected interruption
+    """
+    #| - estimate_magmom
+    f = open("outdir/log")
+    lines = f.readlines()
+    f.close()
+
+    i = len(lines) - 1
+    while True:
+        if i == 0: raise IOError("Could not identify espresso magmoms")
+        line = lines[i].split()
+        if len(line) > 3:
+            if line[0] == "absolute":
+                abs_magmom = float(line[3])
+        if len(line) > 6:
+            if line[4] == "magn:":
+                i -= len(atoms) - 1
+                break
+        i -= 1
+
+    print("i index:")
+    print(i)
+    print(abs_magmom)
+
+    if abs_magmom < 1e-3:
+        print("estimate_magmom | Absolute magnetism is near 0, setting "
+            "initial atomic magmoms to 0"
+            )
+        for atom in atoms:
+            atom.magmom = 0
+    else:
+        total_esp_magmom = 0
+        for j in range(len(atoms)):
+
+            print(float(lines[i+j].split()[5]))
+            total_esp_magmom += np.abs(float(lines[i+j].split()[5]))
+
+        for j in range(len(atoms)):
+            atoms[j].magmom = float(lines[i+j].split()[5])*abs_magmom/total_esp_magmom
+
+
+    return(lines, i)
     #__|
 
 #__| **************************************************************************
@@ -829,7 +1003,13 @@ def spin_pdos(
 
             atoms.info.update({"pdos_charges": charge_list})
 
-            pickle.dump(charge_list, open("%s/charge_list.pickle" % outdir, "w"))
+            pickle.dump(
+                charge_list,
+                open(
+                    "%s/charge_list.pickle" % outdir,
+                    "w",
+                    )
+                )
         #__|
 
     print("PDOS CHARGES: " + str(atoms.get_initial_charges()))
@@ -888,10 +1068,11 @@ def an_bands(atoms, bands_kpts, espresso_params):
     mess += "********************************************"
     print(mess); sys.stdout.flush()
 
-    # FIXME This should be handled by envoking the set_initial_magnetic_moments method
+    # FIXME This should be handled by envoking the
+    # set_initial_magnetic_moments method
     spinpol_calc = calc_spinpol(atoms)
     if spinpol_calc is False:
-        print("set_init_mag_moms | Spin-polarization turned off")
+        print("an_bands | Spin-polarization turned off, setting magmoms to 0")
         atoms.set_initial_magnetic_moments(np.zeros(len(atoms)))
         # set_mag_mom_to_0(atoms)  # COMBAK Remove this if working
 
@@ -905,6 +1086,10 @@ def an_bands(atoms, bands_kpts, espresso_params):
         )
 
     atoms.calc = espresso(**espresso_params)
+
+    mess = "Running single-point calculation"
+    print(mess); sys.stdout.flush()
+
     atoms.get_potential_energy()
 
     atoms.calc.save_flev_chg("charge_den.tgz")
@@ -917,6 +1102,10 @@ def an_bands(atoms, bands_kpts, espresso_params):
     bzpath = [ip[p] for p in points]
 
     kpts, x, X = get_bandpath(bzpath, atoms.cell, npoints=300)
+
+    mess = "Calculating band structure"
+    print(mess); sys.stdout.flush()
+
     energies = atoms.calc.calc_bandstructure(kpts)
 
     if not os.path.exists("dir_bands"):
@@ -962,7 +1151,9 @@ def an_beef_ensemble(atoms):
                             " parameter turned off!, analysis will not run!!")
         return(None)
 
-    if xc != "BEEF" or xc != "BEEF-vdW":
+    allowed_xc = ["BEEF", "BEEF-vdW"]
+    # if xc != "BEEF" or xc != "BEEF-vdW":
+    if xc not in allowed_xc:
         print("The exchange-correlation functional has to be either "
                             "BEEF or BEEF-vdW to do the BEEF ensemble analysis")
         return(None)
@@ -1024,18 +1215,34 @@ def plot_beef_ensemble(
 #__| **************************************************************************
 
 #| - Vibrational Analysis *****************************************************
-def an_ads_vib(atoms, ads_index_list=None):
+def an_ads_vib(
+    atoms,
+    ads_index_list=None,
+    # thermochem_corrections=True,
+    thermochem_corrections="harmonic",  # "harmonic" or "IG"
+    remove_imag_modes=True,
+
+    Temperature=300.0,
+    Pressure=100000.0,
+    symmetrynumber=2,
+    spin=0,
+    linear=True,
+    ):
     """Adsorbate vibrational analysis.
+
+    Returns the ASE Vibrations instance in case further analysis is needed.
 
     Args:
         atoms:
         ads_index_list:
+        thermochem_corrections:
+        remove_imag_modes: Removes imaginary modes
     """
     #| - an_ads_vib
 
     mess = "Starting vibrational analysis "
     mess += "************************************************"
-    print(mess)
+    print(mess); sys.stdout.flush()
 
     #| - Setting Adsorbate Index List
     if ads_index_list is not None:
@@ -1047,10 +1254,6 @@ def an_ads_vib(atoms, ads_index_list=None):
         print("an_ads_vib | Adsorbate index info couldn't be parsed from atoms")
         print("an_ads_vib | Will vibrate all atoms!!!!!!!! (Probably not good)")
         pass
-
-    # if len(ads_index_list) == 0:
-    #     print("an_ads_vib | len(ads_index_list) == 0, something wrong")
-    #     return(None)
     #__|
 
     #| - Removing Empty Pickle Files
@@ -1071,15 +1274,10 @@ def an_ads_vib(atoms, ads_index_list=None):
     vib = Vibrations(atoms, indices=ads_index_list)
     vib.run()
 
-    print("an_ads_vib | Getting vibrational energies")
+    # print("an_ads_vib | Getting vibrational energies")
     vib_e_list = vib.get_energies()
 
-    # COMBAK I think that the summary is succesfully being outputed to
-    # vib_summ.out, in which case all of these prints statements can be deleted
-    print("an_ads_vib | printing summary??"); sys.stdout.flush()
-    tmp = vib.summary(log="vib_summ.out")
-    print(tmp)  # TEMP Just trying to get this info to print
-    print("an_ads_vib | printing summary??"); sys.stdout.flush()
+    vib.summary(log="vib_summ.out")
 
     #| - Copy Files to dir_vib Folder
     if not os.path.exists("dir_vib"):
@@ -1091,30 +1289,74 @@ def an_ads_vib(atoms, ads_index_list=None):
         shutil.move(fle, dest_dir + "/" + fle)
     #__|
 
-    thermochemical_corrections(vib_e_list)
+    #| - Remove Imaginary Modes
+    # Removes them, not just making them 0
+    if remove_imag_modes:
+        vib_e_list = vib_e_list.real
+        vib_e_list = [vib_i for vib_i in vib_e_list if vib_i != 0.]
+    #__|
+
+    if thermochem_corrections == "harmonic":
+        thermochem_harm_corr(vib_e_list)
+
+    elif thermochem_corrections == "IG":
+        thermochem_IG_corr(
+            vib_e_list,
+            Temperature=Temperature,
+            Pressure=Pressure,
+            potentialenergy=0.,
+            symmetrynumber=symmetrynumber,
+            spin=spin,
+            atoms=atoms,
+            linear=linear,
+            )
+
+    # Saving Vibrational Mode List
+    with open("dir_vib/vib_modes.pickle", "w") as fle:
+        pickle.dump(vib_e_list, fle)
+
+    #| - Saving Vibrations Class Instance
+    file_name = "dir_vib/vib_inst.pickle"
+    if not os.path.exists(file_name):
+        pass
+    else:
+        os.remove(file_name)
+
+    # Pickling error occured when pickling the atoms object
+    if "atoms" in vars(vib): del vars(vib)["atoms"]
+
+    with open(file_name, "w") as fle:
+        pickle.dump(vib, fle)
+    #__|
 
     update_FINISHED("an_ads_vib")
 
+    # return(vib_e_list)
     return(vib)
     #__|
 
-def thermochemical_corrections(vib_e_list, Temperature=300.0):
+def thermochem_harm_corr(
+    vib_e_list,
+    Temperature=300.0,
+    ):
     """Thermochemical free energy corrections from vibrational analysis.
-
     Args:
         vib_e_list:
             List of vibrational modes in eV
         Temperature:
     """
-    #| - thermochemical_corrections
+    #| - thermochem_harm_corr
+    mess = "Starting thermochemical harmonic energy contributions "
+    mess += "***********************"
+    print(mess); sys.stdout.flush()
+
     print("Calculating thermochemical corrections @ " + str(Temperature) + "K")
+
+    vib_e_list = np.array(vib_e_list)
 
     # Remove imaginary frequencies
     vib_e_list = vib_e_list.real
     vib_e_list = [vib_i for vib_i in vib_e_list if vib_i != 0.]
-
-    print("Vibrations list:")
-    print(vib_e_list)
 
     ht = HarmonicThermo(vib_e_list)
     F_energy = ht.get_helmholtz_energy(Temperature)
@@ -1127,17 +1369,132 @@ def thermochemical_corrections(vib_e_list, Temperature=300.0):
         fle.write("\n")
     #__|
 
+def thermochem_IG_corr(
+    vib_energies,
+    Temperature=300.0,
+    Pressure=100000.0,
+    potentialenergy=0.,
+    symmetrynumber=None,
+    spin=None,
+    atoms=None,
+    linear=True,
+    ):
+    """
+
+    Args:
+        vib_e_list:
+        Temperature=300.0:
+        Pressure=100000.0:
+        potentialenergy=0.:
+        symmetrynumber=None:
+        spin=None:
+        atoms=None:
+    """
+    #| - thermochem_IG_corr
+    mess = "Starting thermochemical ideal gas energy contributions "
+    mess += "***********************"
+    print(mess); sys.stdout.flush()
+
+    from ase.thermochemistry import IdealGasThermo
+
+    # try:
+    #     with open("dir_vib/vib_inst.pickle", "r") as fle:
+    #         vib = pickle.load(fle)
+    # except:
+    #     pass
+    #
+    # vib_energies = vib.get_energies()
+
+    if atoms is not None:
+        potentialenergy = atoms.get_potential_energy()
+
+    if linear is True:
+        lin = "linear"
+    else:
+        lin = "nonlinear"
+
+    thermo = IdealGasThermo(
+        vib_energies,
+        lin,  # linear/nonlinear
+        potentialenergy=potentialenergy,
+        atoms=atoms,
+        symmetrynumber=symmetrynumber,  # symmetry numbers from point group
+        spin=spin,  # 1 for O2, 0 for H2O
+        )
+
+    G = thermo.get_gibbs_energy(temperature=Temperature, pressure=Pressure)
+
+    if not os.path.exists("dir_vib"):
+        os.makedirs("dir_vib")
+
+    with open("dir_vib/g_energy.out", "w") as fle:
+        fle.write(str(G))
+    #__|
+
+
 #__| **************************************************************************
 
+#| - Job Cleanup
+def clean_up_dft():
+    """Clean up files after DFT job.
+
+    I'm using a lot of try statement because I dont want this to break anywhere
+    """
+    #| - clean_up_dft
+    with open(".FINISHED", "w") as fle:
+        fle.write("\n")
+
+    # def update_FINISHED(text, filename=".FINISHED.new"):
+
+    update_FINISHED("job_completed")
+
+    if not os.path.exists("__misc__"):
+        os.makedirs("__misc__")
+
+    #| - Moving Sherlock Node Files to __misc__ folder
+    # Sherlock didn't like this:
+    # Open RTE was unable to open the hostfile:
+    #     /scratch/users/flores12/03_graph_N_Fe/01_opt_struct/N_doped_graph_Fe/1-att/__test__/1-att/_5/uniqnodefile.21286552
+    # Check to make sure the path and filename are correct.
+
+
+    # try:
+    #     if "COMPENV" in os.environ:
+    #         compenv = os.environ["COMPENV"]
+    #         if compenv == "sherlock":
+    #             os.system("mv *nodefile.* __misc__")
+    #             os.system("mv *uniqnodefile..* __misc__")
+    #
+    # except:
+    #     pass
+    #__|
+
+    #| - Moving DFT Parameter Files to dir_dft_params
+    try:
+        if not os.path.exists("dir_dft_params"):
+            os.makedirs("dir_dft_params")
+
+        os.system("mv *dft-params* dir_dft_params")
+
+    except:
+        pass
+    #__|
+
+    #__|
+
+#__|
 
 #| - Atoms File Operations ****************************************************
-def read_atoms_from_file(filename=None):
+def read_atoms_from_file(filename=None, try_restart=True):
     """Read atoms object from file.
 
     Checks several file names
 
+    TODO Options and methods to read and check output trajectory files
+
     Args:
         filename: optional atoms file, will attempt to read first.
+        try_restart: Restart job by reading output atoms/trajectory object
     """
     #| - read_atoms_from_file
     mess = "Reading Atoms Object From File "
@@ -1145,72 +1502,63 @@ def read_atoms_from_file(filename=None):
     print(mess)
 
     atoms = None
+    traj = None
+
+    #| - Restart From Output Atoms Object
+    restart_file_name_list = [
+        "out.traj",
+        "out_opt.traj",
+        "out_final.traj",
+        ]
+
+    if try_restart:
+        for file_name in restart_file_name_list:
+            if os.path.isfile(file_name):
+
+                try:
+                    atoms = read(file_name)
+                    traj = Trajectory(file_name, "a", atoms)
+
+                    mess = "read_atoms_from_file | Restarting from "
+                    mess += file_name
+                    print(mess); sys.stdout.flush()
+
+                    break
+
+                except:
+                    pass
+    #__|
+
+    #| - Starting From Fresh Atoms Object
     file_name_list = [
         "init.traj",
         "init.POSCAR",
         "manual_start.traj",
-        "out.traj",
         "POSCAR",
         ]
 
-    if filename is not None:
-        file_name_list.insert(0, filename)
+    if atoms is None:
 
-    for file_name in file_name_list:
-        if os.path.isfile(file_name):
-            atoms = read(file_name)
-            break
+        if filename is not None:
+            file_name_list.insert(0, filename)
+
+        for file_name in file_name_list:
+            if os.path.isfile(file_name):
+                atoms = read(file_name)
+                # COMBAK Test feature
+                traj = Trajectory("out_opt.traj", "w", atoms)
+
+                mess = "read_atoms_from_file | Starting from "
+                mess += file_name
+                print(mess); sys.stdout.flush()
+
+                break
+    #__|
 
     if atoms is None:
         raise IOError("No atoms file found")
 
-    #| - OLD
-    #
-    # file_name = "init.traj"
-    # if os.path.isfile(file_name):
-    #     atoms = read(file_name)
-    #
-    # file_name = "init.POSCAR"
-    # elif os.path.isfile(file_name):
-    #     atoms = read(file_name)
-    #
-    # file_name = "manual_start.traj"
-    # elif os.path.isfile(file_name):
-    #     atoms = read(file_name)
-    #
-    # file_name = "out.traj"
-    # elif os.path.isfile(file_name):
-    #     atoms = read(file_name)
-    #
-    # file_name = "POSCAR"
-    # elif os.path.isfile(file_name):
-    #     atoms = read(file_name)
-    #
-    # if atoms == None:
-    #     raise IOError("No atoms file found")
-
-
-
-    # elif os.path.isfile("init.POSCAR"):
-    #     atoms = read("init.POSCAR")
-    #
-    # elif os.path.isfile("init.traj"):
-    #     atoms = read("init.traj")
-    #
-    # elif os.path.isfile("manual_start.traj"):
-    #     atoms = read("manual_start.traj")
-    #
-    # elif os.path.isfile("out.traj"):
-    #     atoms = read("out.traj")
-    #
-    # elif os.path.isfile("POSCAR"):
-    #     atoms = read("POSCAR")
-    #
-    # if atoms == None:
-    #     raise IOError("No atoms file found")
-    #__|
-
-    return(atoms)
+    return(atoms, traj)
     #__|
 
 def convert_atoms_object(atoms_filename, out_file):
@@ -1402,8 +1750,6 @@ def number_of_atoms(atoms):
         atoms
     """
     #| - number_of_atoms
-    # atoms = io.read(path + "/out.traj")
-
     atoms_sym_list = atoms.get_chemical_symbols()
 
     unique_atom_symbols = list(set(atoms_sym_list))

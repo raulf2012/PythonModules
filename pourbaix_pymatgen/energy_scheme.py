@@ -6,7 +6,7 @@ def ref_atoms_dict():
 	Args:
 
 	"""
-	#start_fold - ref_atoms_dict
+	#| -  - ref_atoms_dict
 
 	# e_o = -4.93552791875		# mp-12957, half of O2 - No entropy term
 	# e_h = -3.2397				# mp-754417, half of H2 - No entropy term
@@ -20,7 +20,7 @@ def ref_atoms_dict():
 	e_o = -5.21
 	e_h = -3.6018845
 
-	#start_fold - H2O, H2 Reference State
+	#| -  - H2O, H2 Reference State
 	# From Michal Badjich
 	o2=-9.88557216
 	h2o=-14.23091949
@@ -33,14 +33,14 @@ def ref_atoms_dict():
 	o2cp=0.090
 
 	# o_ref1=o2/2
-	o_ref2=(h2o-h2 +2.506)+(h2ozpe-h2zpe-0.5*o2zpe)+(h2ocp-h2cp-0.5*o2cp)
+	o_ref2=(h2o-h2 + 2.506)+(h2ozpe-h2zpe-0.5*o2zpe)+(h2ocp-h2cp-0.5*o2cp)
 
 	# e_o = o_ref2
 	# e_h = h2/2.
-	#end_fold
+	#__|
 
 
-	#start_fold - Entropic Corrections
+	#| -  - Entropic Corrections
 	entr_o = -0.3167
 	entr_h = -0.36218
 
@@ -51,9 +51,9 @@ def ref_atoms_dict():
 
 	return ref_dict
 
-	#end_fold
+	#__|
 
-	#end_fold
+	#__|
 
 def h2o_energy():
 	"""
@@ -78,19 +78,19 @@ def form_e_all_oxides(element, only_pd_entries=False):
 		4. Apply correction scheme to entries
 		5. Calculate the formation energy for the oxides per oxygen molecule
 	"""
-	#start_fold - form_e_all_oxides
+	#| -  - form_e_all_oxides
 
-	#start_fold - Imported Modules
+	#| -  - Imported Modules
 	from pd_make import entry_data, aq_correction, stable_entr, form_e
 	from entry_methods import entry_remove, pure_atoms_return,contains_element, norm_e
 	from energy_scheme import ref_atoms_dict
-	#end_fold
+	#__|
 
-	#start_fold - Script parameters
+	#| -  - Script parameters
 	mprester_key = 'ZJhfHmMTTwbW29Sr'	# Input your materials project id
 	direct_0 = '/home/flores12/01_ORR-MatStabScreen/01_virenv-pymatgen/01_data/01-1_local_MP_entry/'
 	correction_=True
-	#end_fold
+	#__|
 
 	all_entries = entry_data(element,element,direct_0,mprester_key)['entries']
 	oxygen_entries = contains_element(all_entries,'O')
@@ -100,7 +100,7 @@ def form_e_all_oxides(element, only_pd_entries=False):
 
 	oxides = entry_remove(entries_no_h, 'O2')
 
-	#start_fold - Finding the Entries Used in the Pourbaix Diagram
+	#| -  - Finding the Entries Used in the Pourbaix Diagram
 	entry_ion_data = entry_data(element, element, direct_0, mprester_key)
 	entries = entry_ion_data["entries"]
 
@@ -111,27 +111,27 @@ def form_e_all_oxides(element, only_pd_entries=False):
 	entry_id_lst = []
 	for i in pbx_solid_entries:
 		entry_id_lst.append(i.entry_id)
-	#end_fold
+	#__|
 
 
-	#start_fold - Deleting Entries in Oxides Which Aren't in Pourbaix Entry List
+	#| -  - Deleting Entries in Oxides Which Aren't in Pourbaix Entry List
 	if only_pd_entries==True:
 		oxides_temp = []
 		for i in oxides:
 			if i.entry_id in entry_id_lst:
 				oxides_temp.append(i)
 		oxides = oxides_temp
-	#end_fold
+	#__|
 
-	#start_fold - Metallic References
+	#| -  - Metallic References
 	elem_ref = pure_atoms_return(all_entries)[0]
 	elem_ref_e = norm_e(elem_ref)
 
 	if not elem_ref.name==element:
 		print 'calc_form_e - The reference atom is not the same as the element'
-	#end_fold
+	#__|
 
-	#start_fold - Formation Energy
+	#| -  - Formation Energy
 	ref_atom_energies = ref_atoms_dict()
 	e_o = ref_atom_energies['e_o']
 	e_h = ref_atom_energies['e_h']
@@ -156,7 +156,7 @@ def form_e_all_oxides(element, only_pd_entries=False):
 
 		form_e_lst.append(entry_dict)
 
-	#end_fold
+	#__|
 	return form_e_lst
 
-	#end_fold
+	#__|

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """Job automation class."""
 
 #| - Import Modules
@@ -253,7 +255,8 @@ class DFT_Jobs_Setup:
 
         level_entries_list = []
         for param_i in level_labels:
-            for name, params_list in level_entries_dict.iteritems():
+            # for name, params_list in level_entries_dict.iteritems():
+            for name, params_list in level_entries_dict.items():
                 if param_i == name:
                     level_entries_list.append(params_list)
 
@@ -294,6 +297,68 @@ class DFT_Jobs_Setup:
             message += "The following properties need to be defined" + "\n"
             message += str(undefined_labels)
             raise ValueError(message)
+        #__|
+
+    def create_dir_struct(self, create_first_rev_folder="True"):
+        """Create directory structure according to job variable list & dict.
+
+        Args:
+            create_first_rev_folder:
+        """
+        #| - create_dir_struct
+        for job in self.job_var_lst:
+            if create_first_rev_folder == "True":
+                path = self.var_lst_to_path(job) + "_1"
+            elif create_first_rev_folder == "False":
+                path = self.var_lst_to_path(job)
+
+            path = self.root_dir + "/" + path
+
+            if os.path.exists(path):
+                mess = "Path already exists: " + str(path)
+                print(mess)
+
+            elif not os.path.exists(path):
+                os.makedirs(path)
+
+        #| - Creating Variable Text Files Through Directoy Structure
+        for job in self.job_var_lst:
+            path = self.var_lst_to_path(job)
+            path = self.root_dir + "/" + path
+
+            file_name = path + "job_dir_level"
+            with open(file_name, "w") as fle:
+                fle.write("\n")
+
+        for root, dirs, files in os.walk(self.root_dir + "/data/"):
+            if "job_dir_level" in files:
+                continue
+
+            else:
+                prop_lst = []
+                for folder in dirs:
+                    tmp = self.sep.join(folder.split(self.sep)[1:])
+                    prop = self.replace_p_for_per(tmp)
+                    prop = self.replace_negative_for_n(prop)
+                    prop_lst.append(prop)
+
+                for key, value in self.level_entries.items():
+                    if set(prop_lst) == set(map(str, value)):
+
+                        file_name = root + "/properties.txt"
+                        with open(file_name, "w") as fle:
+                            fle.write(key + "\n")
+
+                        # f = open(root + "/properties.txt", "w")
+                        # f.write(key + "\n")
+                        # f.close()
+        #__|
+
+        self.create_dir_structure_file()
+
+        file_name = self.root_dir + "/jobs_bin/.folders_exist"
+        with open(file_name, "w") as fle:
+            fle.write("\n")
         #__|
 
     def create_dir_structure_file(self):
@@ -364,7 +429,11 @@ class DFT_Jobs_Setup:
         #__|
 
     def replace_negative_for_n(self, text):
-        """Replace variable quantities that are negative with an "n"."""
+        """Replace variable quantities that are negative with an "n".
+
+        Args:
+            text:
+        """
         #| - replace_negative_for_n
         lst = [pos for pos, char in enumerate(text) if char == "n"]
 
@@ -373,79 +442,6 @@ class DFT_Jobs_Setup:
                 text = text[:lett] + "-" + text[lett + 1:]
 
         return(text)
-        #__|
-
-    def create_dir_struct(self, create_first_rev_folder="True"):
-        """
-        Create directory structure according to job variable list & dict.
-
-        Args:
-            create_first_rev_folder:
-        """
-        #| - create_dir_struct
-        for job in self.job_var_lst:
-
-            if create_first_rev_folder == "True":
-                path = self.var_lst_to_path(job) + "_1"
-            elif create_first_rev_folder == "False":
-                path = self.var_lst_to_path(job)
-
-            path = self.root_dir + "/" + path
-
-            if os.path.exists(path):
-                mess = "Path already exists: " + str(path)
-                print(mess)
-
-            elif not os.path.exists(path):
-                os.makedirs(path)
-
-        #| - Creating Variable Text Files Through Directoy Structure
-        for job in self.job_var_lst:
-            path = self.var_lst_to_path(job)
-            path = self.root_dir + "/" + path
-
-            f = open(path + "job_dir_level", "w")
-            f.close()
-
-        for root, dirs, files in os.walk("./data/"):
-            if "job_dir_level" in files:
-                continue
-
-            else:
-                prop_lst = []
-                for folder in dirs:
-                    tmp = self.sep.join(folder.split(self.sep)[1:])
-                    prop = self.replace_p_for_per(tmp)
-                    prop = self.replace_negative_for_n(prop)
-                    prop_lst.append(prop)
-
-                for key, value in self.level_entries.items():
-
-                    if set(prop_lst) == set(map(str, value)):
-                        f = open(root + "/properties.txt", "w")
-                        f.write(key + "\n")
-                        f.close()
-
-        #__|
-
-        #| - Writing Directory Structure File
-
-        self.create_dir_structure_file()
-
-        # dir_structure_data = {}
-        # dir_structure_data["tree_level_labels"] = self.tree_level_labels
-        # dir_structure_data["level_entries_dict"] = self.level_entries
-        # #
-        # # with open("dir_structure.json", "w") as f:
-        # #     json.dump(dir_structure_data, f)
-        # #
-        # with open("jobs_bin/dir_structure.json", "w") as f:
-        #     json.dump(dir_structure_data, f)
-        #__|
-
-        f = open(self.root_dir + "/jobs_bin/.folders_exist", "w")
-        f.write("\n")
-        f.close()
         #__|
 
     def __order_dict__(self, tree_level_labels, level_entries):
@@ -477,7 +473,7 @@ class DFT_Jobs_Setup:
         """
         TEMP.
 
-        # TODO  - This messes up when the level entries are  the same (FIX)
+        # TODO  - This messes up when the level entries are the same (FIX)
         # UPDATE - Tried to fix, check that it works ok
 
         Args:

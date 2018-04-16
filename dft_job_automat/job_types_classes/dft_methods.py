@@ -1,20 +1,20 @@
-"""Class defining methods to extract/manipulate data in vasp raman job folders."""
+"""Class defining methods to extract/manipulate data in vasp raman job folders.
+
+Development Notes:
+    TODO Figure out how to pass additional parameters to these methods
+"""
 
 #| - Import Modules
-# from dft_job_automat.job_setup import DFT_Jobs_Setup
-# from aws.aws_class import AWS_Queues
+import os
+
+from ase import io
+from ase.io.trajectory import Trajectory
 
 import pandas as pd
-
-import os
-from ase import io
 import numpy as np
-
-from ase.io.trajectory import Trajectory
 
 # My Modules
 from ase_modules.ase_methods import number_of_atoms
-
 #__|
 
 class DFT_Methods():
@@ -23,19 +23,40 @@ class DFT_Methods():
     """
     #| - DFT_Methods **********************************************************
     def __init__(self, methods_to_run=[]):
-        """TMP_docstring.
-        TEMP TEMP
+        """Initialize DFT_Methods instance with methods_to_run list.
 
         Args:
+            methods_to_run:
         """
         #| - __init__
-        self.tmp = 42
         self.methods_to_run = methods_to_run
         #__|
 
-    # def elec_energy(self, path, atoms_file="out.traj"):
-    def elec_energy(self, path, atoms_file="out_opt.traj"):
+    def gibbs_energy(self, path_i):
+        """Read gibbs free energy from file.
+
+        Included raw electronic energy and whatever correctios were applied.
+
+        Args:
+            path_i
         """
+        #| - gibbs_energy
+        gibbs_e = None
+
+        fle_name = "g_energy.out"
+        if os.path.exists(path_i + "/" + fle_name):
+            with open(path_i + "/" + fle_name, "r") as fle:
+                gibbs_e = float(fle.read().strip())
+
+        return(gibbs_e)
+        #__|
+
+    def elec_energy(self, path_i, atoms_file="out_opt.traj"):
+        """Read electronic energy from ASE atoms object.
+
+        Args:
+            path_i:
+            atoms_file:
         """
         #| - elec_energy
 
@@ -64,7 +85,7 @@ class DFT_Methods():
         #     except:
         #         pass
 
-        atoms = self.atoms_object(path)[-1]
+        atoms = self.atoms_object(path_i)[-1]
         energy = atoms.get_potential_energy()
 
         return(energy)
@@ -72,6 +93,9 @@ class DFT_Methods():
 
     def atoms_object(self, path_i):
         """
+
+        Args:
+            path_i:
         """
         #| - atoms_object
         atoms_file_names = ["out_opt.traj", "out.traj"]
@@ -95,6 +119,8 @@ class DFT_Methods():
 
     def init_atoms(self, path_i):
         """
+        Args:
+            path_i:
         """
         #| - init_atoms
         atoms_file_names = ["init.traj", "init.POSCAR"]
@@ -110,18 +136,25 @@ class DFT_Methods():
         #__|
 
     def parse_error_file(self, path_i):
-        """
-        Parse QE ase-espresso error-out file for keywords indicating failure
+        """Parse QE ase-espresso error file for keywords indicating failure.
+
+        TODO Move this from job_analysis to here
+
+
+        Args:
+            path_i:
         """
         #| - parse_error_file
         tmp = 42
-
 
 
         #__|
 
     def atom_type_num_dict(self, path_i):
         """
+
+        Args:
+            path_i:
         """
         #| - number_of_atoms
         atoms = None

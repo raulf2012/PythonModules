@@ -1,12 +1,20 @@
+#!/usr/bin/env python
+
 """DFT calculator's default parameters.
 
 Development Notes:
-  * TODO Automatically scale bands with system size
+    TODO Automatically scale bands with system size
+    TODO Call test_check in the write method or something so that I won't have
+    to call it manually
+
 """
 
 #| - Import Modules
 import os
 import json
+
+# My Modules
+from dft_job_automat.compute_env import ComputerCluster
 #__|
 
 class DFT_Params:
@@ -39,23 +47,7 @@ class DFT_Params:
                 self.params = data
 
         except:
-            # data = None
             pass
-
-
-
-        #| - OLD
-        # try:
-        #     # data=open(dir + "/" + name).read()
-        #     data=open(dir + "/ase_modules/" + name).read()
-        #     data = json.loads(data)
-        # except:
-        #     print("Could not load file")
-        #     data = None
-        #
-        # return data
-        #__|
-
         #__|
 
     def PythonPath(self):
@@ -93,10 +85,10 @@ class DFT_Params:
             self.mod_dict.update(mod_d_new)
         #__|
 
-    def write_params(self, path=".", overwrite=False):
+    def write_params(self, path_i=".", overwrite=False):
         """Write parameters to file in getcwd.
 
-        # TODO change to path_i
+        TODO Do not create higher versions _1, _2, _3 if they are identical
 
         Args:
             path:
@@ -109,27 +101,21 @@ class DFT_Params:
             json.dump(params, file, indent=2, skipkeys=True)
             #__|
 
-        # num_files = [fle for fle in os.listdir(".") if "dft-params" in fle]
-        num_files = [fle for fle in os.listdir(path) if "dft-params" in fle]
+        num_files = [fle for fle in os.listdir(path_i) if "dft-params" in fle]
         num_files = len(num_files)
 
         if overwrite is False:
             if not os.path.exists(self.file_name + ".json"):
-                with open(path + "/" + self.file_name + ".json", "w") as fle:
-                    # json.dump(self.params, fle, indent=2)
+                with open(path_i + "/" + self.file_name + ".json", "w") as fle:
                     json_dump_command(self.params, fle)
-
             else:
-                fle_name = path + "/" + self.file_name + "_" + \
+                fle_name = path_i + "/" + self.file_name + "_" + \
                     str(num_files) + ".json"
                 with open(fle_name, "w") as fle:
                     json_dump_command(self.params, fle)
-                    # json.dump(self.params, fle, indent=2)
-
         else:
-            with open(path + "/" + self.file_name + ".json", "w+") as fle:
+            with open(path_i + "/" + self.file_name + ".json", "w+") as fle:
                 json_dump_command(self.params, fle)
-                # json.dump(self.params, fle, indent=2)
         #__|
 
     #__| ***********************************************************************
@@ -268,7 +254,6 @@ class VASP_Params(DFT_Params):
 
     #__| ***********************************************************************
 
-
 class Espresso_Params(DFT_Params):
     """Useful method to define quantum espresso parameters for DFT job."""
 
@@ -279,7 +264,6 @@ class Espresso_Params(DFT_Params):
         TEMP TEMP
         """
         #| - __init__
-        # self.pymoddir = self.PythonPath()
         DFT_Params.__init__(self)
 
         if load_defaults:
@@ -288,10 +272,66 @@ class Espresso_Params(DFT_Params):
             self.params = {}
 
         self.mod_dict = self.create_mod_dict()
+        #__|
 
-        # self.params = self.default_params()
-        # self.params = self.load_params(self.pymoddir,
-        # "default_espresso_params.json")
+    def default_params(self):  # ***********************************************
+        """User-defined default DFT parameters."""
+        #| - default_params
+        params = {}
+
+        params["pw"] = 500            # plane-wave cutoff
+        params["dw"] = 5000           # density cutoff
+        params["dipole"] = {"status": True} # Turn on only for slabs not bulk
+        params["xc"] = "BEEF-vdW" # exchange-correlation functional
+        params["kpts"] = (3, 3, 1) # k-points for hexagonal symm in 2-D mater
+
+        # TODO Scale number of bands with system size
+        params["nbands"] = -50
+
+        #| - Spin & Magnitism
+        # Spin-polarized calculation
+        params["spinpol"] = False
+
+        # Non-collinear magnetism, magnetization in generic direction
+        params["noncollinear"] = False
+        #__|
+
+        params["sigma"] = 0.1  # Should be low for spin calculations
+
+        # pseudopotential path
+        # params["psppath"] = "/home/vossj/suncat/psp/gbrv1.5pbe/"
+
+        params["beefensemble"] = True
+
+        # Parallelization <----------------------------------------------------
+        # params["parflags"] = "-npool "
+        params["parflags"] = None
+
+        #| - Convergence Parameters
+        params["convergence"] = {
+            "energy": 1e-5,  # convergence parameters
+
+            # TF (Normal) or local-TF (Better for inhomogeneous systems)
+            "mixing_mode": "local-TF",
+            "mixing": 0.2,
+            "nmix": 20,  # num of iter used in mixing scheme (Default 8)
+            "maxsteps": 500,
+            "diag": "david",
+            }
+        #__|
+
+        #| - File Output <-----------------------------------------------------
+        params["output"] = {"removesave": True}  # Aayush, saves almost nothing
+        # params["output"] = {
+        #     "avoidio": False,
+        #     "removewf": True,
+        #     "wf_collect": False
+        #     }
+
+        params["outdir"] = "calcdir"
+        #__|
+
+        return(params)
         #__|
 
     def create_mod_dict(self):
@@ -307,56 +347,6 @@ class Espresso_Params(DFT_Params):
         mod_dict = dict((key, False) for key in param_keys)
 
         return(mod_dict)
-        #__|
-
-    def default_params(self):  # ***********************************************
-        """User-defined default DFT parameters."""
-        #| - default_params
-        params = {}
-        params["pw"] = 500            # plane-wave cutoff
-        params["dw"] = 5000           # density cutoff
-        params["dipole"] = {"status": True}    # Turn on only for slabs not bulk
-        params["xc"] = "BEEF-vdW"     # exchange-correlation functional
-        params["kpts"] = (3, 3, 1)    # k-points for hexagonal symm in 2-D mater
-        # 20 extra bands besides bands needed for val elec
-        params["nbands"] = -20
-        params["spinpol"] = False     # Spin-polarized calculation
-
-        params["sigma"] = 0.1  # Should be low for spin calculations
-        # params["psppath"] = "/home/vossj/suncat/psp/gbrv1.5pbe/"
-        # pseudopotential path
-
-        params["beefensemble"] = False
-
-        # Parallelization <----------------------------------------------------
-        # params["parflags"] = "-npool "
-        params["parflags"] = None
-
-        # Convergence Criteria <----------------------------------------------
-        params["convergence"] = {
-            "energy": 1e-5,  # convergence parameters
-
-            # TF (Normal) or local-TF (Better for inhomogeneous systems)
-            "mixing_mode": "local-TF",
-            "mixing": 0.2,
-            "nmix": 20,
-            "maxsteps": 500,
-            "diag": "david",
-            # "mix": 4,  # This parameter doesn't do anything (Pretty sure)
-            }
-
-
-        # File Output <--------------------------------------------------------
-        params["output"] = {"removesave": True}  # Aayush, saves almost nothing
-        # params["output"] = {
-        #     "avoidio": False,
-        #     "removewf": True,
-        #     "wf_collect": False
-        #     }
-
-        params["outdir"] = "calcdir"
-
-        return(params)
         #__|
 
     def test_check(self):
@@ -384,16 +374,58 @@ class Espresso_Params(DFT_Params):
                 self.update_params({"sigma": sigma_i}, user_update=False)
         #__|
 
+        #| - BEEF Ensemble of Energies =========================================
+
         #| - Removing Beef-Ensemble if XC-Functional Not BEEF
         xc_list = self.params["xc"]
         if "beefensemble" in self.params:
             if self.params["beefensemble"] is True and "BEEF" not in xc_list:
                 print("Functional not compatible with BEEF-ensemble method")
                 self.update_params({"beefensemble": False}, user_update=False)
+                self.update_params({"printensemble": False}, user_update=False)
         else:
             pass
         #__|
 
+        #| - Turn on printensemble Parameter for BEEF Ensemble of Energies
+        xc_list = self.params["xc"]
+        if "beefensemble" in self.params:
+            if self.params["beefensemble"] is True and "BEEF" in xc_list:
+                print("Espresso_Params | "
+                    "test_check | Turning on printensemble"
+                    )
+                self.update_params({"printensemble": True}, user_update=False)
+        else:
+            pass
+
         #__|
 
+        #| - Turn off BEEF on AWS
+        # NOTE This is new (180412 - RF), check that it works
+        CC = ComputerCluster()
+        if CC.cluster_sys == "aws":
+            if "beefensemble" in self.params:
+                if self.params["beefensemble"] is True:
+                    print("Espresso_Params | "
+                        "test_check | Attempting to use BEEF ensemble on AWS, "
+                        "which doesn't support it at this time, "
+                        "BEEF ensemble tags will be turned off"
+                        )
+
+                    self.update_params({
+                        "beefensemble": False},
+                        user_update=False,
+                        )
+
+                    self.update_params({
+                        "printensemble": False},
+                        user_update=False,
+                        )
+
+        #__|
+
+        #__| ==================================================================
+
     #__| ***********************************************************************
+
+    #__| **********************************************************************

@@ -14,7 +14,7 @@ def find_closest_point_pd(pourbaix_diagram_object):
 	plotter = PourbaixPlotter(pourbaix_diagram_object)
 	(stable, unstable) = plotter.pourbaix_plot_data(limits)
 
-#start_fold - Ambar's Region Filter Check Function
+#| -  - Ambar's Region Filter Check Function
 	def screening_check_desirable(entry,criteria='only-solid'):
 		is_desired = False
 		if criteria not in ['only-solid']:
@@ -27,9 +27,9 @@ def find_closest_point_pd(pourbaix_diagram_object):
 		if not criteria:
 			print "Not desired entry", entry.name
 		return is_desired
-#end_fold
+#__|
 
-#start_fold - Ambar's Function for Water and Hydrogen Lines
+#| -  - Ambar's Function for Water and Hydrogen Lines
 	def get_water_stability_lines(limits):
 		from pymatgen.analysis.pourbaix.maker import PREFAC
 		xlim = limits[0]
@@ -39,9 +39,9 @@ def find_closest_point_pd(pourbaix_diagram_object):
 		o_line = np.transpose([[xlim[0], -xlim[0] * PREFAC + 1.23],
 				       [xlim[1], -xlim[1] * PREFAC + 1.23]])
 		return (h_line, o_line)
-#end_fold
+#__|
 
-#start_fold - Returns the Desirable Regions of PD in "vertices"
+#| -  - Returns the Desirable Regions of PD in "vertices"
 	vertices = []
 	import time
 	for entry, lines in stable.items():
@@ -59,9 +59,9 @@ def find_closest_point_pd(pourbaix_diagram_object):
 				vertices.append(point1)
 			if point2 not in vertices and is_desired:
 				vertices.append(point2)
-#end_fold
+#__|
 
-#start_fold - Placing the desired phase's name in the diagram
+#| -  - Placing the desired phase's name in the diagram
 	center_x=0
 	center_y=0
 	count = 0
@@ -74,14 +74,14 @@ def find_closest_point_pd(pourbaix_diagram_object):
 	center_x = center_x /count
 	center_y = center_y /count
 	plt.annotate(str(desired_entry.name), xy=(center_x, center_y))
-#end_fold
+#__|
 
-#start_fold - Plotting Water and Hydrogen Equilibrium Lines
+#| -  - Plotting Water and Hydrogen Equilibrium Lines
 	# Get water line
 	h_line, o_line = get_water_stability_lines(limits)
 	plt.plot(h_line[0], h_line[1], "r--", linewidth=lw)
 	plt.plot(o_line[0], o_line[1], "r--", linewidth=lw)
-#end_fold
+#__|
 
 	# Getting distances
 	print "Getting distances of vertices"

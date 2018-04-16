@@ -1,36 +1,16 @@
 """Methods and code to handle jobs that depend on one another."""
 
 #| - Import Modules
+import sys
 import os
 import shutil
 import copy
 
 from ase import io
-
 import pandas as pd
 
-#| - Import Modules
-import sys
-# import subprocess
-
-# import numpy as np
-# import pandas as pd
-# pd.options.display.max_colwidth = 250
-
-# ASE
-
-# My Modules
-# from ase_modules.adsorbates import Adsorbate
-#from ase_modules.add_adsorbate import add_adsorbate_centered
-# from ase_modules.dft_params import Espresso_Params
-
-
-# from dft_job_automat.job_setup import DFT_Jobs_Setup
 from dft_job_automat.job_analysis import DFT_Jobs_Analysis
 from dft_job_automat.job_manager import DFT_Jobs_Manager
-# import dft_job_automat.job_dependencies as jd
-#__|
-
 #__|
 
 #| - FUNCTIONS
@@ -427,7 +407,7 @@ class DFT_Jobs_Workflow:
 
         wf_vars = vars(self)
         for step in range(len(step_dir_names)):
-            step_num = step + 1
+            # step_num = step + 1
             JobsAn = self.jobs_an_list[step]
 
             print("Placing Initial Files in Folders | LOOP OVER JOBS")
@@ -439,8 +419,6 @@ class DFT_Jobs_Workflow:
                 #| - Create Step Folder Structure
                 JobsAn.create_dir_struct(create_first_rev_folder="True")
                 #__|
-
-                # for i in JobsAn.job_var_lst:print(i)
 
                 for job_i in JobsAn.job_var_lst:
                     path_i = JobsAn.var_lst_to_path(
@@ -507,8 +485,12 @@ class DFT_Jobs_Workflow:
 
                 wf_vars = vars(self)
                 for job_i in Jobs.job_var_lst:
-                    # path_i = Jobs.var_lst_to_path(job_i,
-                    # job_rev="Auto", relative_path=False)
+                    path_i = Jobs.var_lst_to_path(
+                        job_i,
+                        job_rev="Auto",
+                        relative_path=False,
+                        )
+
 
                     #| - Job_i Parameters
                     job_i_params = {}
@@ -517,8 +499,8 @@ class DFT_Jobs_Workflow:
                             job_i,
                             variable,
                             )
-                        # FIXME Not sure what was removed
-                        job_i_params[variable] =
+
+                        job_i_params[variable] = job_i_param_j
                     #__|
 
                     tally = self.maint_function(
@@ -529,7 +511,11 @@ class DFT_Jobs_Workflow:
                         tally,
                         )
 
+                    # TODO Check that tally is being incremented by 1 only
+
                 print(tally)
+
+
             print("")
             #__|
 

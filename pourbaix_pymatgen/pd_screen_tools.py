@@ -1,13 +1,13 @@
 def ORR_line(pH):
 	"""
 	"""
-	#start_fold - ORR_line
+	#| -  - ORR_line
 	intercept = 1.23
 	slope = -0.0591
 
 	V = slope*pH + intercept
 	return V
-	#end_fold
+	#__|
 
 def stable_mat_one_elem(pH,V,mat):
 	"""
@@ -17,7 +17,7 @@ def stable_mat_one_elem(pH,V,mat):
 		pH: pH of system
 		V: Potential with reference to the Standard Hydrogen Electrode (SHE)
 	"""
-	#start_fold - stable_mat_one_elem
+	#| -  - stable_mat_one_elem
 	from pourdiag_single import pourdiag_single as pd_sgle
 	from pymatgen.analysis.pourbaix.maker import PourbaixDiagram
 	# Access entry Gibbs(pH, V)
@@ -43,7 +43,7 @@ def stable_mat_one_elem(pH,V,mat):
 			StableSpec=i
 	return StableSpec		# Returns the entries object of the stable species
 
-	#end_fold
+	#__|
 
 def plot_reg(coord_data):
 	"""
@@ -53,7 +53,7 @@ def plot_reg(coord_data):
 		coord_data: Coordinate data of region of interest, must be in the form
 		of [[[x-points],[y-points]],[], ...]
 	"""
-	#start_fold - plot_reg
+	#| -  - plot_reg
 	import numpy as np
 	import matplotlib.pyplot as plt
 
@@ -61,7 +61,7 @@ def plot_reg(coord_data):
 	for line in coord_data:
 		ax.plot(line[0],line[1])
 	plt.show()
-	#end_fold
+	#__|
 
 def phase_coord(entries, atom_comp, prim_elem=False):
 	"""
@@ -77,7 +77,7 @@ def phase_coord(entries, atom_comp, prim_elem=False):
 			prim_elem is left to its default
 		prim_elem: Primary element to which the atom_comp is assigned
 	"""
-	#start_fold - phase_coord
+	#| -  - phase_coord
 	from pymatgen.analysis.pourbaix.maker import PourbaixDiagram
 	from pymatgen.analysis.pourbaix.plotter import PourbaixPlotter
 	from entry_methods import base_atom
@@ -108,7 +108,7 @@ def phase_coord(entries, atom_comp, prim_elem=False):
 
 	return pd_lst
 
-	#end_fold
+	#__|
 
 def phase_filter(phase_coord,phase_type):
 	"""
@@ -122,7 +122,7 @@ def phase_filter(phase_coord,phase_type):
 				metallic_aqueous oxide_aqueous, aqueous_aqueous
 	"""
 
-	#start_fold - phase_filter
+	#| -  - phase_filter
 	## METALLIC: 1 METALLIC PHASE
 	#	For a binary system this is necessarily an alloy
 	#TMP
@@ -164,7 +164,7 @@ def phase_filter(phase_coord,phase_type):
 						met_met_phase_lst.append(region)
 		return met_met_phase_lst
 
-	#end_fold
+	#__|
 
 def is_solid_phase(mat1, mat2, mat1_co=0.5):
 	"""
@@ -177,7 +177,7 @@ def is_solid_phase(mat1, mat2, mat1_co=0.5):
 		mat1_co:
 	"""
 
-	#start_fold - is_solid_phase
+	#| -  - is_solid_phase
 	from pourdiag import pourdiag # Returns Pourbaix entries for binary system
 	from pymatgen.analysis.pourbaix.maker import PourbaixDiagram
 	from pymatgen.analysis.pourbaix.plotter import PourbaixPlotter
@@ -209,4 +209,4 @@ def is_solid_phase(mat1, mat2, mat1_co=0.5):
 				solidphase=True
 	return solidphase
 
-	#end_fold
+	#__|

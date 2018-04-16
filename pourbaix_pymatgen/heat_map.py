@@ -1,4 +1,4 @@
-#start_fold - Import Modules
+#| -  - Import Modules
 # -*- coding: utf-8 -*-
 from pourdiag import pd_entries
 from entry_methods import pure_atoms_remove, alloy_entries, base_atom
@@ -8,7 +8,7 @@ from element_list import ElementList, ElemList_mod
 
 import numpy as np
 import matplotlib.colors as colors
-#end_fold
+#__|
 
 def process(i,j,comp=0.5, heat_map_scale='Pt_ref', pt_oxid_V=0.6470339):
 	"""
@@ -21,7 +21,7 @@ def process(i,j,comp=0.5, heat_map_scale='Pt_ref', pt_oxid_V=0.6470339):
 		j: Second element in the system
 		comp: Composition loading of the two elements (default is 0.5)
 	"""
-	#start_fold - process
+	#| -  - process
 	entries = pd_entries(i.symbol,j.symbol)
 	coord = phase_coord(entries, comp, prim_elem=i.symbol)
 	filt1 = phase_filter(coord,'metallic')
@@ -36,7 +36,7 @@ def process(i,j,comp=0.5, heat_map_scale='Pt_ref', pt_oxid_V=0.6470339):
 		msp = most_stable_phase(filt, scale=heat_map_scale, pt_oxid_V=pt_oxid_V)
 		# msp = most_stable_phase(filt,pH=10.5,scale=heat_map_scale)
 	return msp
-	#end_fold
+	#__|
 
 def process_alloy(i,j):	# Deprecated *******************************************
 	"""
@@ -50,7 +50,7 @@ def process_alloy(i,j):	# Deprecated *******************************************
 		i: First element in the system
 		j: Second element in the system
 	"""
-	#start_fold - process_alloy
+	#| -  - process_alloy
 	entries = pd_entries(i.symbol,j.symbol)
 #	entries = pure_atoms_remove(entries)
 	alloy_entr = alloy_entries(entries)
@@ -85,7 +85,7 @@ def process_alloy(i,j):	# Deprecated *******************************************
 	except:
 		best_alloy = [-1,'placeholder'] #NOTE Make this better
 	return best_alloy
-	#end_fold
+	#__|
 
 def construct_output_matrix(elem):
 	"""
@@ -95,7 +95,7 @@ def construct_output_matrix(elem):
 	Args:
 		elem: List of elements to be screened over
 	"""
-	#start_fold - construct_output_matrix
+	#| -  - construct_output_matrix
 
 	o_lst = []
 	i_cnt = 0
@@ -105,7 +105,7 @@ def construct_output_matrix(elem):
 			o_lst[i_cnt].append([])
 		i_cnt = i_cnt+1
 	return o_lst
-	#end_fold
+	#__|
 
 def finish_symmetric_matrix(elem, output_lst):
 	"""
@@ -115,7 +115,7 @@ def finish_symmetric_matrix(elem, output_lst):
 		elem: Element list being screened over
 		output_lst: Half filled matrix to be filled in
 	"""
-	#start_fold - finish_symmetric_matrix
+	#| -  - finish_symmetric_matrix
 	i_cnt = 0
 	for i in elem[:-1]:
 		j_cnt = 1
@@ -124,7 +124,7 @@ def finish_symmetric_matrix(elem, output_lst):
 			j_cnt = j_cnt+1
 		i_cnt=i_cnt+1
 	return output_lst
-	#end_fold
+	#__|
 
 
 ################################################################################
@@ -138,7 +138,7 @@ def finish_symmetric_matrix(elem, output_lst):
 def run_all_binary_combinations(elements, loop_funct, scale, pt_oxid_V=0.6470339):
 	"""
 	"""
-	#start_fold - run_all_binary_combinations
+	#| -  - run_all_binary_combinations
 	o_lst = construct_output_matrix(elements)
 
 	print 'constructing output V_crit matrix from scratch'
@@ -166,13 +166,13 @@ def run_all_binary_combinations(elements, loop_funct, scale, pt_oxid_V=0.6470339
 	o_lst = finish_symmetric_matrix(elements,o_lst)
 
 	return o_lst
-	#end_fold
+	#__|
 
 def oxidation_dissolution_product_0(i, j, scale):
 	"""
 	Creates Pourbaix Diagrams for single or binary systems
 	"""
-	#start_fold - oxidation_dissolution_product_0
+	#| -  - oxidation_dissolution_product_0
 	# from pourdiag import pd_entries
 
 	from pymatgen.analysis.pourbaix.maker import PourbaixDiagram
@@ -212,19 +212,19 @@ def oxidation_dissolution_product_0(i, j, scale):
 
 	"""
 	return entry_lst
-	#end_fold
+	#__|
 
 # TEMP
 def ref_atoms(i,j, scale):
 	"""
 	TEMP
 	"""
-	#start_fold - ref_atoms
+	#| -  - ref_atoms
 	ref_atoms = pd_entries(i.symbol,j.symbol)
 	print ref_atoms	#TEMP_PRINT
 	return ref_atoms
 	print ref_atoms # TEMP_PRINT
-	#end_fold
+	#__|
 
 ################################################################################
 # 				██████  ██       ██████  ████████
@@ -238,7 +238,7 @@ class MidpointNormalize(colors.Normalize):
 	"""
 	Used with diverging color schemes to set the white color to 0
 	"""
-	#start_fold - MidpointNormalize
+	#| -  - MidpointNormalize
 	def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
 		self.midpoint = midpoint
 		colors.Normalize.__init__(self, vmin, vmax, clip)
@@ -248,7 +248,7 @@ class MidpointNormalize(colors.Normalize):
 		# simple example...
 		x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
 		return np.ma.masked_array(np.interp(value, x, y))
-	#end_fold
+	#__|
 
 def extract_data_from_matrix(output_lst):
 	"""
@@ -259,7 +259,7 @@ def extract_data_from_matrix(output_lst):
 	Args:
 		output_lst: Matrix containing numerical data paired with entry data
 	"""
-	#start_fold - extract_data_from_matrix
+	#| -  - extract_data_from_matrix
 	data_matrix=[]
 	cnt=0
 	for i in output_lst:
@@ -271,7 +271,7 @@ def extract_data_from_matrix(output_lst):
 				data_matrix[cnt].append(0)
 		cnt=cnt+1
 	return data_matrix
-	#end_fold
+	#__|
 
 def plot_heat_map(data_matrix, elem, text_overlay=None, composition=False,
 	show_plot=False, save_file=True, file_type='.pdf',
@@ -287,24 +287,24 @@ def plot_heat_map(data_matrix, elem, text_overlay=None, composition=False,
 		text_overlay: Matrix of data which will be overlayed on the heatmap, if
 			='data_value' it will overlay the numerical value for each grid point
 	"""
-	#start_fold - plot_heat_map
+	#| -  - plot_heat_map
 
-	#start_fold - Import modules
+	#| -  - Import modules
 	from heat_map import MidpointNormalize
 	import matplotlib.pyplot as plt; import numpy as np
 	from element_list import elem_str_mke
-	#end_fold
+	#__|
 
-	#start_fold - Setting colorbar range
+	#| -  - Setting colorbar range
 	if lock_cbar_rnge == None:
 		vmin_=None
 		vmax_=None
 	elif lock_cbar_rnge != None:
 		vmin_=lock_cbar_rnge[0]
 		vmax_=lock_cbar_rnge[1]
-	#end_fold
+	#__|
 
-	#start_fold - Main, create heatmap, set labels, colorbar, scale plot
+	#| -  - Main, create heatmap, set labels, colorbar, scale plot
 	font_color = 'White'
 
 	fig, ax1 = plt.subplots(1,1)
@@ -319,7 +319,7 @@ def plot_heat_map(data_matrix, elem, text_overlay=None, composition=False,
 	img = ax1.imshow(	data_matrix, cmap=cmap_, interpolation='nearest',
 						norm=norm_, vmin=vmin_, vmax=vmax_)
 
-	#start_fold - TEMP - Plotting heat map with either Pt_ref or RHE scaling
+	#| -  - TEMP - Plotting heat map with either Pt_ref or RHE scaling
 	# if heat_map_scale=='Pt_ref':
 	# 	cmap_='seismic'
 	# 	img = ax1.imshow(	data_matrix, cmap=cmap_, interpolation='nearest',
@@ -336,7 +336,7 @@ def plot_heat_map(data_matrix, elem, text_overlay=None, composition=False,
 		#  				norm=MidpointNormalize(midpoint=0.))					#TEMP
 		# img = ax1.imshow(data_matrix, cmap=cmap_, interpolation='nearest')
 	#cmap='hot'; cmap='seismic'; cmap='Reds'
-	#end_fold
+	#__|
 
 
 	elem_str = elem_str_mke(elem)
@@ -377,7 +377,7 @@ def plot_heat_map(data_matrix, elem, text_overlay=None, composition=False,
 ################################################################################
 
 	scl = 20./23.*len(elem)+2; fig.set_figheight(scl); fig.set_figwidth(scl)
-	#end_fold
+	#__|
 
 	if composition != False:
 		# Adding text to plot
@@ -387,7 +387,7 @@ def plot_heat_map(data_matrix, elem, text_overlay=None, composition=False,
 		va='center', color=font_color,
 		transform=ax1.transAxes).set_path_effects([PathEffects.withStroke(linewidth=2, foreground='w')])
 
-	#start_fold - Setting text in heatmaps squares
+	#| -  - Setting text in heatmaps squares
 	###################### SETTING TEXT IN EACH SQUARE #########################
 	############################################################################
 	if text_overlay == 'data_value':
@@ -431,7 +431,7 @@ def plot_heat_map(data_matrix, elem, text_overlay=None, composition=False,
 			c = str(text_overlay[row_val.astype(int),col_val.astype(int)])
 			fontsize_0=54/2
 
-			#start_fold - TEMP
+			#| -  - TEMP
 			# if row_val.astype(int)==col_val.astype(int):
 			# 	c = ''
 			# 	fontsize_0=10
@@ -441,16 +441,16 @@ def plot_heat_map(data_matrix, elem, text_overlay=None, composition=False,
 			# else:
 			# 	c = str(text_overlay[row_val.astype(int),col_val.astype(int)])
 			# 	fontsize_0=26/4
-			#end_fold
+			#__|
 
 			ax1.text(col_val, row_val, c, fontsize=fontsize_0,
 			color=font_color, va='center',
 			ha='center').set_path_effects([PathEffects.withStroke(linewidth=2,
 			foreground='black')])
 	############################################################################
-	#end_fold
+	#__|
 
-	#start_fold - Saving Figure, showing figure
+	#| -  - Saving Figure, showing figure
 	import fnmatch; import sys; import os
 	num_fle = len(fnmatch.filter(os.listdir('.'),'*'+file_type))
 	fle_nme = 'fig_heat_map'+'_'+str(num_fle)+file_type
@@ -466,6 +466,6 @@ def plot_heat_map(data_matrix, elem, text_overlay=None, composition=False,
 		fig.savefig(fle_nme, format=file_type[1:],spi=1200,transparent=transparency)
 
 	if show_plot==True: fig.patch.set_facecolor('black'); plt.show()
-	#end_fold
+	#__|
 
-	#end_fold
+	#__|

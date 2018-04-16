@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """Methods to add atoms/adsorbates to surfaces."""
 
 #| - Import Modules

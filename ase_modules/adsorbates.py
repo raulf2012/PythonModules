@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """Adsorbate related methods."""
 
 #| - IMPORT MODULES
@@ -126,3 +128,5 @@ class Adsorbate:
 
         return(ads)
         #__|
+
+    #__| **********************************************************************

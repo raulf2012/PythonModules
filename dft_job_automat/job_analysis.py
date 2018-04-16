@@ -1,12 +1,18 @@
+#!/usr/bin/env python
+
 """Class to analyse data using the DFT_Jobs_Setup class.
+
 
 Development Notes:
     TODO Automaticall read README files contained within job folders
+    TODO Delete the duplicate methods for job_status
 """
 
 #| - Import Modules
+import sys
 import os
-import cPickle as pickle
+# import cPickle as pickle
+import pickle
 import copy
 import glob
 
@@ -31,7 +37,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
     #| - DFT_Jobs_Analysis ****************************************************
 
     #| - Class Variables
-    finished_fle = ".FINISHED"
+    finished_fle = ".FINISHED.new"
     #__|
 
     def __init__(self,
@@ -149,7 +155,12 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         #| - __load_dataframe__
         fle_name = self.root_dir + "/jobs_bin/job_dataframe.pickle"
         with open(fle_name, "rb") as fle:
-            df = pickle.load(fle)
+
+            if sys.version_info.major > 2:
+                df = pickle.load(fle, encoding="latin1")
+                # NOTE Added encoding="latin1" for p36 support (180415 - RF)
+            else:
+                df = pickle.load(fle)
 
         self.data_frame = df
         #__|
@@ -183,10 +194,10 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         col_data_file_list = [dir.split("/")[-1] for dir in dir_list]
 
         for col_file in col_data_file_list:
-            self.add_data_column_from_file(col_file)
+            self.__add_data_column_from_file__(col_file)
         #__|
 
-    def add_data_column_from_file(self,
+    def __add_data_column_from_file__(self,
         file_name,
         ):
         """Add data in "file_name" file to dataframe.
@@ -195,7 +206,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             file_name:
         """
-        #| - add_data_column_from_file
+        #| - __add_data_column_from_file__
 
         #| - Extracting Column Name From File Name
         col_name = file_name.split(".")[0]
@@ -309,6 +320,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
                 #| - Run Function
                 path += "_" + str(rev_num)
+
                 path = path + self.cluster.cluster.job_data_dir
 
                 if allow_failure is True:
@@ -476,609 +488,625 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
     #| - Query Job Status *****************************************************
 
-        #| - __old__
-        def job_state(self, path_i):
-            """
-            Return job state.
+    #| - __old__
+    def job_state(self, path_i):
+        """
+        Return job state.
 
-            Implentation is cluster dependent.
+        Implentation is cluster dependent.
 
-            Args:
-                path_i
-            """
-            #| - job_state
-            job_state = self.cluster.cluster.job_state(path_i=path_i)
+        Args:
+            path_i
+        """
+        #| - job_state
+        job_state = self.cluster.cluster.job_state(path_i=path_i)
 
-            return(job_state)
+        return(job_state)
 
-            #| - OLD
-            # if not os.path.isdir(path + "/simulation"):
-            #     return("no_sim_folder")
-            #
-            # dir_cont = os.listdir(path + "/simulation")
-            #
-            # if "completed" in dir_cont:
-            #     return("complete")
-            # elif "out" not in dir_cont and "err" not in dir_cont:
-            #     return("running")
-            # else:
-            #     return("error")
-            #__|
-
-            #__|
-
-        def job_state_2(self, path):
-            """
-            Return job state.
-
-            # COMBAK Deprecated *********************
-
-            Implentation is cluster dependent.
-
-            Args:
-                path_i
-            """
-            #| - job_state_2
-            #
-            # #| - Formatting path Depending on Whether It is Full or Relative
-            # if self.root_dir in path:
-            #     ind = path.find(self.root_dir_short)
-            #     # path = path[ind:]
-            #     full_path = path[ind:]
-            # else:
-            #     full_path = self.root_dir_short + "/" + path
-            # #__|
-            #
-            # #| - Finding job in jobs.csv file
-            # jobs_file_path = self.job_queue_dir + "/jobs.csv"
-            # df = pd.read_csv(jobs_file_path)
-            #
-            # job_in_csv = True
-            # try:
-            #     index = df[df["job_path"] == full_path].index.tolist()[0]
-            # except:
-            #     job_in_csv = False
-            # #__|
-            #
-            # try:
-            #
-            #     #| - Attempting to read job_id from file
-            #     with open(path + "/job_id") as fle:
-            #         job_id = fle.read().rstrip()
-            #     #__|
-            #
-            # except:
-            #
-            #     #| - Attempting to read job_id from jobs.csv by matching paths
-            #     if job_in_csv:
-            #         job_id = df.iloc[index]["job_id"]
-            #     #__|
-            #
-            # job_queue_dict = AWS_Queues().job_info_batch(job_id)
-            #
-            # #| - Handling Case Where Job ID Is Not In Batch System
-            # if job_queue_dict == "job not in batch system":
-            #
-            #     if job_in_csv:
-            #         job_stat_from_file = df.iloc[index]["job_status"]
-            #         job_queue_dict = {"job_status": job_stat_from_file}
-            #
-            #     elif os.path.isfile( path + "/.STATUS"):
-            #         with open(stat_file, "w+") as fle:
-            #             job_status = fle.readline().rstrip()
-            #
-            #             job_queue_dict = {"job_status": job_status}
-            # #__|
-            #
-            # job_status = job_queue_dict["job_status"]
-            #
-            # #| - Writing Job Status to File
-            # with open(path + "/.STATUS", "w+") as fle:
-            #     fle.write(job_status + "\n")
-            # #__|
-            #
-            # #| - Writing Job Status to Master Jobs Queue File
-            # if job_in_csv:
-            #     df.at[index, "job_status"] = job_status
-            #     df.to_csv(jobs_file_path, index=False)
-            # #__|
-            #
-            # return(job_status)
-            #__|
+        #| - OLD
+        # if not os.path.isdir(path + "/simulation"):
+        #     return("no_sim_folder")
+        #
+        # dir_cont = os.listdir(path + "/simulation")
+        #
+        # if "completed" in dir_cont:
+        #     return("complete")
+        # elif "out" not in dir_cont and "err" not in dir_cont:
+        #     return("running")
+        # else:
+        #     return("error")
+        #__|
 
         #__|
 
-        def job_state_3(self, path_i):
-            """
-            Return job state of job_i.
+    def job_state_2(self, path):
+        """
+        Return job state.
 
-            Args:
-                path_i
-            """
-            #| - job_state_3
-            out_dict = {
-                "job_ready": self._job_ready(path_i),
-                "job_pending": self._job_pending(path_i),
-                "job_running": self._job_running(path_i),
-                "job_succeeded": self._job_succeeded(path_i),
-                "job_failed": self._job_failed(path_i),
-                "job_submitted": self._job_submitted(path_i),
-                }
+        # COMBAK Deprecated *********************
 
-            return(out_dict)
-            #__|
+        Implentation is cluster dependent.
 
-        #| - OLD Methods That Use job_i
+        Args:
+            path_i
+        """
+        #| - job_state_2
+        #
+        # #| - Formatting path Depending on Whether It is Full or Relative
+        # if self.root_dir in path:
+        #     ind = path.find(self.root_dir_short)
+        #     # path = path[ind:]
+        #     full_path = path[ind:]
+        # else:
+        #     full_path = self.root_dir_short + "/" + path
+        # #__|
+        #
+        # #| - Finding job in jobs.csv file
+        # jobs_file_path = self.job_queue_dir + "/jobs.csv"
+        # df = pd.read_csv(jobs_file_path)
+        #
+        # job_in_csv = True
+        # try:
+        #     index = df[df["job_path"] == full_path].index.tolist()[0]
+        # except:
+        #     job_in_csv = False
+        # #__|
+        #
+        # try:
+        #
+        #     #| - Attempting to read job_id from file
+        #     with open(path + "/job_id") as fle:
+        #         job_id = fle.read().rstrip()
+        #     #__|
+        #
+        # except:
+        #
+        #     #| - Attempting to read job_id from jobs.csv by matching paths
+        #     if job_in_csv:
+        #         job_id = df.iloc[index]["job_id"]
+        #     #__|
+        #
+        # job_queue_dict = AWS_Queues().job_info_batch(job_id)
+        #
+        # #| - Handling Case Where Job ID Is Not In Batch System
+        # if job_queue_dict == "job not in batch system":
+        #
+        #     if job_in_csv:
+        #         job_stat_from_file = df.iloc[index]["job_status"]
+        #         job_queue_dict = {"job_status": job_stat_from_file}
+        #
+        #     elif os.path.isfile( path + "/.STATUS"):
+        #         with open(stat_file, "w+") as fle:
+        #             job_status = fle.readline().rstrip()
+        #
+        #             job_queue_dict = {"job_status": job_status}
+        # #__|
+        #
+        # job_status = job_queue_dict["job_status"]
+        #
+        # #| - Writing Job Status to File
+        # with open(path + "/.STATUS", "w+") as fle:
+        #     fle.write(job_status + "\n")
+        # #__|
+        #
+        # #| - Writing Job Status to Master Jobs Queue File
+        # if job_in_csv:
+        #     df.at[index, "job_status"] = job_status
+        #     df.to_csv(jobs_file_path, index=False)
+        # #__|
+        #
+        # return(job_status)
+        #__|
 
-        def job_ready(self, job_i, require_READY_tag=True):
-            """
-            Return whether job_i is in READY state (Ready for submission).
+    #__|
 
-            Args:
-                job_i:
-                require_READY_tag:
-                    Require a ".READY" file start job
-            """
-            #| - job_ready
-            path_i = self.var_lst_to_path(
-                job_i,
-                job_rev="Auto",
-                relative_path=False,
-                )
+    def job_state_3(self, path_i):
+        """
+        Return job state of job_i.
 
-            crit_0 = False
-            if os.path.isfile(path_i + "/.READY"):
-                crit_0 = True
-            elif require_READY_tag is False:
-                crit_0 = True
+        Args:
+            path_i
+        """
+        #| - job_state_3
+        out_dict = {
+            "job_ready": self._job_ready(path_i),
+            "job_pending": self._job_pending(path_i),
+            "job_running": self._job_running(path_i),
+            "job_succeeded": self._job_succeeded(path_i),
+            "job_failed": self._job_failed(path_i),
+            "job_submitted": self._job_submitted(path_i),
+            }
 
-            crit_1 = False
-            if not os.path.isfile(path_i + "/.SUBMITTED"):
-                crit_1 = True
+        return(out_dict)
+        #__|
 
-            #| - Having trouble with AWS .READY files not being copied over
-            # if self.cluster.cluster_sys == "aws":
-            #     crit_
-            #
-            #__|
+    #| - OLD Methods That Use job_i
 
-            crit_list = [crit_0, crit_1]
+    def job_ready(self, job_i, require_READY_tag=True):
+        """
+        Return whether job_i is in READY state (Ready for submission).
 
-            if all(crit is True for crit in crit_list):
-                return(True)
-            else:
-                return(False)
-            #__|
+        Args:
+            job_i:
+            require_READY_tag:
+                Require a ".READY" file start job
+        """
+        #| - job_ready
+        path_i = self.var_lst_to_path(
+            job_i,
+            job_rev="Auto",
+            relative_path=False,
+            )
 
-        def job_pending(self, job_i):
-            """
-            Check whether job_i is in PENDING state.
-
-            Args:
-                job_i:
-            """
-            #| - job_pending
-            path_i = self.var_lst_to_path(job_i,
-                job_rev="Auto",
-                relative_path=False,
-                )
-
-            crit_0 = False
-            job_state = self.cluster.cluster.job_state(path_i=path_i)
-            if job_state == "PENDING":
-                crit_0 = True
-
-            crit_1 = False
-            if self.job_state_file(path_i) == "PENDING":
-                crit_1 = True
-
-            crit_list = [crit_0, crit_1]
-
-            if all(crit is True for crit in crit_list):
-                return(True)
-            else:
-                return(False)
-
-
-            # df["full_path"] = root_dir_beg + "/" + df["root_dir"] + "/" +
-            # df["path"] + "_" + df["job_revision_number"].astype(str)
-            #
-            # index = df.index[df["full_path"] == path_i].tolist()
-            # df_i = df.iloc[index]
-            # max_rev = df_i["revision_number"].max()
-            # df_fin = df_i[df_i["revision_number"] == max_rev]
-            # assert len(df_fin) == 1
-            #
-            # if df_fin["job_state_2"].iloc[0] == "RUNNABLE":
-            #     return(True)
-            # else:
-            #     return(False)
-            #__|
-
-        def job_running(self, job_i):
-            """
-            Check whether job_i is in RUNNING state.
-
-            Args:
-                job_i:
-            """
-            #| - job_running
-            path_i = self.var_lst_to_path(job_i,
-                job_rev="Auto",
-                relative_path=False,
-                )
-
+        crit_0 = False
+        if os.path.isfile(path_i + "/.READY"):
             crit_0 = True
-            if os.path.isfile(path_i + "/.READY"):
-                crit_0 = True
-
-            crit_1 = False
-            if os.path.isfile(path_i + "/.SUBMITTED"):
-                crit_1 = True
-
-            crit_2 = False
-            if not os.path.isfile(path_i + "/.FINISHED"):
-                crit_2 = True
-
-            crit_3 = False
-            job_state = self.cluster.cluster.job_state(path_i=path_i)
-            if job_state == "RUNNING":
-                crit_3 = True
-
-            crit_list = [crit_0, crit_1, crit_2, crit_3]
-
-            if all(crit is True for crit in crit_list):
-                return(True)
-            else:
-                return(False)
-            #__|
-
-        def job_succeeded(self, job_i):
-            """
-            Check whether job_i is in SUCCEEDED state.
-
-            Args:
-                job_i:
-            """
-            #| - job_succeeded
-            path_i = self.var_lst_to_path(job_i,
-                job_rev="Auto",
-                relative_path=False,
-                )
-
+        elif require_READY_tag is False:
             crit_0 = True
-            if os.path.isfile(path_i + "/.READY"):
-                crit_0 = True
 
-            crit_1 = False
-            if os.path.isfile(path_i + "/.SUBMITTED"):
-                crit_1 = True
+        crit_1 = False
+        if not os.path.isfile(path_i + "/.SUBMITTED"):
+            crit_1 = True
 
-            # Checking for '.FINSISHED' file OR checking batch queue
+        #| - Having trouble with AWS .READY files not being copied over
+        # if self.cluster.cluster_sys == "aws":
+        #     crit_
+        #
+        #__|
 
-            crit_2_1 = False
-            if os.path.isfile(path_i + "/.FINISHED"):
-                crit_2_1 = True
+        crit_list = [crit_0, crit_1]
 
-            crit_2_2 = False
-            job_state = self.cluster.cluster.job_state(path_i=path_i)
-            if job_state == "SUCCEEDED":
-                crit_2_2 = True
+        if all(crit is True for crit in crit_list):
+            return(True)
+        else:
+            return(False)
+        #__|
 
-            if crit_2_2 or crit_2_1:
-                crit_2 = True
-            else:
-                crit_2 = False
+    def job_pending(self, job_i):
+        """
+        Check whether job_i is in PENDING state.
 
-            crit_list = [crit_0, crit_1, crit_2]
-            if all(crit is True for crit in crit_list):
-                return(True)
-            else:
-                return(False)
-            #__|
+        Args:
+            job_i:
+        """
+        #| - job_pending
+        path_i = self.var_lst_to_path(job_i,
+            job_rev="Auto",
+            relative_path=False,
+            )
 
-        def job_failed(self, job_i):
-            """
-            Check whether job_i is in failed state.
+        crit_0 = False
+        job_state = self.cluster.cluster.job_state(path_i=path_i)
+        if job_state == "PENDING":
+            crit_0 = True
 
-            Args:
-                job_i:
-            """
-            #| - job_failed
-            path_i = self.var_lst_to_path(job_i,
-                job_rev="Auto",
-                relative_path=False,
-                )
+        crit_1 = False
+        if self.job_state_file(path_i) == "PENDING":
+            crit_1 = True
 
-            crit_0 = False
-            job_state = self.cluster.job_state(path_i=path_i)
-            if job_state == "FAILED":
-                crit_0 = True
+        crit_list = [crit_0, crit_1]
 
-            crit_1 = False
-            if os.path.isfile(path_i + "/.SUBMITTED"):
-                crit_1 = True
+        if all(crit is True for crit in crit_list):
+            return(True)
+        else:
+            return(False)
 
+
+        # df["full_path"] = root_dir_beg + "/" + df["root_dir"] + "/" +
+        # df["path"] + "_" + df["job_revision_number"].astype(str)
+        #
+        # index = df.index[df["full_path"] == path_i].tolist()
+        # df_i = df.iloc[index]
+        # max_rev = df_i["revision_number"].max()
+        # df_fin = df_i[df_i["revision_number"] == max_rev]
+        # assert len(df_fin) == 1
+        #
+        # if df_fin["job_state_2"].iloc[0] == "RUNNABLE":
+        #     return(True)
+        # else:
+        #     return(False)
+        #__|
+
+    def job_running(self, job_i):
+        """
+        Check whether job_i is in RUNNING state.
+
+        Args:
+            job_i:
+        """
+        #| - job_running
+        path_i = self.var_lst_to_path(job_i,
+            job_rev="Auto",
+            relative_path=False,
+            )
+
+        crit_0 = True
+        if os.path.isfile(path_i + "/.READY"):
+            crit_0 = True
+
+        crit_1 = False
+        if os.path.isfile(path_i + "/.SUBMITTED"):
+            crit_1 = True
+
+        crit_2 = False
+        # if not os.path.isfile(path_i + "/.FINISHED"):
+        if not os.path.isfile(path_i + "/" + DFT_Jobs_Analysis.finished_fle):
+            crit_2 = True
+
+        crit_3 = False
+        job_state = self.cluster.cluster.job_state(path_i=path_i)
+        if job_state == "RUNNING":
+            crit_3 = True
+
+        crit_list = [crit_0, crit_1, crit_2, crit_3]
+
+        if all(crit is True for crit in crit_list):
+            return(True)
+        else:
+            return(False)
+        #__|
+
+    def job_succeeded(self, job_i):
+        """
+        Check whether job_i is in SUCCEEDED state.
+
+        Args:
+            job_i:
+        """
+        #| - job_succeeded
+        path_i = self.var_lst_to_path(job_i,
+            job_rev="Auto",
+            relative_path=False,
+            )
+
+        crit_0 = True
+        if os.path.isfile(path_i + "/.READY"):
+            crit_0 = True
+
+        crit_1 = False
+        if os.path.isfile(path_i + "/.SUBMITTED"):
+            crit_1 = True
+
+        # Checking for '.FINSISHED' file OR checking batch queue
+
+        crit_2_1 = False
+        fle_name = path_i + "/" + DFT_Jobs_Analysis.finished_fle
+        if os.path.isfile(fle_name):
+            with open(fle_name, "r") as fle:
+                lines = [line.strip() for line in fle.readlines()]
+                if "job_completed" in lines:
+                    crit_2_1 = True
+
+        #| - DELETE THIS
+        # TEMP COMBAK FIXME Delete this after migration to new FINISHED file
+        # format is done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        fle_name = path_i + "/" + DFT_Jobs_Analysis.finished_fle
+        if os.path.isfile(fle_name):
+            crit_2_1 = True
+        #__|
+
+
+        crit_2_2 = False
+        job_state = self.cluster.cluster.job_state(path_i=path_i)
+        if job_state == "SUCCEEDED":
+            crit_2_2 = True
+
+        if crit_2_2 or crit_2_1:
+            crit_2 = True
+        else:
             crit_2 = False
-            if not os.path.isfile(path_i + "/.FINISHED"):
-                crit_2 = True
 
-            #| - Parsing Error File for "Error" (Sherlock only for now)
+        crit_list = [crit_0, crit_1, crit_2]
+        if all(crit is True for crit in crit_list):
+            return(True)
+        else:
+            return(False)
+        #__|
 
-            if self.cluster.cluster_sys == "sherlock":
-                error = self.parse_job_error_file(path_i)
-                if error:
-                    crit_0 = True
+    def job_failed(self, job_i):
+        """
+        Check whether job_i is in failed state.
 
-            # if error and self.cluster.cluster_sys == "sherlock":
-            #     # print(error)
-            #     crit_0 = True
-            #__|
+        Args:
+            job_i:
+        """
+        #| - job_failed
+        path_i = self.var_lst_to_path(job_i,
+            job_rev="Auto",
+            relative_path=False,
+            )
 
-            crit_list = [crit_0, crit_1, crit_2]
+        crit_0 = False
+        job_state = self.cluster.job_state(path_i=path_i)
+        if job_state == "FAILED":
+            crit_0 = True
 
-            if all(crit is True for crit in crit_list):
+        crit_1 = False
+        if os.path.isfile(path_i + "/.SUBMITTED"):
+            crit_1 = True
+
+        crit_2 = False
+        # if not os.path.isfile(path_i + "/.FINISHED"):
+        if not os.path.isfile(path_i + "/." + DFT_Jobs_Analysis.finished_fle):
+            crit_2 = True
+
+        #| - Parsing Error File for "Error" (Sherlock only for now)
+        if self.cluster.cluster_sys == "sherlock":
+            error = self.parse_job_error_file(path_i)
+            if error:
+                crit_0 = True
+        #__|
+
+        crit_list = [crit_0, crit_1, crit_2]
+
+        if all(crit is True for crit in crit_list):
+            return(True)
+        else:
+            return(False)
+        #__|
+
+    def job_submitted(self, path_i):
+        """
+        Check whether job is submitted.
+
+        Args:
+            path_i
+        """
+        #| - job_submitted
+        try:
+            if os.path.isfile(path_i + "/.SUBMITTED"):
                 return(True)
             else:
                 return(False)
-            #__|
+        except:
+            return(False)
+        #__|
 
-        def job_submitted(self, path_i):
-            """
-            Check whether job is submitted.
+    #__|
 
-            Args:
-                path_i
-            """
-            #| - job_submitted
-            try:
-                if os.path.isfile(path_i + "/.SUBMITTED"):
-                    return(True)
+    #| - NEW Methods That Use path_i Instead of job_i (Create col in df!!)
+    def _job_ready(self, path_i, require_READY_tag=True):
+        """
+        Return whether job_i is in READY state.
+
+        Args:
+            job_i:
+            require_READY_tag:
+                Require a ".READY" file start job
+        """
+        #| - job_ready
+        # path_i = self.var_lst_to_path(job_i,
+        #     ob_rev="Auto",
+        #     relative_path=False,
+        #     )
+
+        crit_0 = False
+        if os.path.isfile(path_i + "/.READY"):
+            crit_0 = True
+        elif require_READY_tag is False:
+            crit_0 = True
+
+        crit_1 = False
+        if not os.path.isfile(path_i + "/.SUBMITTED"):
+            crit_1 = True
+
+        #| - Having trouble with AWS .READY files not being copied over
+        # if self.cluster.cluster_sys == "aws":
+        #     crit_
+        #__|
+
+        crit_list = [crit_0, crit_1]
+
+        if all(crit is True for crit in crit_list):
+            return(True)
+        else:
+            return(False)
+        #__|
+
+    def _job_pending(self, path_i):
+        """
+        Return whether job_i is in PENDING state.
+
+        Args:
+            path_i:
+        """
+        #| - job_pending
+        # path_i = self.var_lst_to_path(job_i, job_rev="Auto",
+        # relative_path=False)
+
+        crit_0 = False
+        job_state = self.cluster.cluster.job_state(path_i=path_i)
+        if job_state == "PENDING":
+            crit_0 = True
+
+        crit_1 = False
+        if self.job_state_file(path_i) == "PENDING":
+            crit_1 = True
+
+        crit_list = [crit_0, crit_1]
+
+        if all(crit is True for crit in crit_list):
+            return(True)
+        else:
+            return(False)
+        #__|
+
+    def _job_running(self, path_i):
+        """
+        Return whether job_i is in RUNNING state.
+
+        Args:
+            path_i:
+        """
+        #| - job_running
+        crit_0 = True
+        if os.path.isfile(path_i + "/.READY"):
+            crit_0 = True
+
+        crit_1 = False
+        if os.path.isfile(path_i + "/.SUBMITTED"):
+            crit_1 = True
+
+        crit_2 = False
+        if not os.path.isfile(path_i + "/.FINISHED"):
+            crit_2 = True
+
+        crit_3 = False
+        job_state = self.cluster.cluster.job_state(path_i=path_i)
+        if job_state == "RUNNING":
+            crit_3 = True
+
+        crit_list = [crit_0, crit_1, crit_2, crit_3]
+
+        if all(crit is True for crit in crit_list):
+            return(True)
+        else:
+            return(False)
+        #__|
+
+    def _job_succeeded(self, path_i):
+        """
+        Return whether job_i is in SUCCEEDED state.
+
+        Args:
+            path_i:
+        """
+        #| - job_succeeded
+        crit_0 = True
+        if os.path.isfile(path_i + "/.READY"):
+            crit_0 = True
+
+        crit_1 = False
+        if os.path.isfile(path_i + "/.SUBMITTED"):
+            crit_1 = True
+
+        # Checking for '.FINSISHED' file OR checking batch queue
+
+        crit_2_1 = False
+        if os.path.isfile(path_i + "/.FINISHED"):
+            crit_2_1 = True
+
+        crit_2_2 = False
+        job_state = self.cluster.cluster.job_state(path_i=path_i)
+        if job_state == "SUCCEEDED":
+            crit_2_2 = True
+
+        if crit_2_2 or crit_2_1:
+            crit_2 = True
+        else:
+            crit_2 = False
+
+        crit_list = [crit_0, crit_1, crit_2]
+        if all(crit is True for crit in crit_list):
+            return(True)
+        else:
+            return(False)
+        #__|
+
+    def _job_failed(self, path_i):
+        """
+        Return whether job_i is in FAILED state.
+
+        Args:
+            path_i:
+        """
+        #| - job_failed
+        crit_0 = False
+        job_state = self.cluster.job_state(path_i=path_i)
+        if job_state == "FAILED":
+            crit_0 = True
+
+        crit_1 = False
+        if os.path.isfile(path_i + "/.SUBMITTED"):
+            crit_1 = True
+
+        crit_2 = False
+        if not os.path.isfile(path_i + "/.FINISHED"):
+            crit_2 = True
+
+
+        #| - Parsing Error File for "Error" (Sherlock only for now)
+
+        if self.cluster.cluster_sys == "sherlock":
+            error = self.parse_job_error_file(path_i)
+            if error:
+                crit_0 = True
+
+        # if error and self.cluster.cluster_sys == "sherlock":
+        #     # print(error)
+        #     crit_0 = True
+        #__|
+
+        crit_list = [crit_0, crit_1, crit_2]
+
+        if all(crit is True for crit in crit_list):
+            return(True)
+        else:
+            return(False)
+        #__|
+
+    def _job_submitted(self, path_i):
+        """
+        Return whether job_i is in SUBMITTED state.
+
+        Args:
+            path_i:
+        """
+        #| - job_submitted
+        try:
+            if os.path.isfile(path_i + "/.SUBMITTED"):
+                return(True)
+            else:
+                return(False)
+        except:
+            return(False)
+        #__|
+
+    #__|
+
+    def parse_job_error_file(self, path_i):
+        """
+        Read error file and searches for "Error" in last line.
+
+        TODO This is very specific to QE jobs so should be moved.
+
+        Args:
+            path_i
+        """
+        #| - parse_job_error_file
+        err_file = self.cluster.cluster.error_file
+        err_file = os.path.join(path_i, err_file)
+
+        error = False
+        if os.path.isfile(err_file):
+            with open(err_file) as fle:
+                lines = [line.strip() for line in fle]
+
+            lines = lines[-4:]
+
+            for line in lines:
+
+                if "KohnShamConvergenceError" in line:
+                    print("KohnShamConvergenceError Occured!! - RF")
+                    error = True
+                    break
+                elif "DUE TO TIME LIMIT" in line:
+                    print("Job Reached Time Limit!! - RF")
+                    error = True
+                    break
+                elif "RuntimeError: SCF Calculation failed":
+                    print("RuntimeError: SCF Calculation failed - RF")
+                    error = True
+                    break
                 else:
-                    return(False)
-            except:
-                return(False)
-            #__|
+                    error = False
+                    pass
 
-        #__|
-
-        #| - NEW Methods That Use path_i Instead of job_i (Create col in df!!)
-        def _job_ready(self, path_i, require_READY_tag=True):
-            """
-            Return whether job_i is in READY state.
-
-            Args:
-                job_i:
-                require_READY_tag:
-                    Require a ".READY" file start job
-            """
-            #| - job_ready
-            # path_i = self.var_lst_to_path(job_i,
-            #     ob_rev="Auto",
-            #     relative_path=False,
-            #     )
-
-            crit_0 = False
-            if os.path.isfile(path_i + "/.READY"):
-                crit_0 = True
-            elif require_READY_tag is False:
-                crit_0 = True
-
-            crit_1 = False
-            if not os.path.isfile(path_i + "/.SUBMITTED"):
-                crit_1 = True
-
-            #| - Having trouble with AWS .READY files not being copied over
-            # if self.cluster.cluster_sys == "aws":
-            #     crit_
-            #__|
-
-            crit_list = [crit_0, crit_1]
-
-            if all(crit is True for crit in crit_list):
-                return(True)
-            else:
-                return(False)
-            #__|
-
-        def _job_pending(self, path_i):
-            """
-            Return whether job_i is in PENDING state.
-
-            Args:
-                path_i:
-            """
-            #| - job_pending
-            # path_i = self.var_lst_to_path(job_i, job_rev="Auto",
-            # relative_path=False)
-
-            crit_0 = False
-            job_state = self.cluster.cluster.job_state(path_i=path_i)
-            if job_state == "PENDING":
-                crit_0 = True
-
-            crit_1 = False
-            if self.job_state_file(path_i) == "PENDING":
-                crit_1 = True
-
-            crit_list = [crit_0, crit_1]
-
-            if all(crit is True for crit in crit_list):
-                return(True)
-            else:
-                return(False)
-            #__|
-
-        def _job_running(self, path_i):
-            """
-            Return whether job_i is in RUNNING state.
-
-            Args:
-                path_i:
-            """
-            #| - job_running
-            crit_0 = True
-            if os.path.isfile(path_i + "/.READY"):
-                crit_0 = True
-
-            crit_1 = False
-            if os.path.isfile(path_i + "/.SUBMITTED"):
-                crit_1 = True
-
-            crit_2 = False
-            if not os.path.isfile(path_i + "/.FINISHED"):
-                crit_2 = True
-
-            crit_3 = False
-            job_state = self.cluster.cluster.job_state(path_i=path_i)
-            if job_state == "RUNNING":
-                crit_3 = True
-
-            crit_list = [crit_0, crit_1, crit_2, crit_3]
-
-            if all(crit is True for crit in crit_list):
-                return(True)
-            else:
-                return(False)
-            #__|
-
-        def _job_succeeded(self, path_i):
-            """
-            Return whether job_i is in SUCCEEDED state.
-
-            Args:
-                path_i:
-            """
-            #| - job_succeeded
-            crit_0 = True
-            if os.path.isfile(path_i + "/.READY"):
-                crit_0 = True
-
-            crit_1 = False
-            if os.path.isfile(path_i + "/.SUBMITTED"):
-                crit_1 = True
-
-            # Checking for '.FINSISHED' file OR checking batch queue
-
-            crit_2_1 = False
-            if os.path.isfile(path_i + "/.FINISHED"):
-                crit_2_1 = True
-
-            crit_2_2 = False
-            job_state = self.cluster.cluster.job_state(path_i=path_i)
-            if job_state == "SUCCEEDED":
-                crit_2_2 = True
-
-            if crit_2_2 or crit_2_1:
-                crit_2 = True
-            else:
-                crit_2 = False
-
-            crit_list = [crit_0, crit_1, crit_2]
-            if all(crit is True for crit in crit_list):
-                return(True)
-            else:
-                return(False)
-            #__|
-
-        def _job_failed(self, path_i):
-            """
-            Return whether job_i is in FAILED state.
-
-            Args:
-                path_i:
-            """
-            #| - job_failed
-            crit_0 = False
-            job_state = self.cluster.job_state(path_i=path_i)
-            if job_state == "FAILED":
-                crit_0 = True
-
-            crit_1 = False
-            if os.path.isfile(path_i + "/.SUBMITTED"):
-                crit_1 = True
-
-            crit_2 = False
-            if not os.path.isfile(path_i + "/.FINISHED"):
-                crit_2 = True
-
-
-            #| - Parsing Error File for "Error" (Sherlock only for now)
-
-            if self.cluster.cluster_sys == "sherlock":
-                error = self.parse_job_error_file(path_i)
-                if error:
-                    crit_0 = True
-
-            # if error and self.cluster.cluster_sys == "sherlock":
-            #     # print(error)
-            #     crit_0 = True
-            #__|
-
-            crit_list = [crit_0, crit_1, crit_2]
-
-            if all(crit is True for crit in crit_list):
-                return(True)
-            else:
-                return(False)
-            #__|
-
-        def _job_submitted(self, path_i):
-            """
-            Return whether job_i is in SUBMITTED state.
-
-            Args:
-                path_i:
-            """
-            #| - job_submitted
-            try:
-                if os.path.isfile(path_i + "/.SUBMITTED"):
-                    return(True)
-                else:
-                    return(False)
-            except:
-                return(False)
-            #__|
-
-        #__|
-
-        def parse_job_error_file(self, path_i):
-            """
-            Read error file and searches for "Error" in last line.
-
-            Args:
-                path_i
-            """
-            #| - parse_job_error_file
-            err_file = self.cluster.cluster.error_file
-            err_file = os.path.join(path_i, err_file)
-
+        else:
             error = False
-            if os.path.isfile(err_file):
-                with open(err_file) as fle:
-                    lines = [line.strip() for line in fle]
 
-                lines = lines[-4:]
-
-                for line in lines:
-
-                    if "KohnShamConvergenceError" in line:
-                        print("KohnShamConvergenceError Occured!! - RF")
-                        error = True
-                        break
-                    elif "DUE TO TIME LIMIT" in line:
-                        print("Job Reached Time Limit!! - RF")
-                        error = True
-
-                    else:
-                        error = False
-                        pass
-
-            else:
-                error = False
-
-            return(error)
-            #__|
+        return(error)
+        #__|
 
     #__| **********************************************************************
 

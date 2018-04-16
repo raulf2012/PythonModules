@@ -3,7 +3,7 @@ from pd_make import entry_data, aq_correction, stable_entr, form_e, mke_pour_ion
 
 def pd_entries(mtnme_1,mtnme_2):
 	"""
-	Creates the entry objects corresponding to a binaray or single component
+	Creates the entry objects corresponding to a binary or single component
 	Pourbaix diagram
 
 	Args:

@@ -8,7 +8,7 @@ import filecmp
 
 # My Modules
 from dft_job_automat.job_analysis import DFT_Jobs_Analysis
-from aws.aws_class import AWS_Queues
+# from aws.aws_class import AWS_Queues
 #__|
 
 class DFT_Jobs_Manager(DFT_Jobs_Analysis):
@@ -26,7 +26,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         level_entries=None,
         skip_dirs_lst=None,
         working_dir=".",
-        update_job_state=True,
+        update_job_state=False,
         load_dataframe=True,
         ):
         """TMP_docstring.
@@ -470,7 +470,8 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             path_i = self.var_lst_to_path(job) + "_" + str(rev_num)
             # job_queue_dict = submit_folder_job(path_i, bash_command)
             # job_queue_dict = AWS_Queues().submit_job(path=path_i, queue=queue)
-            AWS_Queues().submit_job(path=path_i, queue=queue)
+
+            # AWS_Queues().submit_job(path=path_i, queue=queue)
 
         #__|
 

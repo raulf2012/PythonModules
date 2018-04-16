@@ -1,1 +1,0 @@
-{"kpts": [3, 3, 1], "pw": 500, "xc": "BEEF-vdW", "dipole": {"status": true}, "nbands": -20, "output": {"removewf": true, "avoidio": false, "wf_collect": false}, "convergence": {"nmix": 20, "diag": "david", "energy": 1e-05, "mix": 4, "maxsteps": 500, "mixing": 0.1}, "dw": 5000, "outdir": "calcdir"}

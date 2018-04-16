@@ -1,0 +1,9 @@
+.. module:: ase.atoms
+.. module:: ase
+
+================
+The Atoms object
+================
+
+The :class:`Atoms` object is a collection of atoms.  Here
+is how to define a CO molecule::
