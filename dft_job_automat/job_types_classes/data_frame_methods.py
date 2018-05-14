@@ -1,15 +1,15 @@
+#!/usr/bin/env python
+
 """Dataframe methods.
 
-Development Notes:
+Author: Raul A. Flores
 
+Development Notes:
 """
 
 #| - IMPORT MODULES
 import os
 import shutil
-
-# import sys
-# from ase import io
 #__|
 
 class DataFrame_Methods():
@@ -31,7 +31,8 @@ class DataFrame_Methods():
 
     def create_atoms_objects(self,
         outdir="atoms_objects",
-        atoms_row="init_atoms",
+        # atoms_row="init_atoms",
+        atoms_row="atoms_object",
         image=-1,
         ):
         """
@@ -52,6 +53,13 @@ class DataFrame_Methods():
             err_mess = "atoms folder already created, "
             err_mess += "delete or move folder and run command again"
             raise RuntimeError(err_mess)
+
+        if atoms_row in list(df):
+            pass
+        else:
+            atoms_row = "init_atoms"
+            print("Couldn't find " + atoms_row + ", using 'init_atoms' instead")
+
 
         for index, row in df.iterrows():
             atoms_i = row[atoms_row]

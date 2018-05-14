@@ -259,10 +259,7 @@ class Espresso_Params(DFT_Params):
 
     #| - Espresso_Params *******************************************************
     def __init__(self, load_defaults=True):
-        """TMP_docstring.
-
-        TEMP TEMP
-        """
+        """Class encapsulating quantum espresso job parameters."""
         #| - __init__
         DFT_Params.__init__(self)
 
@@ -281,9 +278,9 @@ class Espresso_Params(DFT_Params):
 
         params["pw"] = 500            # plane-wave cutoff
         params["dw"] = 5000           # density cutoff
-        params["dipole"] = {"status": True} # Turn on only for slabs not bulk
-        params["xc"] = "BEEF-vdW" # exchange-correlation functional
-        params["kpts"] = (3, 3, 1) # k-points for hexagonal symm in 2-D mater
+        params["dipole"] = {"status": True}  # Turn on only for slabs not bulk
+        params["xc"] = "BEEF-vdW"  # exchange-correlation functional
+        params["kpts"] = (3, 3, 1)  # k-points for hexagonal symm in 2-D mater
 
         # TODO Scale number of bands with system size
         params["nbands"] = -50
@@ -335,8 +332,7 @@ class Espresso_Params(DFT_Params):
         #__|
 
     def create_mod_dict(self):
-        """
-        Create modification book-keepig dictionary.
+        """Create modification book-keepig dictionary.
 
         Dictionary which keeps track of whether parameter has been updated
         externally in script or if it kept at its default value.
@@ -350,8 +346,7 @@ class Espresso_Params(DFT_Params):
         #__|
 
     def test_check(self):
-        """
-        Automatically tries to set params based on other dependent parameters.
+        """Automatically tries to set params based on other dependent parameters.
 
         Ex.) If spinpol == True, then sigma should be smaller, 0.01ish
         (Charlotte stold me)
@@ -426,6 +421,6 @@ class Espresso_Params(DFT_Params):
 
         #__| ==================================================================
 
-    #__| ***********************************************************************
+        #__|
 
     #__| **********************************************************************

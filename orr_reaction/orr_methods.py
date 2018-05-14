@@ -1,11 +1,17 @@
 #!/usr/bin/env python
 
-"""ORR energetics classes and methods."""
+"""ORR energetics classes and methods.
+
+Author: Raul A. Flores
+"""
 
 #| - IMPORT MODULES
 import copy
 import numpy as np
 import pandas as pd
+
+pd.options.mode.chained_assignment = None
+
 from plotly.graph_objs import Scatter
 #__|
 
@@ -45,19 +51,24 @@ class ORR_Free_E_Plot:
         self.rxn_mech_states = ["bulk", "ooh", "o", "oh", "bulk"]
         self.ideal_energy = [4.92, 3.69, 2.46, 1.23, 0]
 
-        self.add_bulk_entry()
+        if free_energy_df is not None:
+            self.add_bulk_entry()
+            self.fill_missing_data()
 
-        self.fill_missing_data()
-
-        self.num_of_states = len(self.fe_df) + 1  # bulk, OOH, O, OH, bulk
-        self.energy_lst = self.rxn_energy_lst()
-        self.num_of_elec = range(self.num_of_states)[::-1]
-        self.overpotential = self.calc_overpotential()[0]
-        self.limiting_step = self.calc_overpotential()[1]
-        # self.ideal_energy = [4.92, 3.69, 2.46, 1.23, 0]
-        self.energy_lst_h2o2 = self.rxn_energy_lst_h2o2()
-        self.overpotential_h2o2 = self.calc_overpotential_h2o2()
+            self.num_of_states = len(self.fe_df) + 1  # bulk, OOH, O, OH, bulk
+            self.energy_lst = self.rxn_energy_lst()
+            self.num_of_elec = range(self.num_of_states)[::-1]
+            self.overpotential = self.calc_overpotential()[0]
+            self.limiting_step = self.calc_overpotential()[1]
+            # self.ideal_energy = [4.92, 3.69, 2.46, 1.23, 0]
+            self.energy_lst_h2o2 = self.rxn_energy_lst_h2o2()
+            self.overpotential_h2o2 = self.calc_overpotential_h2o2()
         #__|
+
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    #| - ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     def add_bulk_entry(self,
         bulk_e=0.0,
@@ -104,8 +115,7 @@ class ORR_Free_E_Plot:
         #__|
 
     def property_list(self, column_name):
-        """
-        General method to create a list from a column in the dataframe.
+        """General method to create a list from a column in the dataframe.
 
         The length of the list will correspond to the steps in the ORR
         mechanism.
@@ -245,15 +255,13 @@ class ORR_Free_E_Plot:
         Create a reaction coordinate array ([0, 1, 1, 2, 2, 3]) for plotting.
 
         Args:
-            rxn_steps:
-                # <type 'int'>
-                # Number of steps in reaction coordinate including initial
+            rxn_steps: <type 'int'>
+                Number of steps in reaction coordinate including initial
                 and final state.
-                # Ex. A -> Intermediate -> C has 3 steps/states
+                Ex. A -> Intermediate -> C has 3 steps/states
 
-            spacing:
-                # <type 'float'>
-                # Spacing inbetween the energy levels. The default of 0 creates
+            spacing: <type 'float'>
+                Spacing inbetween the energy levels. The default of 0 creates
                 a free energy diagram that looks like steps
         """
         #| - create_rxn_coord_array
@@ -271,6 +279,11 @@ class ORR_Free_E_Plot:
 
         return(lst)
         #__|
+
+    #__| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 
     #| - Plotting @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -304,24 +317,27 @@ class ORR_Free_E_Plot:
         return(out_list)
         #__|
 
-    def plot_fed_series(
-        self,
+    def plot_fed_series(self,
         bias=0.,
+        opt_name=None,
         properties=None,
         color_list=None,
         i_cnt=0,
         hover_text_col=None,
         plot_mode="all",
+        smart_format=None,
         ):
         """
         Process data for FED plot.
 
         Args:
             bias:
+            opt_name
             properties:
             color_list:
             i_cnt:
             hover_text_col:
+                Dataframe column name to be used for hover text
 
         #FIXME | This is  fairly rough as of right now
         """
@@ -341,12 +357,42 @@ class ORR_Free_E_Plot:
             if np.isnan(i) is True:
                 e_list[n] = None
 
-        name_i = "_".join([str(i) for i in key]) + \
-            " (OP: " + str(round(overpot_i, 2)) + ")"
+        if opt_name is not None:
+            # print(20 * "**")
+            name_i = opt_name + ": " + "_".join([str(i) for i in key]) + \
+                " (OP: " + str(round(overpot_i, 2)) + ")"
+
+        else:
+            name_i = "_".join([str(i) for i in key]) + \
+                " (OP: " + str(round(overpot_i, 2)) + ")"
 
         #| - Hover Text
         if hover_text_col is not None:
-            hover_text_list = self.property_list(hover_text_col)
+
+            if type(hover_text_col) is not list:
+                hover_text_list = self.property_list(hover_text_col)
+
+            else:
+
+                hover_text_lists = []
+                for col_i in hover_text_col:
+
+                    # replacing nan with ""
+                    tmp = self.property_list(col_i)
+                    hover_text_i = ["" if x is np.nan else x for x in tmp]
+                    hover_text_lists.append(hover_text_i)
+
+                # TODO Removed last trailing " | "
+                hover_text_list = []
+                for items in zip(*hover_text_lists):
+
+                    if all([True if i == "" else False for i in items]) is True:
+                        hover_col_state_i = ""
+                    else:
+                        hover_col_state_i = " | ".join(items)
+
+                    hover_text_list.append(hover_col_state_i)
+
         else:
             hover_text_list = [np.nan for j_cnt in list(range(5))]
         #__|
@@ -358,6 +404,7 @@ class ORR_Free_E_Plot:
             hover_text=hover_text_list,
             color=color_list[i_cnt - 1],
             plot_mode=plot_mode,
+            smart_format=smart_format,
             )
 
         return(dat_lst)
@@ -370,6 +417,7 @@ class ORR_Free_E_Plot:
         hover_text=None,
         color="rgb(22, 96, 167)",
         plot_mode="all",
+        smart_format=None,
         ):
         """
         Create a plotly series for the current instance.
@@ -406,8 +454,6 @@ class ORR_Free_E_Plot:
         new_y_dat = copy.copy(y_dat)
 
         cnt = 2
-        # print(len(x_dat) / 2 - 1)
-        # print(")@(!#$*I(#LKSDFJGL))")
         for i_ind in range(int(len(x_dat) / 2 - 1)):
             fill = new_x_dat[cnt - 1]
             new_x_dat.insert(cnt, fill)
@@ -428,6 +474,64 @@ class ORR_Free_E_Plot:
             cnt += 2
         #__|
 
+
+        #| - Smart Format Dict ************************************************
+        # TODO
+
+        #| - DICTS
+        plot_parameter_dict = {
+            "dash": None,
+            }
+
+        # smart_format = [
+        #
+        #     # [
+        #     #     {"spinpol": True},
+        #     #     {"dash": "dot"},
+        #     #     ],
+        #
+        #     [
+        #         {"system": "Fe_slab"},
+        #         {"dash": "dashdot"},
+        #         ],
+        #
+        #     [
+        #         {"system": "N_graph_Fe"},
+        #         {"dash": "dot"},
+        #         ],
+        #
+        #     [
+        #         {"system": "graph_Fe"},
+        #         {"dash": "dash"},
+        #         ],
+        #
+        #     [
+        #         {"system": "graphene"},
+        #         {"dash": None},
+        #         ],
+        #
+        #     ]
+        #__|
+
+        if self.fe_df is not None and smart_format is not None:
+            for format_i in smart_format:
+
+                # format_i key:values
+                df_col_name = list(format_i[0])[0]
+                value_i = list(format_i[0].values())[0]
+                setting_name = list(format_i[1])[0]
+                setting_value = list(format_i[1].values())[0]
+
+                if df_col_name in list(self.fe_df):
+                    if all(self.fe_df[0:4][df_col_name] == value_i):
+                        plot_parameter_dict.update({setting_name: setting_value})
+
+                else:
+                    print("Dataframe column " + df_col_name + " not present")
+
+        #__| ******************************************************************
+
+
         #| - Plotly Scatter Plot Instances
 
         #| - Thick horizontal state lines
@@ -444,6 +548,8 @@ class ORR_Free_E_Plot:
             line=dict(
                 color=color,
                 width=6,
+                # dash="dot",  # TEMP
+                dash=plot_parameter_dict["dash"],  # TEMP
                 ),
             mode="lines",
             )
@@ -555,16 +661,415 @@ def calc_ads_e(
     return(ads_e_i)
     #__|
 
-def lowest_e_path(tmp=42):
+def df_calc_adsorption_e(
+    df,
+
+    oxy_ref,
+    hyd_ref,
+
+    bare_slab_e,
+    bare_slab_var=None,
+
+    corrections_mode="df_column",  # corr_dict
+    corrections_column="gibbs_correction",
+
+    corrections_dict=None,
+    ):
+    """Calculate and add adsorption energy column to data_frame.
+
+    Args:
+        df:
+    """
+    #| - df_calc_adsorption_e
+    ads_e_list = []
+    for index, row in df.iterrows():
+
+        # corr = fe_corr_dict[row["adsorbate"]]
+
+        if corrections_mode == "df_column":
+            corr = row[corrections_column]
+
+            # If "df_column" method return 0. then try to use correction_dict
+            if corr == 0.:
+                if corrections_dict is not None:
+                    print("Using correction dict")
+                    corr = corrections_dict[row["adsorbate"]]
+
+        elif corrections_mode == "corr_dict" and corrections_dict is not None:
+            corr = corrections_dict[row["adsorbate"]]
+        else:
+            # TEMP_PRINT
+            print("Unhandled exception here! Fix!")
+            corr = 0.
+
+
+        if type(bare_slab_e) == dict:
+            bare_e = bare_slab_e[row[bare_slab_var]]
+
+        elif type(bare_slab_e) == float:
+            bare_e = bare_slab_e
+
+        ads_e_i = calc_ads_e(
+            row,
+            # bare_slab,
+            bare_e,
+            correction=corr,
+            oxy_ref_e=oxy_ref,
+            hyd_ref_e=hyd_ref,
+            )
+
+        ads_e_list.append(ads_e_i)
+
+    df["ads_e"] = np.array(ads_e_list)
+    #__|
+
+def lowest_e_path(
+    df,
+    jobs_variables,
+    color_list,
+    create_ideal_series=True,
+    opt_name=None,
+    bias=0.,
+    manual_props="*TEMP*",
+    plot_title="Free Energy Diagram for the Oxygen Reduction Reaction",
+    smart_format=None,
+    ):
     """Find the lowest energy pathway FED.
 
     COMBAK
 
     From a set of FE pathways corresponding to different sites, the lowest
     energy states will be selected to construct a new FED.
+
+    Args:
+        df:
+        jobs_variables:
+            Result of Jobs.tree_level_labels
+        color_list:
+        bias:
+
     """
     #| - lowest_e_path
-    print(tmp)
+
+    #| - Grouping By Adsorbate Type
+    df = copy.deepcopy(df)
+    groupby = copy.deepcopy(jobs_variables)
+
+    groupby.remove("site")
+    groupby.remove("adsorbate")
+
+    data_master = {}
+    if groupby == []:
+        series_list = []
+        for ads_i in df.groupby("adsorbate"):
+
+            min_e_row = ads_i[1].loc[ads_i[1]["ads_e"].idxmin()]
+            series_list.append(min_e_row)
+
+        df_i = pd.DataFrame.from_items([(s.name, s) for s in series_list]).T
+        data_master[manual_props] = df_i
+
+    else:
+        for group_i in df.groupby(groupby):
+            series_list = []
+            for ads_i in group_i[1].groupby("adsorbate"):
+
+                min_e_row = ads_i[1].loc[ads_i[1]["ads_e"].idxmin()]
+                series_list.append(min_e_row)
+
+            df_i = pd.DataFrame.from_items([(s.name, s) for s in series_list]).T
+            data_master[group_i[0]] = df_i
+
+            # print("IUIUENMNMIUIDJFAOLIQ")
+            # print(df_i)
+            # print("IUIUENMNMIUIDJFAOLIQ")
+
+    #__|
+
+    #| - Creating Data Sets
+
+    #| - Creating FED Datasets
+    data_list = []
+    # for i_cnt, (key, fe_dict) in enumerate(data_master.iteritems()):
+    for i_cnt, (key, fe_dict) in enumerate(data_master.items()):
+
+        ORR = ORR_Free_E_Plot(
+            free_energy_df=fe_dict,
+            )
+
+        dat_lst = ORR.plot_fed_series(
+            bias=bias,
+            opt_name=opt_name,
+            properties=key,
+            color_list=color_list,
+            i_cnt=i_cnt,
+            hover_text_col="site",
+            smart_format=smart_format,
+            )
+
+        data_list.extend(dat_lst)
+    #__|
+
+    #| - Creating Ideal FED Dataset
+    if create_ideal_series:
+        e_list_ideal = ORR.apply_bias(bias, ORR.ideal_energy)
+
+        dat_ideal = ORR.create_plotly_series(
+            e_list_ideal,
+            group="Ideal",
+            name="Ideal",
+            color=color_list[-1],
+            plot_mode="full_lines",
+            )
+
+        dat_lst = data_list + dat_ideal
+
+    else:
+
+        dat_lst = data_list
+
+
+    #__|
+
+    # dat_lst = data_list + dat_ideal
+
+    #__|
+
+    #| - Plotting
+
+    #| - Plot Settings
+    plot_title_size = 18
+    tick_lab_size = 16
+    axes_lab_size = 18
+    legend_size = 18
+    #__|
+
+    #| - Plot Layout
+    xax_labels = ["O2", "OOH", "O", "OH", "H2O"]
+    layout = {
+
+        "title": plot_title,
+
+        "font": {
+            "family": "Courier New, monospace",
+            "size": plot_title_size,
+            "color": "black",
+            },
+
+        #| - Axes --------------------------------------------------------------
+        "yaxis": {
+            "title": "Free Energy [eV]",
+            "zeroline": True,
+            "titlefont": dict(size=axes_lab_size),
+            "showgrid": False,
+            "tickfont": dict(
+                size=tick_lab_size,
+                ),
+            },
+
+        "xaxis": {
+            "title": "Reaction Coordinate",
+            "zeroline": True,
+            "titlefont": dict(size=axes_lab_size),
+            "showgrid": False,
+
+            # "showticklabels": False,
+
+            "ticktext": xax_labels,
+            "tickvals": [1.5 * i + 0.5 for i in range(len(xax_labels))],
+
+            "tickfont": dict(
+                size=tick_lab_size,
+                ),
+            },
+        #__| -------------------------------------------------------------------
+
+        #| - Legend ------------------------------------------------------------
+        "legend": {
+            "traceorder": "normal",
+            "font": dict(size=legend_size)
+            },
+        #__| -------------------------------------------------------------------
+
+        #| - Plot Size
+        # "width": 200 * 4.,
+        # "height": 200 * 3.,
+        #__|
+
+        }
+    #__|
+
+    # fig = Figure(data=dat_lst, layout=layout)
+    # plotly.plotly.image.save_as(fig, filename="pl_hab_opda_raman.png")
+    # plotly.offline.plot(
+    #     {
+    #         "data": dat_lst,
+    #         "layout": layout,
+    #         },
+    #     filename="plots/pl_fed_supp_graph_02.html"
+    #     )
+    #__|
+
+    return(dat_lst, layout)
+
+    #__|
+
+def plot_all_states(
+    df,
+    jobs_variables,
+    color_list,
+    bias=0.,
+    hover_text_col="site",
+    create_ideal_series=True,
+    plot_title="Free Energy Diagram for the Oxygen Reduction Reaction",
+    smart_format=None,
+    ):
+    """
+
+    Args:
+        df:
+        jobs_variables:
+        color_list:
+        bias:
+        plot_title:
+    """
+    #| - plot_all_states
+
+    #| - Grouping By Adsorbate Type
+
+    groupby = copy.deepcopy(jobs_variables)
+    # groupby = copy.deepcopy(Jojobs_variablesbs.tree_level_labels)
+    groupby.remove("adsorbate")
+
+    data_master = {}
+    for group_i in df.groupby(groupby):
+
+        data_master[group_i[0]] = group_i[1]
+    #__|
+
+    #| - Creating Data Sets
+
+    #| - Creating FED Datasets
+    data_list = []
+    # for i_cnt, (key, fe_dict) in enumerate(data_master.iteritems()):
+    for i_cnt, (key, fe_dict) in enumerate(data_master.items()):
+        ORR = ORR_Free_E_Plot(
+            free_energy_df=fe_dict,
+            )
+
+        dat_lst = ORR.plot_fed_series(
+            bias=bias,
+            properties=key,
+            color_list=color_list,
+            i_cnt=i_cnt,
+            # hover_text_col="site"
+            hover_text_col=hover_text_col,
+            plot_mode="states_only",
+            smart_format=smart_format,
+            )
+
+        data_list.extend(dat_lst)
+    #__|
+
+    #| - Creating Ideal FED Dataset
+    if create_ideal_series:
+
+        e_list_ideal = ORR.apply_bias(bias, ORR.ideal_energy)
+
+        dat_ideal = ORR.create_plotly_series(
+            e_list_ideal,
+            group="Ideal",
+            name="Ideal",
+            color="red",
+            plot_mode="full_lines",
+            )
+
+        dat_lst = data_list + dat_ideal
+    #__|
+
+    else:
+        dat_lst = data_list
+
+    #__|
+
+    #| - Plotting
+
+    #| - Plot Settings
+    plot_title_size = 18
+    tick_lab_size = 16
+    axes_lab_size = 18
+    legend_size = 12
+    #__|
+
+    #| - Plot Layout
+    xax_labels = ["O2", "OOH", "O", "OH", "H2O"]
+    layout = {
+
+        "title": plot_title,
+
+        "font": {
+            "family": "Courier New, monospace",
+            "size": plot_title_size,
+            "color": "black",
+            },
+
+        #| - Axes --------------------------------------------------------------
+        "yaxis": {
+            "title": "Free Energy [eV]",
+            "zeroline": True,
+            "titlefont": dict(size=axes_lab_size),
+            "showgrid": False,
+            "tickfont": dict(
+                size=tick_lab_size,
+                ),
+            },
+
+        "xaxis": {
+            "title": "Reaction Coordinate",
+            "zeroline": True,
+            "titlefont": dict(size=axes_lab_size),
+            "showgrid": False,
+
+            # "showticklabels": False,
+
+            "ticktext": xax_labels,
+            "tickvals": [1.5 * i + 0.5 for i in range(len(xax_labels))],
+
+            "tickfont": dict(
+                size=tick_lab_size,
+                ),
+            },
+        #__| -------------------------------------------------------------------
+
+        #| - Legend ------------------------------------------------------------
+        "legend": {
+            "traceorder": "normal",
+            "font": dict(size=legend_size)
+            },
+        #__| -------------------------------------------------------------------
+
+        #| - Plot Size
+        "width": 200 * 4.,
+        "height": 200 * 3.,
+        #__|
+
+        }
+    #__|
+
+
+    # fig = Figure(data=dat_lst, layout=layout)
+    # plotly.offline.plot(
+    #     {
+    #         "data": dat_lst,
+    #         "layout": layout,
+    #         },
+    #     filename="plots/pl_fed_supp_graph_01.html"
+    #     )
+
+    return(dat_lst, layout)
+
+    #__|
+
     #__|
 
 #__|

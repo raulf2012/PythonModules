@@ -4,17 +4,57 @@
 
 Author: Raul A. Flores
 """
+
 #| - Import Modules
 import os
 import pandas as pd
+
+import numpy as np
 #__|
 
 #| - Log File Methods
 
-def tot_abs_magnetization(log="log"):
+def number_of_atoms(path_i=".", log="log"):
+    """
+
+    Args:
+        path_i:
+        log:
+    """
+    #| - number_of_atoms
+    file_name = path_i + "/" + log
+    with open(file_name, "r") as fle:
+        fle.seek(0)  # just in case
+
+        while True:
+            line = fle.readline()
+
+            if "Cartesian axes" in line:
+                fle.readline().strip()  # Blank line
+                fle.readline()  # Column headers
+
+                atom_list = []
+                while True:
+                    data_line_i = fle.readline().strip()
+
+                    if data_line_i == "":
+                        break
+
+                    atom_list.append(data_line_i)
+
+            if not line:
+                break
+
+    num_atoms = len(atom_list)
+
+    return(num_atoms)
+    #__|
+
+def tot_abs_magnetization(path_i=".", log="log"):
     """Return total and absolute magnetization vs SCF iteration.
 
     Abs:
+        path_i
         log
     """
     #| - tot_abs_magnetization
@@ -53,17 +93,19 @@ def tot_abs_magnetization(log="log"):
     return(df)
     #__|
 
-def element_index_dict(log="log"):
-    """Returns index: element dictionary.
+def element_index_dict(path_i=".", log="log"):
+    """Return index: element dictionary.
 
     Format: {0: 'Fe', 1: 'Fe', 2: 'Fe'}
 
     Args:
+        path_i
         log
     """
     #| - element_index_dict
     elem_ind_dict = {}
-    with open(log, "r") as fle:
+    file_name = path_i + "/" + log
+    with open(file_name, "r") as fle:
 
         fle.seek(0)  # just in case
         while True:
@@ -84,7 +126,7 @@ def element_index_dict(log="log"):
                     if "tau(" in line_i:
 
                         line_list = line_i.strip().split(" ")
-                        line_list = [i_cnt for i_cnt in line_list if i_cnt != ""]
+                        line_list = [i_ct for i_ct in line_list if i_ct != ""]
 
                         ind_i = int(line_list[0]) - 1  # "0" indexed
 
@@ -101,20 +143,19 @@ def element_index_dict(log="log"):
     return(elem_ind_dict)
     #__|
 
-def magmom_charge_data(log="log"):
-    """Returns charge and magmom data per atom for all SCF iterations.
-    # [{'magmom': 2.7931, 'charge': 7.3942, 'atom_num': 0},
-    # {'magmom': 2.7931, 'charge': 7.3942, 'atom_num': 1}, ...],
-    # ]
+def magmom_charge_data(path_i=".", log="log"):
+    """Return charge and magmom data per atom for all SCF iterations.
 
     Args:
+        path_i
         log
     """
     #| - magmom_charge_data
 
     #| - Reading Log File
-    fle = open(log, "r")
+    file_name = path_i + "/" + log
 
+    fle = open(file_name, "r")
     fle.seek(0)  # just in case
 
     master_list = []
@@ -127,8 +168,10 @@ def magmom_charge_data(log="log"):
 
         #| - Searching for Atomic Magmoms
         if "Magnetic moment per site" in line:
+
             list_i = []
             while True:
+                # print("ksjfksjfks - 3")
                 line_i = fle.readline()
                 if "atom:" in line_i:
 
@@ -155,7 +198,13 @@ def magmom_charge_data(log="log"):
     #__|
 
     #| - Creating Pandas DataFrame
-    elem_ind_dict = element_index_dict(log=log)
+    if master_list == []:
+        print("Magmom/charge data not found, ",
+            "calculation probably not spin-polarized"
+            )
+        return(None)
+
+    elem_ind_dict = element_index_dict(path_i=path_i, log=log)
 
     df_list = []
     for i_cnt, iter_i in enumerate(master_list):
@@ -177,11 +226,92 @@ def magmom_charge_data(log="log"):
     return(df)
     #__|
 
-def scf_convergence(log="log"):
+def estimate_magmom(
+    path_i=".",
+    atoms=None,
+    log="log",
+    ):
+    """
+
+    TODO Also read charges data for last iteration
+    TODO Modify to not need atoms object to function
+
+    Author: Colin Dickens
+
+    Estimate magmom from log file (based on charge spheres centered on atoms)
+    and assign to atoms object to assist with calculation restart upon
+    unexpected interruption.
+    """
+    #| - estimate_magmom
+    num_atoms = number_of_atoms(path_i=path_i, log=log)
+    # print(num_atoms)
+
+    file_name = path_i + "/" + log
+
+    with open(file_name, "r") as fle:
+        lines = fle.readlines()
+
+    i = len(lines) - 1
+    while True:
+        if i == 0: raise IOError("Could not identify espresso magmoms")
+        line = lines[i].split()
+        if len(line) > 3:
+            if line[0] == "absolute":
+                abs_magmom = float(line[3])
+        if len(line) > 6:
+            if line[4] == "magn:":
+                i -= num_atoms - 1
+                break
+        i -= 1
+
+    magmom_list = []
+    charge_list = []
+
+    if abs_magmom < 1e-3:
+        print("estimate_magmom | Absolute magnetism is near 0, setting "
+            "initial atomic magmoms to 0"
+            )
+
+        # for atom in atoms:
+        #     atom.magmom = 0
+
+        for atom in range(num_atoms):
+            magmom_list.append(0.)
+
+    else:
+        total_esp_magmom = 0
+        # for j in range(len(atoms)):
+        for j in range(num_atoms):
+            total_esp_magmom += np.abs(float(lines[i+j].split()[5]))
+
+        magmom_list = []
+        charge_list = []
+        # for j in range(len(atoms)):
+        for j in range(num_atoms):
+            charge_i = float(lines[i + j].split()[3])
+            magmom_i = float(lines[i + j].split()[5])
+            new_magmom_i = magmom_i * abs_magmom / total_esp_magmom
+            # atoms[j].magmom = new_magmom_i
+            magmom_list.append(new_magmom_i)
+            charge_list.append(charge_i)
+
+    magmom_list = np.array(magmom_list)
+    charge_list = np.array(charge_list)
+
+    if atoms is not None:
+        atoms.info.update({"qe_log_magmoms": magmom_list})
+        atoms.info.update({"qe_log_charges": charge_list})
+
+    return(magmom_list, charge_list)
+    #__|
+
+def scf_convergence(path_i=".", log="log"):
     """Return SCF convergence vs iteration.
 
     Author: ???
     I didn't write this.
+
+    TODO: Not working well with python3.6, probably best to rewrite this
 
     Args:
         log
@@ -218,7 +348,11 @@ def scf_convergence(log="log"):
 
     os.system('grep "kinetic-energy cutoff" %s > %s' % (log, filename))
     file = open(filename)
-    items = filter(None, file.read().split(" "))
+
+    # FIXME This is breaking in python3.6
+    # items = filter(None, file.read().split(" "))
+    items = list(filter(None, file.read().split(" ")))
+
     pw = float(items[3]) * 13.606
     os.system("rm %s" % filename)
 

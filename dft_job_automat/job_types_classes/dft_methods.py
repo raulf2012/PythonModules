@@ -6,21 +6,18 @@ Development Notes:
 
 #| - Import Modules
 import os
-
+import pickle as pickle
 from ase import io
 from ase.io.trajectory import Trajectory
 
-import pandas as pd
-import numpy as np
-
 # My Modules
 from ase_modules.ase_methods import number_of_atoms
+from quantum_espresso.qe_methods import magmom_charge_data
 #__|
 
 class DFT_Methods():
-    """Summary line.
-    TEMP
-    """
+    """Methods and analysis to perform within DFT jobs folders."""
+
     #| - DFT_Methods **********************************************************
     def __init__(self, methods_to_run=[]):
         """Initialize DFT_Methods instance with methods_to_run list.
@@ -30,6 +27,45 @@ class DFT_Methods():
         """
         #| - __init__
         self.methods_to_run = methods_to_run
+        #__|
+
+    def pdos_data(self, path_i):
+        """Read pdos.pickle file and return data.
+
+        Args:
+            path_i:
+        """
+        #| - pdos_data
+        fle_name = "dir_pdos/dos.pickle"
+        print(20 * "!#$*")
+        print(path_i + "/" + fle_name)
+        if os.path.exists(path_i + "/" + fle_name):
+            # with open(path_i + "/" + fle_name, "r") as fle:
+            # NOTE Added "rb" & encoding="latin1" for python3 support
+            with open(path_i + "/" + fle_name, "rb") as fle:
+                data = pickle.load(fle, encoding="latin1")
+
+        return(data)
+        #__|
+
+    def magmom_charge_history(self, path_i, log="calcdir/log"):
+        """Return atomic charges and magmoms thourgh SCF convergence history.
+
+        Args:
+            path_i
+        """
+        #| - magmom_charge_history
+        df = magmom_charge_data(path_i=path_i, log=log)
+        imp_col = ["atom_num", "iteration", "element"]
+
+        magmom_history_df = df.filter(items=imp_col + ["magmom"])
+        charge_history_df = df.filter(items=imp_col + ["charge"])
+
+        out_dict = {}
+        out_dict["magmom_history"] = magmom_history_df
+        out_dict["charge_history"] = charge_history_df
+
+        return(out_dict)
         #__|
 
     def gibbs_energy(self, path_i):
@@ -51,6 +87,20 @@ class DFT_Methods():
         return(gibbs_e)
         #__|
 
+    def gibbs_correction(self, path_i):
+        """
+        """
+        #| - gibbs_correction
+        gibbs_corr = 0.
+
+        fle_name = "dir_vib/gibbs_corr.out"
+        if os.path.exists(path_i + "/" + fle_name):
+            with open(path_i + "/" + fle_name, "r") as fle:
+                gibbs_corr = float(fle.read().strip())
+
+        return(gibbs_corr)
+        #__|
+
     def elec_energy(self, path_i, atoms_file="out_opt.traj"):
         """Read electronic energy from ASE atoms object.
 
@@ -59,32 +109,6 @@ class DFT_Methods():
             atoms_file:
         """
         #| - elec_energy
-
-        #| - TEMP | VASP Run Where I Write Energy and Force TO File | 180120
-        # # path_i = self.root_dir + "/" + path + "/simulation/elec_energies.out"
-        #
-        # path_i = path
-        #
-        # with open(path_i) as  f:
-        #     content = f.readlines()
-        #
-        # content = [x.strip() for x in content]
-        #
-        # energy = float(content[1].split(" ")[0])
-        # force = float(content[1].split(" ")[1])
-        #
-        # return(energy)
-        #__|
-
-        # atoms_file_names = ["out_opt.traj", "out.traj"]
-        #
-        # for file_name in atoms_file_names:
-        #     try:
-        #         atoms = io.read(path + "/" + file_name)
-        #         break
-        #     except:
-        #         pass
-
         atoms = self.atoms_object(path_i)[-1]
         energy = atoms.get_potential_energy()
 
@@ -92,7 +116,7 @@ class DFT_Methods():
         #__|
 
     def atoms_object(self, path_i):
-        """
+        """Attempts to read and return atoms object.
 
         Args:
             path_i:
@@ -103,7 +127,8 @@ class DFT_Methods():
             try:
                 # traj = io.read(path_i + "/" + file_name)
                 traj = Trajectory(path_i + "/" + file_name)
-                # Trajectory object can't be pickled, this is a work around for now
+
+                # Traj object can't be pickled, this is a work around for now
                 traj_list = []
                 for image in traj:
                     traj_list.append(image)
@@ -118,12 +143,16 @@ class DFT_Methods():
         #__|
 
     def init_atoms(self, path_i):
-        """
+        """Attempts to read and return initial atoms object.
+
         Args:
             path_i:
         """
         #| - init_atoms
-        atoms_file_names = ["init.traj", "init.POSCAR"]
+        # print("Attempting to read init atoms")
+
+        traj = None
+        atoms_file_names = ["init.traj", "init.POSCAR", "out_opt.traj"]
         for file_name in atoms_file_names:
             try:
                 traj = io.read(path_i + "/" + file_name)
@@ -146,8 +175,7 @@ class DFT_Methods():
         """
         #| - parse_error_file
         tmp = 42
-
-
+        print(tmp)
         #__|
 
     def atom_type_num_dict(self, path_i):

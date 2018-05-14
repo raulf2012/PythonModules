@@ -12,10 +12,49 @@ import plotly
 
 
 #| - Plotly
+def reapply_colors(data):
+    """Redefines the line colors of a plotly data series.
 
+    Groups by legend grouping, fix this it's not general enough
+
+    Args:
+        plotly data series (list of graph objects to be plotted)
+    """
+    #| - reapply_colors
+    from colors.colors import generate_color_palette
+
+    dat_lst_master = data
+
+    groups_list = []
+    for series_i in dat_lst_master:
+        groups_list.append(series_i.legendgroup)
+
+    groups_list = list(set(groups_list))
+    # print(groups_list)
+
+    num_series = len(groups_list)
+    colors = generate_color_palette(bins=num_series)
+
+    new_list = []
+    for color in colors:
+        color_new = tuple([int(255 * x) for x in color])
+        color_new = "rgb" + str(color_new)
+        new_list.append(color_new.replace(" ", ""))
+    colors = new_list
+
+    colors_dict = dict(zip(groups_list, colors))
+
+    for series_i in dat_lst_master:
+        tmp = colors_dict[series_i.legendgroup]
+
+        series_i.marker["color"] = tmp
+        series_i.line["color"] = tmp
+
+    return(dat_lst_master)
+    #__|
 
 def plot_layout(
-    xax_labels =
+    # xax_labels =
     ):
     """
     """

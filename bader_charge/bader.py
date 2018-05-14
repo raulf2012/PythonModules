@@ -1,12 +1,15 @@
+#!/usr/bin/env python
+
 """Bader charge analysis methods.
 
 Author(s): Colin Dickins wrote most of this; Raul A. Flores
 """
 
 #| - IMPORT MODULES
-import numpy as np
 import sys
 import os
+
+import numpy as np
 from ase.io import write
 #__|
 
@@ -62,7 +65,7 @@ def cd2cube(atoms, spin=""):
     f.close()
     #__|
 
-def cleanup(suffix="", save_cube=False):
+def cleanup(suffix="", save_cube=True):
     """
     """
     #| - cleanup
@@ -71,11 +74,16 @@ def cleanup(suffix="", save_cube=False):
 
     if not save_cube:
         os.system("rm density" + suffix + ".cube")
+    else:
+        os.system("mv density" + suffix + ".cube dir_bader")
 
-    os.system("mv ACF.dat dir_bader/.ACF%s.dat" % suffix)
-    os.system("rm AVF.dat")
-    os.system("rm BCF.dat")
-    os.system("mv bader.out dir_bader/.bader%s.out" % suffix)
+    os.system("mv ACF.dat dir_bader/ACF%s.dat" % suffix)
+    # os.system("rm AVF.dat")
+    # os.system("rm BCF.dat")
+    os.system("mv bader.out dir_bader/bader%s.out" % suffix)
+
+    os.system("mv AVF.dat dir_bader/AVF.dat")
+    os.system("mv BCF.dat dir_bader/BCF.dat")
     #__|
 
 def bader_exec(atoms, spin=""):
@@ -151,8 +159,18 @@ def bader(atoms, spinpol=False, outdir=None, run_exec=True):
     """
     #| - bader
     mess = "Executing Bader Analysis "
-    mess += "****************************************************"
+    mess += "*****************************************************"
     print(mess); sys.stdout.flush()
+
+    #| - Don't Run Bader Executable on AWS
+    if "COMPENV" not in os.environ:
+        print("COMPENV env. var. doesn't exits, probably in AWS?")
+        print("Bader executable turned off")
+
+        run_exec = False
+    else:
+        pass
+    #__|
 
     calc = atoms.calc
 

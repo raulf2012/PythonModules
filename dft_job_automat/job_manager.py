@@ -1,4 +1,10 @@
-"""Module to carry out common file operations in jobs directory."""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""Module to carry out common file operations in jobs directory.
+
+Author: Raul A. Flores
+"""
 
 #| - Import Modules
 import os

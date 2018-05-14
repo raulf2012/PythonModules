@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """Class to analyse data using the DFT_Jobs_Setup class.
 
@@ -41,14 +42,16 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
     #__|
 
     def __init__(self,
-        system="sherlock",
         tree_level=None,
         level_entries=None,
         skip_dirs_lst=None,
+        indiv_dir_lst=None,  # <-----------------------------------------------
         working_dir=".",
         update_job_state=True,
         load_dataframe=True,
+        dataframe_dir=None,
         job_type_class=None,
+        folders_exist=None,
         ):
         """Initialize DFT_Jobs_Analysis Instance.
 
@@ -61,16 +64,21 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             update_job_state:
                 Updates job status for all jobs in ensemble
             load_dataframe:
+            dataframe_dir:
+                Specify location of dataframe if not in working_dir
             job_type_class:
         """
         #| - __init__
         DFT_Jobs_Setup.__init__(self,
-            system=system,
             tree_level=tree_level,
             level_entries=level_entries,
             skip_dirs_lst=None,
+            indiv_dir_lst=indiv_dir_lst,  # <----------------------------------
             working_dir=working_dir,
+            folders_exist=folders_exist,
             )
+
+        self.dataframe_dir = dataframe_dir
 
         #| - General Methods
         if update_job_state is True:
@@ -100,17 +108,13 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 for method in job_type_inst.methods_to_run:
                     method_ref = getattr(job_type_inst, method)
                     self.method = method_ref
+
                     self.add_data_column(
                         method_ref,
                         column_name=method,
                         allow_failure=True,
+                        # allow_failure=False,
                         )
-
-                    # self.add_data_column(
-                    #     method_ref,
-                    #     column_name=method,
-                    #     allow_failure=False,
-                    #     )
 
                 # TEMP
                 self.__write_dataframe__()
@@ -153,9 +157,12 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
     def __load_dataframe__(self):
         """Attempt to load dataframe."""
         #| - __load_dataframe__
-        fle_name = self.root_dir + "/jobs_bin/job_dataframe.pickle"
-        with open(fle_name, "rb") as fle:
+        if self.dataframe_dir is not None:
+            fle_name = self.dataframe_dir + "/job_dataframe.pickle"
+        else:
+            fle_name = self.root_dir + "/jobs_bin/job_dataframe.pickle"
 
+        with open(fle_name, "rb") as fle:
             if sys.version_info.major > 2:
                 df = pickle.load(fle, encoding="latin1")
                 # NOTE Added encoding="latin1" for p36 support (180415 - RF)
@@ -257,11 +264,26 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
         #__|
 
+
+
+
+
+
+
+
+        # ███    ██ ███████ ██     ██
+        # ████   ██ ██      ██     ██
+        # ██ ██  ██ █████   ██  █  ██
+        # ██  ██ ██ ██      ██ ███ ██
+        # ██   ████ ███████  ███ ███
+
     def add_data_column(self,
         function,
         column_name="new_column",
         revision="auto",
-        allow_failure=True):
+        allow_failure=True,
+        # allow_failure=False,
+        ):
         """
         Add data column to data frame by iterating thourgh job folders.
 
@@ -289,55 +311,55 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         #| - __add_data_coumn__
         new_data_col = []
         job_rev_lst = []
-
         print("Adding " + str(column_name))
+        # for entry in self.data:
+        for entry in self.data_frame["Job"]:
 
-        for entry in self.data_frame["variable_list"]:
+            # path = self.var_lst_to_path(
+            #     entry,
+            #     relative_path=False,
+            #     job_rev="False",
+            #     )
 
-            path = self.var_lst_to_path(
-                entry,
-                relative_path=False,
-                job_rev="False",
-                )
+            path = entry.full_path
 
             #| - Picking Revision Number(s) To Query
-            largest_rev = self.job_revision_number(entry)
-
-            if revision == "auto":
-                rev = [largest_rev]
-            elif revision == "previous":
-                if largest_rev == 1:
-                    rev = [1]
-                else:
-                    rev = [largest_rev - 1]
-            elif revision == "all":
-                rev = range(self.job_revision_number(entry) + 1)
-            else:
-                rev = [revision]
+            # largest_rev = self.job_revision_number(entry)
+            #
+            # if revision == "auto":
+            #     rev = [largest_rev]
+            # elif revision == "previous":
+            #     if largest_rev == 1:
+            #         rev = [1]
+            #     else:
+            #         rev = [largest_rev - 1]
+            # elif revision == "all":
+            #     rev = range(self.job_revision_number(entry) + 1)
+            # else:
+            #     rev = [revision]
             #__|
 
-            for rev_num in rev:
+            # for rev_num in rev:
 
-                #| - Run Function
-                path += "_" + str(rev_num)
+            #| - Run Function
+            # path += "_" + str(rev_num)
 
-                path = path + self.cluster.cluster.job_data_dir
+            path = path + self.cluster.cluster.job_data_dir
 
-                if allow_failure is True:
-                    try:
-                        out = function(path)
-                    except:
-                        out = np.nan
-                else:
+            if allow_failure is True:
+                try:
                     out = function(path)
+                except:
+                    out = np.nan
+            else:
+                out = function(path)
 
-                new_data_col.append(out)
-                job_rev_lst.append(rev_num)
-                #__|
+            new_data_col.append(out)
+            # job_rev_lst.append(rev_num)
+            #__|
 
         data_type_list = [type(x) for x in new_data_col]
         dict_in_list = any(item == dict for item in data_type_list)
-
         if dict_in_list:
             new_col = []
             for x in new_data_col:
@@ -358,20 +380,136 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             self.data_frame[column_name] = new_data_col
         #__|
 
-    def job_revisions(self, path):
-        """Return number of revision folders for a given job.
 
-        Args:
-            path:
-        """
-        #| - job_revisions
-        path = "/".join(path.split("/")[0:-1]) + "/"
+    #| - __old__
+    # def add_data_column(self,
+    #     function,
+    #     column_name="new_column",
+    #     revision="auto",
+    #     allow_failure=True,
+    #     # allow_failure=False,
+    #     ):
+    #     """
+    #     Add data column to data frame by iterating thourgh job folders.
+    #
+    #     Args:
+    #         function: <type 'function'>
+    #             Set of operations that will be applied to indiviudal job
+    #           folders. Must return a scalar quantity that will be added to
+    #           data frame. The function should know "what to do" given only a
+    #           path that correpsonds to a unique job folder (including revision).
+    #
+    #             If the function returns a dict, then various columns will be
+    #           added with the column names corresponding to the key name.
+    #
+    #         column_name: <type 'str'>
+    #             Name of new data column
+    #
+    #         revision: <type 'str' or 'int'>
+    #             The job revision from which data is scraped
+    #             "auto" | Selects most recent revision folder
+    #             "all"  | Adds all revisions to data frame (NOT WORKING)
+    #             "previous | Second to last revision"
+    #         allow_failure: <True or False>
+    #             If True, a failed method call will result in NaN
+    #     """
+    #     #| - __add_data_coumn__
+    #     new_data_col = []
+    #     job_rev_lst = []
+    #
+    #     print("Adding " + str(column_name))
+    #
+    #     for entry in self.data_frame["variable_list"]:
+    #
+    #         path = self.var_lst_to_path(
+    #             entry,
+    #             relative_path=False,
+    #             job_rev="False",
+    #             )
+    #
+    #         #| - Picking Revision Number(s) To Query
+    #         largest_rev = self.job_revision_number(entry)
+    #
+    #         if revision == "auto":
+    #             rev = [largest_rev]
+    #         elif revision == "previous":
+    #             if largest_rev == 1:
+    #                 rev = [1]
+    #             else:
+    #                 rev = [largest_rev - 1]
+    #         elif revision == "all":
+    #             rev = range(self.job_revision_number(entry) + 1)
+    #         else:
+    #             rev = [revision]
+    #         #__|
+    #
+    #         for rev_num in rev:
+    #
+    #             #| - Run Function
+    #             path += "_" + str(rev_num)
+    #
+    #             path = path + self.cluster.cluster.job_data_dir
+    #
+    #             if allow_failure is True:
+    #                 try:
+    #                     out = function(path)
+    #                 except:
+    #                     out = np.nan
+    #             else:
+    #                 out = function(path)
+    #
+    #             new_data_col.append(out)
+    #             job_rev_lst.append(rev_num)
+    #             #__|
+    #
+    #     data_type_list = [type(x) for x in new_data_col]
+    #     dict_in_list = any(item == dict for item in data_type_list)
+    #
+    #     if dict_in_list:
+    #         new_col = []
+    #         for x in new_data_col:
+    #             if pd.isnull(x) is True:
+    #                 new_col.append({"NA": np.nan})
+    #             else:
+    #                 new_col.append(x)
+    #
+    #         new_columns_df = pd.DataFrame(new_col)
+    #
+    #         df1 = self.data_frame
+    #         df2 = new_columns_df
+    #
+    #         out_df = pd.concat([df1, df2], axis=1)
+    #         self.data_frame = out_df
+    #
+    #     else:
+    #         self.data_frame[column_name] = new_data_col
+    #     #__|
+    #
 
-        # Attempting to remove duplicate job folders (usually have spaces)
-        dir_list = [x for x in os.walk(path).next()[1] if " " not in x]
+    #__|
 
-        return(len(dir_list))
-        #__|
+
+
+
+
+
+        # ███    ██ ███████ ██     ██
+        # ████   ██ ██      ██     ██
+        # ██ ██  ██ █████   ██  █  ██
+        # ██  ██ ██ ██      ██ ███ ██
+        # ██   ████ ███████  ███ ███
+
+
+
+
+
+
+
+
+
+
+
+
 
     def job_state_file(self, path_i="."):
         """
@@ -394,6 +532,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
     #| - Data Frame Methods
 
+    # COMBAK Move this to dataframe methods
     def create_data_sets(self, data_frame, free_variable):
         """
         Splinter data_frame into distinct data sets based on columns.
@@ -1111,3 +1250,25 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
     #__| **********************************************************************
 
 #__| **************************************************************************
+
+
+#| - __old__
+
+    # DEPR
+    # Already implemented in job_setup
+    def job_revisions(self, path):
+        """Return number of revision folders for a given job.
+
+        Args:
+            path:
+        """
+        #| - job_revisions
+        path = "/".join(path.split("/")[0:-1]) + "/"
+
+        # Attempting to remove duplicate job folders (usually have spaces)
+        dir_list = [x for x in os.walk(path).next()[1] if " " not in x]
+
+        return(len(dir_list))
+        #__|
+
+#__|

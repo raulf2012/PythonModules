@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Methods and code to handle jobs that depend on one another."""
 
 #| - Import Modules
@@ -447,7 +450,10 @@ class DFT_Jobs_Workflow:
         #__|
 
     def __job_maint__(self):
-        """
+        """Manage jobs after being submitted.
+
+        Tries to figure out what state the job is in and acts according to
+        user defined methods
         """
         #| - __job_maint__
         step_dir_names = self.step_dir_names
@@ -491,7 +497,6 @@ class DFT_Jobs_Workflow:
                         relative_path=False,
                         )
 
-
                     #| - Job_i Parameters
                     job_i_params = {}
                     for variable in Jobs.tree_level_labels:
@@ -514,7 +519,6 @@ class DFT_Jobs_Workflow:
                     # TODO Check that tally is being incremented by 1 only
 
                 print(tally)
-
 
             print("")
             #__|

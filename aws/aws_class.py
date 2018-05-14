@@ -1,4 +1,9 @@
-"""Class for performing AWS operations."""
+#!/usr/bin/env python
+
+"""Class for performing AWS operations.
+
+Author: Raul A. Flores
+"""
 
 #| - Import Modules
 from dft_job_automat.job_setup import DFT_Jobs_Setup

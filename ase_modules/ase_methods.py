@@ -27,8 +27,8 @@ from scipy.stats import norm
 # import matplotlib.pyplot as plt
 import matplotlib as plt
 
-
 from ase.io import read, write, Trajectory
+from ase import io
 from ase.dft.kpoints import ibz_points, get_bandpath
 
 from ase.vibrations import Vibrations
@@ -37,37 +37,8 @@ from ase.thermochemistry import HarmonicThermo
 # My Modules
 from misc_modules.numpy_methods import angle_between
 from ase_modules.dft_params import Espresso_Params
-#__|
 
-#| - Table of Contents
-"""
-set_QE_calc_params:
-ionic_opt:
-set_mag_mom_to_0:
-increase_abs_val_magmoms:
-calc_spinpol:
-simple_mag_moms:
-set_init_mag_moms:
-reduce_magmoms:
-an_pdos:
-spin_pdos:
-an_bands:
-an_beef_ensemble:
-plot_beef_ensemble:
-an_ads_vib:
-thermochem_harm_corr:
-read_atoms_from_file:
-convert_atoms_object:
-angle_between_lattice_vectors:
-magnitude_of_lattice_vectors:
-move_atoms_of_element_i:
-displace_overlayer:
-change_vacuum:
-number_of_atoms:
-number_of_constrained_atoms:
-highest_position_of_element:
-create_gif_from_atoms_movies:
-"""
+from quantum_espresso.qe_methods import estimate_magmom\
 #__|
 
 #| - METHODS
@@ -220,8 +191,6 @@ def ionic_opt(
             fmax=fmax,
             steps=maxsteps,
             )
-
-        # qn.run(fmax=fmax)
         #__|
 
     elif mode == "easy_opt":
@@ -307,6 +276,13 @@ def ionic_opt(
         write("out.traj", atoms)
         #__|
 
+
+    estimate_magmom(
+        path_i=".",
+        atoms=atoms,
+        log="calcdir/log",
+        )
+
     update_FINISHED("ionic_opt")
 
 #__| **************************************************************************
@@ -373,7 +349,7 @@ def set_init_mag_moms(
         elif type(magmoms) == dict:
             text = ("set_init_mag_moms | "
                     "Using simple method for initial magnetic moments "
-                    "with updated values for dict"
+                    "with updated values for dict - NOT IMPLEMENTED - 180425"
                     )
             print(text); sys.stdout.flush()
             magmoms_i = simple_mag_moms(atoms)
@@ -403,7 +379,7 @@ def set_init_mag_moms(
             an_method = magmoms_master_dict.keys()[0]
             text = ("set_init_mag_moms | "
                     "Using " + an_method + " for initial magnetic moments")
-            print(text)
+            print(text); sys.stdout.flush()
 
             magmoms_i = magmoms_master_dict[an_method]
 
@@ -423,6 +399,17 @@ def set_init_mag_moms(
             magmoms_tmp = read_magmoms_from_file()
             if magmoms_tmp is not None:
                 magmoms_i = magmoms_tmp
+
+
+    #| - Check That Length of Magmoms_list == len(atoms)
+    if not len(magmoms_i) == len(atoms):
+        text = ("Length of magmoms doesn't match the number of atoms!!!!!!!!!!!"
+                "\n Will use simple method to assign initial magmoms")
+
+        print(text); sys.stdout.flush()
+        magmoms_i = simple_mag_moms(atoms)
+    #__|
+
 
     magmoms_i_new = increase_abs_val_magmoms(atoms, magmoms_i)
 
@@ -459,7 +446,7 @@ def increase_abs_val_magmoms(atoms, magmoms_list, increase_amount=0.8):
     inc = increase_amount
 
     light_atoms_list = {
-        "H": 0.2,
+        "H": 0.1,
         "He": 0.3,
         "Li": 0.4,
         "Be": 0.5,
@@ -473,19 +460,30 @@ def increase_abs_val_magmoms(atoms, magmoms_list, increase_amount=0.8):
     new_magmom_list = []
     # for magmom in magmoms_list:
     for atom, magmom in zip(atoms, magmoms_list):
-        if atom.symbol in light_atoms_list.keys():
+
+        elem_i = atom.symbol
+
+        if elem_i in light_atoms_list.keys():
             inc = light_atoms_list[atom.symbol]
 
         if magmom < 0.:
             new_magmom = abs(magmom) + inc
-            new_magmom_list.append(-new_magmom)
+            new_magmom = -new_magmom
 
         elif magmom > 0.:
             new_magmom = abs(magmom) + inc
-            new_magmom_list.append(new_magmom)
 
         else:
-            new_magmom_list.append(0.)
+            new_magmom = 0.
+
+        # Making sure H initial magmom isn't > 1
+        if elem_i == "H":
+            if new_magmom > 0.99:
+                print("Setting H magmom to 1 - RF - 180423 - TEMP")
+                new_magmom = 1.
+
+        new_magmom_list.append(new_magmom)
+
 
     return(new_magmom_list)
     #__|
@@ -664,18 +662,13 @@ def read_magmoms_from_file(file_name="magmom_init.in"):
         file_name:
     """
     #| - read_magmoms_from_file
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    # file_name = "magmom_init.in"
     print(os.path.isfile(file_name))
     magmoms = None
     if os.path.isfile(file_name):
-        print("11")
         try:
             with open(file_name, "r") as fle:
-                print("22")
                 magmoms = [float(i.strip()) for i in fle.readlines()]
         except:
-            print("33")
             print("Couldn't read init magmom file")
 
     return(magmoms)
@@ -696,8 +689,7 @@ def compare_magmoms():
     Author: Colin Dickens
     """
     #| - compare_magmoms
-
-    def nearest_atom(atoms,position):
+    def nearest_atom(atoms, position):
         """Returns atom nearest to position."""
         #| - nearest_atom
         position = np.array(position)
@@ -723,10 +715,10 @@ def compare_magmoms():
     delta_magmoms = []
     ads_indices_used = []
     for atom in slab:
-        ads_atom = nearest_atom(ads,atom.position)
+        ads_atom = nearest_atom(ads, atom.position)
         if not self.quiet:
-           if ads_atom.symbol != atom.symbol:
-               print("WARNING! MAGMOM COMPARISON FAILURE")
+            if ads_atom.symbol != atom.symbol:
+                print("WARNING! MAGMOM COMPARISON FAILURE")
         ads_indices_used.append(ads_atom.index)
         delta_magmoms.append(atom.magmom - ads_atom.magmom)
 
@@ -735,14 +727,18 @@ def compare_magmoms():
         if i not in ads_indices_used:
             ads_indices_not_used.append(i)
 
-    self.delta_magmoms = zip(range(len(slab)),delta_magmoms)
-    self.delta_magmoms.sort(key=lambda x: abs(x[1]),reverse=True)
+    self.delta_magmoms = zip(range(len(slab)), delta_magmoms)
+    self.delta_magmoms.sort(key=lambda x: abs(x[1]), reverse=True)
 
     common = ""
     uncommon = ""
     for i in range(8):
         atom = slab[self.delta_magmoms[i][0]]
-        common += "%s%d: %.2f\t"%(atom.symbol,atom.index,self.delta_magmoms[i][1])
+        common += "%s%d: %.2f\t" % (atom.symbol,
+            atom.index,
+            self.delta_magmoms[i][1],
+            )
+
     for i in ads_indices_not_used:
         uncommon += "%s%d: %.2f\t"%(ads[i].symbol,ads[i].index,ads[i].magmom)
 
@@ -755,56 +751,6 @@ def compare_magmoms():
     print(uncommon + "\n")
     #__|
 
-def estimate_magmom(
-    atoms,
-    ):
-    """
-    Author: Colin Dickens
-
-    Estimate magmom from log file (based on charge spheres centered on atoms) and assign to
-    atoms object to assist with calculation restart upon unexpected interruption
-    """
-    #| - estimate_magmom
-    f = open("outdir/log")
-    lines = f.readlines()
-    f.close()
-
-    i = len(lines) - 1
-    while True:
-        if i == 0: raise IOError("Could not identify espresso magmoms")
-        line = lines[i].split()
-        if len(line) > 3:
-            if line[0] == "absolute":
-                abs_magmom = float(line[3])
-        if len(line) > 6:
-            if line[4] == "magn:":
-                i -= len(atoms) - 1
-                break
-        i -= 1
-
-    print("i index:")
-    print(i)
-    print(abs_magmom)
-
-    if abs_magmom < 1e-3:
-        print("estimate_magmom | Absolute magnetism is near 0, setting "
-            "initial atomic magmoms to 0"
-            )
-        for atom in atoms:
-            atom.magmom = 0
-    else:
-        total_esp_magmom = 0
-        for j in range(len(atoms)):
-
-            print(float(lines[i+j].split()[5]))
-            total_esp_magmom += np.abs(float(lines[i+j].split()[5]))
-
-        for j in range(len(atoms)):
-            atoms[j].magmom = float(lines[i+j].split()[5])*abs_magmom/total_esp_magmom
-
-
-    return(lines, i)
-    #__|
 
 #__| **************************************************************************
 
@@ -829,10 +775,9 @@ def an_pdos(
     mess += "********************************************************"
     print(mess); sys.stdout.flush()
 
-
     outdir = "dir_pdos"
-    # atoms.set_calculator(calc=calc)
 
+    cwd = os.getcwd()
     dos = atoms.calc.calc_pdos(
         nscf=True,
         kpts=dos_kpts,
@@ -844,6 +789,7 @@ def an_pdos(
         tetrahedra=False,
         slab=True,
         )
+    os.chdir(cwd)
 
     if not os.path.exists(outdir):
         os.makedirs(outdir)
@@ -861,7 +807,6 @@ def an_pdos(
         )
 
     atoms.write(outdir + "/out_pdos.traj")
-
     update_FINISHED("an_pdos")
     #__|
 
@@ -1050,6 +995,7 @@ def spin_pdos(
 #__| **************************************************************************
 
 #| - Band Structure ***********************************************************
+
 def an_bands(atoms, bands_kpts, espresso_params):
     """Perform band analysis on atoms object.
 
@@ -1064,6 +1010,7 @@ def an_bands(atoms, bands_kpts, espresso_params):
     """
     #| - an_bands
     from espresso import espresso
+
     mess = "Executing Band Structure Analysis "
     mess += "********************************************"
     print(mess); sys.stdout.flush()
@@ -1082,7 +1029,7 @@ def an_bands(atoms, bands_kpts, espresso_params):
         {
             "kpts": bands_kpts,
             "outdir": "dir_bands"
-            }
+            },
         )
 
     atoms.calc = espresso(**espresso_params)
@@ -1091,22 +1038,22 @@ def an_bands(atoms, bands_kpts, espresso_params):
     print(mess); sys.stdout.flush()
 
     atoms.get_potential_energy()
-
     atoms.calc.save_flev_chg("charge_den.tgz")
     atoms.calc.load_flev_chg("charge_den.tgz")
 
     # COMBAK How to handle this more generally?
     ip = ibz_points["fcc"]
     points = ["Gamma", "X", "W", "K", "L", "Gamma"]
-
     bzpath = [ip[p] for p in points]
-
     kpts, x, X = get_bandpath(bzpath, atoms.cell, npoints=300)
 
     mess = "Calculating band structure"
     print(mess); sys.stdout.flush()
 
+    # Note Need current dir because calc_bandstructure moves to calc_dir
+    cwd = os.getcwd()
     energies = atoms.calc.calc_bandstructure(kpts)
+    os.chdir(cwd)
 
     if not os.path.exists("dir_bands"):
         os.makedirs("dir_bands")
@@ -1116,7 +1063,6 @@ def an_bands(atoms, bands_kpts, espresso_params):
 
     # COMBAK This broke when file already existed, tried a fix - 180405 - RF
     shutil.move("charge_den.tgz", "dir_bands/charge_den.tgz")
-
     atoms.write("dir_bands/out_bands.traj")
 
     update_FINISHED("an_bands")
@@ -1140,7 +1086,7 @@ def an_beef_ensemble(atoms):
     """
     #| - an_beef_ensemble
     mess = "Executing BEEF Ensemble Analysis "
-    mess += "************************************************"
+    mess += "*********************************************"
     print(mess); sys.stdout.flush()
 
     beefensemble_on = atoms.calc.beefensemble
@@ -1159,7 +1105,6 @@ def an_beef_ensemble(atoms):
         return(None)
 
     # if xc == "BEEF" or xc == "BEEF-vdW":
-
 
     # calc = atoms.calc
     from ase.dft.bee import BEEFEnsemble
@@ -1474,6 +1419,8 @@ def clean_up_dft():
         if not os.path.exists("dir_dft_params"):
             os.makedirs("dir_dft_params")
 
+        # os.system("ls")
+        # os.system("pwd")
         os.system("mv *dft-params* dir_dft_params")
 
     except:
@@ -1627,6 +1574,80 @@ def magnitude_of_lattice_vectors(atoms):
     out_tup = (mag1, mag2, mag3)
 
     return(out_tup)
+    #__|
+
+def find_diff_between_atoms_objects(atoms_A, atoms_B):
+    """Find indices of atoms that are unique to atoms_A and atoms_B.
+
+    Given two atoms objects (atoms_A and atoms_B), finds the atoms that are in
+    atoms_B but not in atoms_A and conversly the atoms that are in atoms_A but
+    not in atoms_B
+
+    The criteria for equivalence between atoms is that their positions and
+    element type are the same
+
+    This method should only be used for cases where atoms are added or removed,
+    if a relaxation is performed then the methods will fail to find the union
+    of atoms between both atoms objects since there positions will no longer be
+    exact
+
+    Args:
+        atoms_A:
+        atoms_B:
+    """
+    #| - find_diff_between_atoms_objects
+
+    #| - __old__
+
+    # #| - Import Modules
+    # from ase import io
+    # #__|
+    #
+    # #| - Script Inputs
+    # atoms_A_filename = "A.traj"
+    # atoms_B_filename = "B.traj"
+    # #__|
+    #
+    # #| - Reading Atoms Objects
+    # atoms_A = io.read(atoms_A_filename)
+    # atoms_B = io.read(atoms_B_filename)
+    # #__|
+
+    #__|
+
+    #| - Building the Identical Atom Index List for Both Atoms Objects
+    atoms_A_ind_list = []
+    atoms_B_ind_list = []
+    for atom_A in atoms_A:
+        for atom_B in atoms_B:
+
+            # Comparing Positions
+            pos_A = atom_A.position
+            pos_B = atom_B.position
+            pos_AB_comp = pos_A == pos_B
+
+            # Comparing Element Type
+            elem_A = atom_A.symbol
+            elem_B = atom_B.symbol
+            elem_AB_comp = elem_A == elem_B
+
+            if all(pos_AB_comp) is True and elem_AB_comp is True:
+                atoms_A_ind_list.append(atom_A.index)
+                atoms_B_ind_list.append(atom_B.index)
+    #__|
+
+    atoms_A_unique_ind_list = []
+    for atom_A in atoms_A:
+        if atom_A.index not in atoms_A_ind_list:
+            atoms_A_unique_ind_list.append(atom_A.index)
+
+    atoms_B_unique_ind_list = []
+    for atom_B in atoms_B:
+        if atom_B.index not in atoms_B_ind_list:
+            atoms_B_unique_ind_list.append(atom_B.index)
+
+    return(atoms_A_unique_ind_list, atoms_B_unique_ind_list)
+
     #__|
 
 #__| **************************************************************************
@@ -1815,12 +1836,89 @@ def highest_position_of_element(atoms, element_symbol):
 #__| **************************************************************************
 
 #| - Visualization ************************************************************
+def create_gif_from_traj(
+    traj_name="qn.traj",
+    path_i=".",
+    image_range="0:5",  # "all"
+    delay=10,
+    rotation="0x, 0y, 0z",
+    ):
+    """
+
+    Args:
+        traj_name:
+        path_i:
+        image_range:
+        delay:
+
+    """
+    #| - create_gif_from_traj
+
+    #| - Method  Parameters
+    atoms_file_name = "out_movie"
+    fold_name = "images"
+    #__|
+
+    #| - Creating png *********************************************************
+    if image_range == "all":
+        ind_range = ":"
+    else:
+        ind_range = image_range
+
+    atoms_traj = io.read(path_i + "/" + traj_name, index=ind_range)
+
+    folder_i = fold_name
+    if not os.path.isdir(path_i + folder_i):
+        os.makedirs(path_i + "/" + folder_i)
+
+    for index, atoms_i in enumerate(atoms_traj):
+        textures = ["simple" for i in range(len(atoms_i))]
+
+        name = "TMP"
+        name_i = fold_name + "/" + str(index).zfill(3) + "_" + name + "_top"
+        io.write(
+            path_i + "/" + name_i + ".pov",
+            atoms_i,
+            rotation=rotation,
+            run_povray=True,
+            textures=textures,
+            canvas_height=1000,
+            display=False
+            )
+
+        print("Creating IMAGE: " + path_i + "/" + name_i + ".png")
+
+        os.remove(path_i + "/" + name_i + ".pov")
+        os.remove(path_i + "/" + name_i + ".ini")
+    #__| **********************************************************************
+
+    #| - Converting Images to GIF *********************************************
+    root_dir = os.getcwd()
+    os.chdir(path_i + "/" + fold_name)
+
+    bash_command = "/usr/bin/convert "
+    bash_command += "-delay " + str(delay) + " "
+    bash_command += "-loop 0 "
+    # bash_command += "*png animation.gif"
+    bash_command += "*png " + atoms_file_name + ".gif"
+
+    print("###### CREATING GIF ####### | " + atoms_file_name)
+    os.system(bash_command)
+    os.system("mv *.gif ..")
+    os.chdir(root_dir)
+    #__| **********************************************************************
+
+    #__|
+
 def create_gif_from_atoms_movies(
     atoms_file="Default",
     path_i=".",
     delay=10,
     ):
     """Create png images from an multi-atoms atoms object.
+
+    TODO This method is way to specific, should be chopped up
+    TODO Use create_gif_from_traj method
 
     Args:
         atoms_file:
@@ -1864,13 +1962,13 @@ def create_gif_from_atoms_movies(
 
     for i, file in enumerate(alist):
         for index, atoms_i in enumerate(alist[file]):
-            textures = ['simple' for i in range(len(atoms_i))]
+            textures = ["simple" for i in range(len(atoms_i))]
 
-            if 'traj' in file:
+            if "traj" in file:
                 name = file[0:-5]
-            elif 'xyz' in file:
+            elif "xyz" in file:
                 name = file[0:-4]
-            elif 'POSCAR' in file:
+            elif "POSCAR" in file:
                 name = file[0:-7]
 
             name_i = fold_name + "/" + str(index).zfill(2) + "_" + name + "_top"
@@ -1911,7 +2009,6 @@ def create_gif_from_atoms_movies(
     #__|
 
     # TODO - Remove png files after creating gif !!!!!
-
     #__|
 
 #__| **************************************************************************
