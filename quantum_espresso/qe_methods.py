@@ -15,7 +15,7 @@ import numpy as np
 #| - Log File Methods
 
 def number_of_atoms(path_i=".", log="log"):
-    """
+    """Return number of atoms from QE log file.
 
     Args:
         path_i:
@@ -231,7 +231,7 @@ def estimate_magmom(
     atoms=None,
     log="log",
     ):
-    """
+    """Estimage magnetic moments from QE log file.
 
     TODO Also read charges data for last iteration
     TODO Modify to not need atoms object to function
@@ -253,7 +253,19 @@ def estimate_magmom(
 
     i = len(lines) - 1
     while True:
-        if i == 0: raise IOError("Could not identify espresso magmoms")
+
+        #| - If magmom/charge data is not found in log file
+        # The calculation is probably not spin-polarized
+        if i == 0:
+            print("estimate_magmom - Could not find magmom/charge data \n",
+                "Calculation is probably not spin polarized"
+                )
+            return(None)
+            break
+            # raise IOError("Could not identify espresso magmoms")
+
+        #__|
+
         line = lines[i].split()
         if len(line) > 3:
             if line[0] == "absolute":
@@ -282,7 +294,7 @@ def estimate_magmom(
         total_esp_magmom = 0
         # for j in range(len(atoms)):
         for j in range(num_atoms):
-            total_esp_magmom += np.abs(float(lines[i+j].split()[5]))
+            total_esp_magmom += np.abs(float(lines[i + j].split()[5]))
 
         magmom_list = []
         charge_list = []

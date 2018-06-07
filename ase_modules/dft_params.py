@@ -318,12 +318,19 @@ class Espresso_Params(DFT_Params):
         #__|
 
         #| - File Output <-----------------------------------------------------
-        params["output"] = {"removesave": True}  # Aayush, saves almost nothing
-        # params["output"] = {
-        #     "avoidio": False,
-        #     "removewf": True,
-        #     "wf_collect": False
-        #     }
+        # params["output"] = {"removesave": True}  # Aayush, saves ~nothing
+        params["output"] = {
+
+            # "avoidio": False,
+            # "removesave": False,
+            # "removewf": False,
+            # "wf_collect": False,
+
+            "avoidio": True,
+            "removesave": True,
+            "removewf": True,
+            "wf_collect": False,
+            }
 
         params["outdir"] = "calcdir"
         #__|

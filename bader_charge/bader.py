@@ -14,9 +14,14 @@ from ase.io import write
 #__|
 
 def cd2cube(atoms, spin=""):
-    """
+    """Convert ASE charge density file to cube format.
+
     Takes charge density pickle file from ase-qe and writes a cube file ready
     for bader analysis to the current directory
+
+    Args:
+        atoms:
+        spin:
     """
     #| - cd2cube
     # cd2cube(atoms.calc.extract_charge_density(spin="up")[2], atoms)
@@ -66,7 +71,11 @@ def cd2cube(atoms, spin=""):
     #__|
 
 def cleanup(suffix="", save_cube=True):
-    """
+    """Cleanup unnecessary and/or large file after routine completes.
+
+    Args:
+        suffix:
+        save_cube:
     """
     #| - cleanup
     if not os.path.exists("dir_bader"):
@@ -87,8 +96,10 @@ def cleanup(suffix="", save_cube=True):
     #__|
 
 def bader_exec(atoms, spin=""):
-    """
-    Run bader executable on cube density file
+    """Run bader executable on cube density file.
+
+    Args:
+        spin:
     """
     #| - bader_exec
     bash_comm = "bader density" + spin + ".cube >> bader.out"
@@ -209,6 +220,6 @@ def bader(atoms, spinpol=False, outdir=None, run_exec=True):
     if outdir:
         os.system("rm %s/charge.log" % outdir)
 
-    atoms.set_calculator(calc=calc)
+    # atoms.set_calculator(calc=calc)
     atoms.write("out.traj")
     #__|

@@ -37,11 +37,25 @@ class DFT_Methods():
         """
         #| - pdos_data
         fle_name = "dir_pdos/dos.pickle"
-        print(20 * "!#$*")
-        print(path_i + "/" + fle_name)
         if os.path.exists(path_i + "/" + fle_name):
             # with open(path_i + "/" + fle_name, "r") as fle:
             # NOTE Added "rb" & encoding="latin1" for python3 support
+            with open(path_i + "/" + fle_name, "rb") as fle:
+                data = pickle.load(fle, encoding="latin1")
+
+        return(data)
+        #__|
+
+    def bands_data(self, path_i):
+        """Read band_disp.pickle file and return data.
+
+        Args:
+            path_i:
+        """
+        #| - bands_data
+        fle_name = "dir_bands/band_disp.pickle"
+        # print(path_i + "/" + fle_name)
+        if os.path.exists(path_i + "/" + fle_name):
             with open(path_i + "/" + fle_name, "rb") as fle:
                 data = pickle.load(fle, encoding="latin1")
 
@@ -88,7 +102,10 @@ class DFT_Methods():
         #__|
 
     def gibbs_correction(self, path_i):
-        """
+        """Return gibbs free energy correction.
+
+        Args:
+            path_i
         """
         #| - gibbs_correction
         gibbs_corr = 0.
@@ -109,14 +126,26 @@ class DFT_Methods():
             atoms_file:
         """
         #| - elec_energy
-        atoms = self.atoms_object(path_i)[-1]
-        energy = atoms.get_potential_energy()
+        try:
+            with open(path_i + "/dir_opt/elec_e.out", "r") as fle:
+                energy = float(fle.read().strip())
+        except:
+            pass
+
+        # with open(path_i + "/dir_opt/elec_e.out", "r") as fle:
+        #     energy = float(fle.read().strip())
+
+        try:
+            atoms = self.atoms_object(path_i)[-1]
+            energy = atoms.get_potential_energy()
+        except:
+            pass
 
         return(energy)
         #__|
 
     def atoms_object(self, path_i):
-        """Attempts to read and return atoms object.
+        """Attempt to read and return atoms object.
 
         Args:
             path_i:
@@ -143,14 +172,13 @@ class DFT_Methods():
         #__|
 
     def init_atoms(self, path_i):
-        """Attempts to read and return initial atoms object.
+        """Attempt to read and return initial atoms object.
 
         Args:
             path_i:
         """
         #| - init_atoms
         # print("Attempting to read init atoms")
-
         traj = None
         atoms_file_names = ["init.traj", "init.POSCAR", "out_opt.traj"]
         for file_name in atoms_file_names:
@@ -179,7 +207,7 @@ class DFT_Methods():
         #__|
 
     def atom_type_num_dict(self, path_i):
-        """
+        """Return dictionary containing atomic count for each element.
 
         Args:
             path_i:

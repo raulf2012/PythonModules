@@ -27,7 +27,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
     #| - DFT_Jobs_Manager *****************************************************
 
     def __init__(self,
-        system="sherlock",
+        # system="sherlock",
         tree_level=None,
         level_entries=None,
         skip_dirs_lst=None,
@@ -35,13 +35,21 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         update_job_state=False,
         load_dataframe=True,
         ):
-        """TMP_docstring.
+        """Initialize Jobs_Manager instance.
+
+        Args:
+            tree_level:
+            level_entries:
+            skip_dirs_lst:
+            working_dir:
+            update_job_state:
+            load_dataframe:
 
         TEMP TEMP
         """
         #| - __init__
         DFT_Jobs_Analysis.__init__(self,
-            system=system,
+            # system=system,
             tree_level=tree_level,
             level_entries=level_entries,
             working_dir=working_dir,

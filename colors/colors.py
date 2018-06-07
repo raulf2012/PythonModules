@@ -22,6 +22,26 @@ color_list = [
     "rgb(192,151,188)",
     ]
 
+
+#| - My Sets of Contrasting Color Schemes
+color_palette_1 = [
+    "rgb(198,158,61)",
+    "rgb(238,88,121)",
+    "rgb(236,186,51)",
+    "rgb(237,101,67)",
+    "rgb(222,134,54)",
+    ]
+
+color_palette_2 = [
+    "rgb(181,149,213)",
+    "rgb(103,76,204)",
+    "rgb(97,166,201)",
+    "rgb(185,76,198)",
+    "rgb(93,80,139)",
+    ]
+
+#__|
+
 # palette = sns.color_palette(None, 3)
 # palette
 #

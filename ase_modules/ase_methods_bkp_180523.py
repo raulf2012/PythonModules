@@ -39,8 +39,6 @@ from misc_modules.numpy_methods import angle_between
 from ase_modules.dft_params import Espresso_Params
 
 from quantum_espresso.qe_methods import estimate_magmom
-
-from bader_charge.bader import bader
 #__|
 
 #| - METHODS
@@ -71,10 +69,9 @@ def update_FINISHED(text, filename=".FINISHED.new"):
 #| - Parse DFT Job Parameters *************************************************
 
 def set_QE_calc_params(
-    atoms=None,
+    atoms,
     params={},
     load_defaults=True,
-    init_inst=True,
     ):
     """Set Quantum Espresso calculation parameters to atoms object.
 
@@ -83,9 +80,6 @@ def set_QE_calc_params(
     Args:
         atoms:
         params:
-        load_defaults:
-        init_inst:
-            Whether or not to institiate an espresso instance
     """
     #| - set_QE_calc_params
     from espresso import espresso
@@ -110,12 +104,9 @@ def set_QE_calc_params(
     espresso_params_inst.write_params()
     espresso_params = espresso_params_inst.params
 
-    calc = None
-    if init_inst:
-        calc = espresso(**espresso_params)
+    calc = espresso(**espresso_params)
 
-    # NOTE Calculator set for the 1st time here
-    # atoms.set_calculator(calc=calc)
+    atoms.set_calculator(calc=calc)  # NOTE Calculator set for the 1st time here
 
     return(calc, espresso_params)
     #__|
@@ -126,16 +117,16 @@ def set_QE_calc_params(
 
 def ionic_opt(
     atoms,
-    calc=None,
+    calc,
     traj=None,
     espresso_params=None,
     mode="opt",
     fmax=0.05,
     maxsteps=100000000,
-    run_beef_an=True,
-    run_bader_an=True,
     ):
-    """Run ionic dft relaxation on atoms object.
+    """
+    Run ionic dft relaxation on atoms object.
+
 
     Development Notes:
         * What to do when the job has already been previously completed?
@@ -154,9 +145,6 @@ def ionic_opt(
         mode:
         fmax: Force convergence criteria
         maxsteps: Maximum number of ionic steps
-        run_beef_an:
-            Attempts to run Beef-vdW ensemble of energies
-            Must have ran calculation with appropriate paramters to begin with
     """
     #| - ionic_opt
     from espresso import espresso
@@ -182,8 +170,7 @@ def ionic_opt(
     #__|
 
     #| - Setting Optimization Specific Espresso Parameters
-
-    # espresso_params_copy = copy.deepcopy(espresso_params)
+    espresso_params_copy = copy.deepcopy(espresso_params)
 
     params_opt = {
         "output": {
@@ -196,19 +183,11 @@ def ionic_opt(
         "outdir": "calcdir_opt",
         }
 
-    # espresso_params_copy.update(params_opt)
-    # calc_opt = espresso(**espresso_params_copy)
-    # atoms.set_calculator(calc_opt)
+    espresso_params_copy.update(params_opt)
+    calc_opt = espresso(**espresso_params_copy)
 
-    calc_opt, espresso_params_opt = set_QE_calc_params(
-        params=params_opt,
-        )
-
-    calc_opt = espresso(**espresso_params_opt)
     atoms.set_calculator(calc_opt)
     #__|
-
-    reduce_magmoms(atoms)
 
     if mode == "opt":
         #| - Regular Optimization
@@ -290,8 +269,7 @@ def ionic_opt(
 
         # FULL RELAXATION #################
         print("ionic_opt | Running Full Relaxation"); sys.stdout.flush()
-        # atoms.set_calculator(calc)
-        atoms.set_calculator(calc_opt)
+        atoms.set_calculator(calc)
 
         print(magmoms)
         atoms.set_initial_magnetic_moments(magmoms)
@@ -320,18 +298,8 @@ def ionic_opt(
     estimate_magmom(
         path_i=".",
         atoms=atoms,
-        log="calcdir_opt/log",
+        log="calcdir/log",
         )
-
-    elec_e = atoms.get_potential_energy()
-
-    outdir = "dir_opt"
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-
-    e_out = outdir + "/elec_e.out"
-    with open(e_out, "w") as fle:
-        fle.write(str(elec_e) + "\n")
 
     # if mode != "sp":
     #     #| - Always Run Single-Point Calculation with Full IO
@@ -342,40 +310,6 @@ def ionic_opt(
 
     update_FINISHED("ionic_opt")
 
-    if run_beef_an:
-        an_beef_ensemble(atoms)
-
-    if run_bader_an:
-
-        #| - Running initial single-point calculation
-        params_bands = {
-            "output": {
-                "avoidio": False,
-                "removesave": False,
-                "removewf": False,
-                "wf_collect": True,
-                },
-
-            "outdir": "calcdir_bader",
-            }
-
-        calc_bands, espresso_params_bands = set_QE_calc_params(
-            params=params_bands,
-            )
-
-        calc_bands = espresso(**espresso_params_bands)
-        atoms.set_calculator(calc_bands)
-
-        mess = "Running single-point calc with high io "
-        print(mess); sys.stdout.flush()
-        atoms.get_potential_energy()
-        print("finished single-point"); sys.stdout.flush()
-        #__|
-
-
-        bader(atoms, spinpol=espresso_params_opt["spinpol"], run_exec=True)
-
-
 #__| **************************************************************************
 
 #__| **************************************************************************
@@ -385,7 +319,6 @@ def ionic_opt(
 def set_init_mag_moms(
     atoms,
     preference="bader",
-    espresso_params=None,
     magmoms=None,
     read_from_file=False,
     ):
@@ -448,10 +381,6 @@ def set_init_mag_moms(
 
     else:
         spinpol_calc = calc_spinpol(atoms)
-
-        if espresso_params is not None:
-            if "spinpol" in list(espresso_params):
-                spinpol_calc = espresso_params["spinpol"]
 
         #| - Spin-polarization turned off, set magmoms to 0
         if not spinpol_calc:
@@ -752,7 +681,7 @@ def reduce_magmoms(atoms, ntypx=10):
     #__|
 
 def read_magmoms_from_file(file_name="magmom_init.in"):
-    """Read inital magmoms from a file.
+    """
 
     Args:
         file_name:
@@ -770,9 +699,10 @@ def read_magmoms_from_file(file_name="magmom_init.in"):
     return(magmoms)
     #__|
 
+
 # def compare_magmoms(self):
 def compare_magmoms():
-    """Compare spin states of two atoms objects.
+    """Compares spin states of two atoms objects.
 
     (I think I got this from Colin on 180413)
 
@@ -784,67 +714,68 @@ def compare_magmoms():
     Author: Colin Dickens
     """
     #| - compare_magmoms
-    # def nearest_atom(atoms, position):
-    #     """Returns atom nearest to position."""
-    #     #| - nearest_atom
-    #     position = np.array(position)
-    #     dist_list = []
-    #     for atom in atoms:
-    #         dist = np.linalg.norm(position - atom.position)
-    #         dist_list.append(dist)
-    #
-    #     return atoms[np.argmin(dist_list)]
-    #     #__|
-    #
-    # if len(self.ads_atoms) >= len(self.slab_atoms):
-    #     ads = self.ads_atoms
-    #     slab = self.slab_atoms
-    #     indexed_by = self.slab
-    #     not_indexed_by = self.ads
-    # else:
-    #     slab = self.ads_atoms
-    #     ads = self.slab_atoms
-    #     indexed_by = self.ads
-    #     not_indexed_by = self.slab
-    #
-    # delta_magmoms = []
-    # ads_indices_used = []
-    # for atom in slab:
-    #     ads_atom = nearest_atom(ads, atom.position)
-    #     if not self.quiet:
-    #         if ads_atom.symbol != atom.symbol:
-    #             print("WARNING! MAGMOM COMPARISON FAILURE")
-    #     ads_indices_used.append(ads_atom.index)
-    #     delta_magmoms.append(atom.magmom - ads_atom.magmom)
-    #
-    # ads_indices_not_used = []
-    # for i in range(len(ads)):
-    #     if i not in ads_indices_used:
-    #         ads_indices_not_used.append(i)
-    #
-    # self.delta_magmoms = zip(range(len(slab)), delta_magmoms)
-    # self.delta_magmoms.sort(key=lambda x: abs(x[1]), reverse=True)
-    #
-    # common = ""
-    # uncommon = ""
-    # for i in range(8):
-    #     atom = slab[self.delta_magmoms[i][0]]
-    #     common += "%s%d: %.2f\t" % (atom.symbol,
-    #         atom.index,
-    #         self.delta_magmoms[i][1],
-    #         )
-    #
-    # for i in ads_indices_not_used:
-    #     uncommon += "%s%d: %.2f\t"%(ads[i].symbol,ads[i].index,ads[i].magmom)
-    #
-    # if self.quiet:
-    #     return
-    # print("~" * 6 + "MAGNETIC MOMENT COMPARISON" + "~" * 6)
-    # print("Largest magmom discrepancies (indexed by %s)" % indexed_by)
-    # print(common)
-    # print("Magnetic moments only present in %s" % not_indexed_by)
-    # print(uncommon + "\n")
+    def nearest_atom(atoms, position):
+        """Returns atom nearest to position."""
+        #| - nearest_atom
+        position = np.array(position)
+        dist_list = []
+        for atom in atoms:
+            dist = np.linalg.norm(position - atom.position)
+            dist_list.append(dist)
+
+        return atoms[np.argmin(dist_list)]
+        #__|
+
+    if len(self.ads_atoms) >= len(self.slab_atoms):
+        ads = self.ads_atoms
+        slab = self.slab_atoms
+        indexed_by = self.slab
+        not_indexed_by = self.ads
+    else:
+        slab = self.ads_atoms
+        ads = self.slab_atoms
+        indexed_by = self.ads
+        not_indexed_by = self.slab
+
+    delta_magmoms = []
+    ads_indices_used = []
+    for atom in slab:
+        ads_atom = nearest_atom(ads, atom.position)
+        if not self.quiet:
+            if ads_atom.symbol != atom.symbol:
+                print("WARNING! MAGMOM COMPARISON FAILURE")
+        ads_indices_used.append(ads_atom.index)
+        delta_magmoms.append(atom.magmom - ads_atom.magmom)
+
+    ads_indices_not_used = []
+    for i in range(len(ads)):
+        if i not in ads_indices_used:
+            ads_indices_not_used.append(i)
+
+    self.delta_magmoms = zip(range(len(slab)), delta_magmoms)
+    self.delta_magmoms.sort(key=lambda x: abs(x[1]), reverse=True)
+
+    common = ""
+    uncommon = ""
+    for i in range(8):
+        atom = slab[self.delta_magmoms[i][0]]
+        common += "%s%d: %.2f\t" % (atom.symbol,
+            atom.index,
+            self.delta_magmoms[i][1],
+            )
+
+    for i in ads_indices_not_used:
+        uncommon += "%s%d: %.2f\t"%(ads[i].symbol,ads[i].index,ads[i].magmom)
+
+    if self.quiet:
+        return
+    print("~" * 6 + "MAGNETIC MOMENT COMPARISON" + "~" * 6)
+    print("Largest magnetic moment discrepancies (indexed by %s)" % indexed_by)
+    print(common)
+    print("Magnetic moments only present in %s" % not_indexed_by)
+    print(uncommon + "\n")
     #__|
+
 
 #__| **************************************************************************
 
@@ -865,40 +796,16 @@ def an_pdos(
         espresso_params:
     """
     #| - an_pdos
-    from espresso import espresso
-
     mess = "Running PDOS Analysis "
     mess += "********************************************************"
     print(mess); sys.stdout.flush()
 
     outdir = "dir_pdos"
 
-    params_dos = {
-        "output": {
-            "avoidio": False,
-            "removesave": True,
-            "removewf": False,
-            "wf_collect": True,
-            },
-
-        "outdir": "calcdir_dos",
-        }
-
-    calc_opt, espresso_params_dos = set_QE_calc_params(
-        params=params_dos,
-        )
-
-    calc_dos = espresso(**espresso_params_dos)
-    atoms.set_calculator(calc_dos)
-
-    reduce_magmoms(atoms)
-
-    mess = "Running single-point calc with high io "
-    print(mess); sys.stdout.flush()
-    atoms.get_potential_energy()
-    print("finished single-point"); sys.stdout.flush()
-
     cwd = os.getcwd()
+
+    # atoms.get_potential_energy()
+
     dos = atoms.calc.calc_pdos(
         nscf=True,
         kpts=dos_kpts,
@@ -965,7 +872,7 @@ def spin_pdos(
     """
     #| - spin_pdos
     valence_dict = {
-        "Cu": 11, "C": 4, "O": 6, "H": 1, "Li": 1,
+        "Cu": 11, "C": 4, "O": 6, "H": 1,
         "Rh": 17, "Co": 9, "Pd": 10, "Pt": 10,
         "Ni": 1, "Fe": 16, "N": 5, "Ru": 16,
         }
@@ -1059,7 +966,7 @@ def spin_pdos(
             #__|
 
             #| - Update Atoms Charges
-            # Update charge
+            ##Update charge
             charge_i = nvalence_dict[atom.symbol] - (charge)
             if write_charges:
                 # atom.charge = nvalence_dict[atom.symbol] - (charge)
@@ -1144,46 +1051,21 @@ def an_bands(atoms, bands_kpts, espresso_params):
         atoms.set_initial_magnetic_moments(np.zeros(len(atoms)))
         # set_mag_mom_to_0(atoms)  # COMBAK Remove this if working
 
-    #| - Running initial single-point calculation
-    params_bands = {
-        "output": {
-            "avoidio": False,
-            "removesave": False,
-            "removewf": True,
-            "wf_collect": False,
+    # calc_spinpol(atoms)  # COMBAK I don't think this is doing anything
+
+    espresso_params.update(
+        {
+            "kpts": bands_kpts,
+            "outdir": "dir_bands"
             },
-
-        "kpts": bands_kpts,
-        # "outdir": "dir_bands"
-
-        "outdir": "calcdir_bands",
-        }
-
-    calc_bands, espresso_params_bands = set_QE_calc_params(
-        params=params_bands,
         )
 
-    calc_bands = espresso(**espresso_params_bands)
-    atoms.set_calculator(calc_bands)
+    atoms.calc = espresso(**espresso_params)
 
-    mess = "Running single-point calc with high io "
+    mess = "Running single-point calculation"
     print(mess); sys.stdout.flush()
+
     atoms.get_potential_energy()
-    print("finished single-point"); sys.stdout.flush()
-    #__|
-
-    # # calc_spinpol(atoms)  # COMBAK I don't think this is doing anything
-    # espresso_params.update(
-    #     {
-    #         "kpts": bands_kpts,
-    #         "outdir": "dir_bands"
-    #         },
-    #     )
-    # atoms.calc = espresso(**espresso_params)
-    # mess = "Running single-point calculation"
-    # print(mess); sys.stdout.flush()
-    # atoms.get_potential_energy()
-
     atoms.calc.save_flev_chg("charge_den.tgz")
     atoms.calc.load_flev_chg("charge_den.tgz")
 
@@ -1247,7 +1129,7 @@ def an_beef_ensemble(atoms):
     # if xc != "BEEF" or xc != "BEEF-vdW":
     if xc not in allowed_xc:
         print("The exchange-correlation functional has to be either "
-            "BEEF or BEEF-vdW to do the BEEF ensemble analysis")
+                            "BEEF or BEEF-vdW to do the BEEF ensemble analysis")
         return(None)
 
     # if xc == "BEEF" or xc == "BEEF-vdW":
@@ -1308,7 +1190,6 @@ def plot_beef_ensemble(
 #| - Vibrational Analysis *****************************************************
 def an_ads_vib(
     atoms,
-    espresso_params=None,
     ads_index_list=None,
     # thermochem_corrections=True,
     thermochem_corrections="harmonic",  # "harmonic" or "IG"
@@ -1331,8 +1212,6 @@ def an_ads_vib(
         remove_imag_modes: Removes imaginary modes
     """
     #| - an_ads_vib
-    # from espresso import espresso
-    from espresso.vibespresso import vibespresso
 
     mess = "Starting vibrational analysis "
     mess += "************************************************"
@@ -1364,46 +1243,7 @@ def an_ads_vib(
         shutil.move(fle, fle_name)
     #__|
 
-    #| - Running initial single-point calculation
-    params_vib = {
-        "output": {
-            "avoidio": False,
-            "removesave": False,
-            "removewf": False,
-            "wf_collect": True,
-            },
-
-        # "kpts": bands_kpts,
-        # "outdir": "dir_bands"
-
-        "outdir": "calcdir_vib",
-        }
-
-    calc_vib, espresso_params_vib = set_QE_calc_params(
-        params=params_vib,
-        )
-
-    calc_vib = vibespresso(**espresso_params_vib)
-
-    # atoms.set_calculator(calc)
-    # calc_vib = espresso(**espresso_params_vib)
-
-    atoms.set_calculator(calc_vib)
-
-    # mess = "Running single-point calc with high io "
-    # print(mess); sys.stdout.flush()
-    # atoms.get_potential_energy()
-    # print("finished single-point"); sys.stdout.flush()
-    #__|
-
-    set_init_mag_moms(
-        atoms,
-        preference="bader",
-        espresso_params=espresso_params_vib,
-        )
-
-    # set_init_mag_moms(atoms)
-
+    set_init_mag_moms(atoms)
     vib = Vibrations(atoms, indices=ads_index_list)
     vib.run()
 
@@ -1473,7 +1313,6 @@ def thermochem_harm_corr(
     Temperature=300.0,
     ):
     """Thermochemical free energy corrections from vibrational analysis.
-
     Args:
         vib_e_list:
             List of vibrational modes in eV
@@ -1513,7 +1352,7 @@ def thermochem_IG_corr(
     atoms=None,
     linear=True,
     ):
-    """Calculate free energy to gas phase molecule from vibrational modes.
+    """
 
     Args:
         vib_e_list:
@@ -1552,10 +1391,8 @@ def thermochem_IG_corr(
         lin,  # linear/nonlinear
         potentialenergy=potentialenergy,
         atoms=atoms,
-
-        # H2O, H2, O2: 2,
         symmetrynumber=symmetrynumber,  # symmetry numbers from point group
-        spin=spin,  # 1 for O2, 0 for H2O and H2
+        spin=spin,  # 1 for O2, 0 for H2O
         )
 
     G = thermo.get_gibbs_energy(temperature=Temperature, pressure=Pressure)
@@ -2034,7 +1871,7 @@ def create_gif_from_traj(
     delay=10,
     rotation="0x, 0y, 0z",
     ):
-    """Create gif animation from trajectory file.
+    """
 
     Args:
         traj_name:

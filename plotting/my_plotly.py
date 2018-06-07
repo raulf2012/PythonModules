@@ -10,6 +10,11 @@ import plotly
 
 #__|
 
+# "font": {
+#     "family": "Courier New, monospace",
+#     "size": plot_title_size,
+#     "color": "black",
+#     },
 
 #| - Plotly
 def reapply_colors(data):

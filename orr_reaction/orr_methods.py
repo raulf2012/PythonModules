@@ -10,9 +10,9 @@ import copy
 import numpy as np
 import pandas as pd
 
-pd.options.mode.chained_assignment = None
-
 from plotly.graph_objs import Scatter
+
+pd.options.mode.chained_assignment = None
 #__|
 
 class ORR_Free_E_Plot:
@@ -68,7 +68,7 @@ class ORR_Free_E_Plot:
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-    #| - ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    #| - ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     def add_bulk_entry(self,
         bulk_e=0.0,
@@ -103,7 +103,6 @@ class ORR_Free_E_Plot:
             if row["adsorbate"] == "bulk" or row["adsorbate"] == "ooh":
                 free_energy_list.append(row["ads_e"])
 
-        # print(free_energy_list)
         # Checking length of energy list
         if len(free_energy_list) != 2:
             raise ValueError("Not the correct # of steps for H2O2")
@@ -142,7 +141,6 @@ class ORR_Free_E_Plot:
         """
         #| - fill_missing_data
         df = self.fe_df
-        # print(len(self.fe_df))
         df_missing_data = pd.DataFrame()
         for state in self.rxn_mech_states:
             df_state = df.loc[df[self.state_title] == state]
@@ -156,9 +154,7 @@ class ORR_Free_E_Plot:
                 df_missing_data = df_missing_data.append(df_state)
             #__|
 
-        # print(df_missing_data)
         self.fe_df = self.fe_df.append(df_missing_data)
-        # print(len(self.fe_df))
         #__|
 
     def rxn_energy_lst(self):
@@ -280,7 +276,7 @@ class ORR_Free_E_Plot:
         return(lst)
         #__|
 
-    #__| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    #__| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -345,6 +341,9 @@ class ORR_Free_E_Plot:
         key = properties
         if type(key) == tuple:
             pass
+
+        elif key is None:
+            key = None
         else:
             key = (key,)
 
@@ -357,13 +356,21 @@ class ORR_Free_E_Plot:
             if np.isnan(i) is True:
                 e_list[n] = None
 
+        if color_list is None:
+            color_list = ["red"]
+
+
+        if key is None:
+            prop_name = ""
+        else:
+            prop_name = "_".join([str(i) for i in key])
+
         if opt_name is not None:
-            # print(20 * "**")
-            name_i = opt_name + ": " + "_".join([str(i) for i in key]) + \
+            name_i = opt_name + ": " + prop_name + \
                 " (OP: " + str(round(overpot_i, 2)) + ")"
 
         else:
-            name_i = "_".join([str(i) for i in key]) + \
+            name_i = prop_name + \
                 " (OP: " + str(round(overpot_i, 2)) + ")"
 
         #| - Hover Text
@@ -606,6 +613,7 @@ class ORR_Free_E_Plot:
         return(data_lst)
         #__|
 
+        #__|
 
     #__| @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -613,6 +621,74 @@ class ORR_Free_E_Plot:
 
 
 #| - MISC Methods
+
+def plotly_fed_layout(
+    plot_title="FED",
+    plot_title_size=18,
+    tick_lab_size=16,
+    axes_lab_size=18,
+    legend_size=18,
+    ):
+    """
+    """
+    #| - plotly_fed_layout
+
+    xax_labels = ["O2", "OOH", "O", "OH", "H2O"]
+    layout = {
+
+        "title": plot_title,
+
+        "font": {
+            "family": "Courier New, monospace",
+            "size": plot_title_size,
+            "color": "black",
+            },
+
+        #| - Axes --------------------------------------------------------------
+        "yaxis": {
+            "title": "Free Energy [eV]",
+            "zeroline": True,
+            "titlefont": dict(size=axes_lab_size),
+            "showgrid": False,
+            "tickfont": dict(
+                size=tick_lab_size,
+                ),
+            },
+
+        "xaxis": {
+            "title": "Reaction Coordinate",
+            "zeroline": True,
+            "titlefont": dict(size=axes_lab_size),
+            "showgrid": False,
+
+            # "showticklabels": False,
+
+            "ticktext": xax_labels,
+            "tickvals": [1.5 * i + 0.5 for i in range(len(xax_labels))],
+
+            "tickfont": dict(
+                size=tick_lab_size,
+                ),
+            },
+        #__| -------------------------------------------------------------------
+
+        #| - Legend ------------------------------------------------------------
+        "legend": {
+            "traceorder": "normal",
+            "font": dict(size=legend_size)
+            },
+        #__| -------------------------------------------------------------------
+
+        #| - Plot Size
+        # "width": 200 * 4.,
+        # "height": 200 * 3.,
+        #__|
+
+        }
+
+    return(layout)
+
+    #__|
 
 def calc_ads_e(
     df_row,
@@ -638,15 +714,34 @@ def calc_ads_e(
     oxy_ref = oxy_ref_e
     hyd_ref = hyd_ref_e
 
-    try:
-        num_O = row["atom_type_num_dict"][0]["O"]
-    except:
-        num_O = 0
 
-    try:
-        num_H = row["atom_type_num_dict"][0]["H"]
-    except:
-        num_H = 0
+    #| - Oxygen & Hydrogen Atom Count
+
+    atoms_col = "atom_type_num_dict"
+    if atoms_col in list(row):
+        try:
+            num_O = row[atoms_col][0]["O"]
+        except:
+            num_O = 0
+
+        try:
+            num_H = row[atoms_col][0]["H"]
+        except:
+            num_H = 0
+
+    else:
+
+        if row["adsorbate"] == "ooh":
+            num_O = 2
+            num_H = 1
+        elif row["adsorbate"] == "o":
+            num_O = 1
+            num_H = 0
+        elif row["adsorbate"] == "oh":
+            num_O = 1
+            num_H = 1
+
+    #__|
 
     try:
         raw_e = row["elec_energy"]
@@ -683,7 +778,11 @@ def df_calc_adsorption_e(
     #| - df_calc_adsorption_e
     ads_e_list = []
     for index, row in df.iterrows():
+        bare_e = bare_slab_e
 
+
+        #| - Correction
+        corr = 0.
         # corr = fe_corr_dict[row["adsorbate"]]
 
         if corrections_mode == "df_column":
@@ -692,16 +791,14 @@ def df_calc_adsorption_e(
             # If "df_column" method return 0. then try to use correction_dict
             if corr == 0.:
                 if corrections_dict is not None:
-                    print("Using correction dict")
                     corr = corrections_dict[row["adsorbate"]]
 
         elif corrections_mode == "corr_dict" and corrections_dict is not None:
             corr = corrections_dict[row["adsorbate"]]
         else:
-            # TEMP_PRINT
-            print("Unhandled exception here! Fix!")
+            print("No correction being applied")
             corr = 0.
-
+        #__|
 
         if type(bare_slab_e) == dict:
             bare_e = bare_slab_e[row[bare_slab_var]]
@@ -717,7 +814,6 @@ def df_calc_adsorption_e(
             oxy_ref_e=oxy_ref,
             hyd_ref_e=hyd_ref,
             )
-
         ads_e_list.append(ads_e_i)
 
     df["ads_e"] = np.array(ads_e_list)
@@ -780,10 +876,6 @@ def lowest_e_path(
             df_i = pd.DataFrame.from_items([(s.name, s) for s in series_list]).T
             data_master[group_i[0]] = df_i
 
-            # print("IUIUENMNMIUIDJFAOLIQ")
-            # print(df_i)
-            # print("IUIUENMNMIUIDJFAOLIQ")
-
     #__|
 
     #| - Creating Data Sets
@@ -845,69 +937,62 @@ def lowest_e_path(
     #__|
 
     #| - Plot Layout
-    xax_labels = ["O2", "OOH", "O", "OH", "H2O"]
-    layout = {
-
-        "title": plot_title,
-
-        "font": {
-            "family": "Courier New, monospace",
-            "size": plot_title_size,
-            "color": "black",
-            },
-
-        #| - Axes --------------------------------------------------------------
-        "yaxis": {
-            "title": "Free Energy [eV]",
-            "zeroline": True,
-            "titlefont": dict(size=axes_lab_size),
-            "showgrid": False,
-            "tickfont": dict(
-                size=tick_lab_size,
-                ),
-            },
-
-        "xaxis": {
-            "title": "Reaction Coordinate",
-            "zeroline": True,
-            "titlefont": dict(size=axes_lab_size),
-            "showgrid": False,
-
-            # "showticklabels": False,
-
-            "ticktext": xax_labels,
-            "tickvals": [1.5 * i + 0.5 for i in range(len(xax_labels))],
-
-            "tickfont": dict(
-                size=tick_lab_size,
-                ),
-            },
-        #__| -------------------------------------------------------------------
-
-        #| - Legend ------------------------------------------------------------
-        "legend": {
-            "traceorder": "normal",
-            "font": dict(size=legend_size)
-            },
-        #__| -------------------------------------------------------------------
-
-        #| - Plot Size
-        # "width": 200 * 4.,
-        # "height": 200 * 3.,
-        #__|
-
-        }
+    # xax_labels = ["O2", "OOH", "O", "OH", "H2O"]
+    # layout = {
+    #
+    #     "title": plot_title,
+    #
+    #     "font": {
+    #         "family": "Courier New, monospace",
+    #         "size": plot_title_size,
+    #         "color": "black",
+    #         },
+    #
+    #     #| - Axes --------------------------------------------------------------
+    #     "yaxis": {
+    #         "title": "Free Energy [eV]",
+    #         "zeroline": True,
+    #         "titlefont": dict(size=axes_lab_size),
+    #         "showgrid": False,
+    #         "tickfont": dict(
+    #             size=tick_lab_size,
+    #             ),
+    #         },
+    #
+    #     "xaxis": {
+    #         "title": "Reaction Coordinate",
+    #         "zeroline": True,
+    #         "titlefont": dict(size=axes_lab_size),
+    #         "showgrid": False,
+    #
+    #         # "showticklabels": False,
+    #
+    #         "ticktext": xax_labels,
+    #         "tickvals": [1.5 * i + 0.5 for i in range(len(xax_labels))],
+    #
+    #         "tickfont": dict(
+    #             size=tick_lab_size,
+    #             ),
+    #         },
+    #     #__| -------------------------------------------------------------------
+    #
+    #     #| - Legend ------------------------------------------------------------
+    #     "legend": {
+    #         "traceorder": "normal",
+    #         "font": dict(size=legend_size)
+    #         },
+    #     #__| -------------------------------------------------------------------
+    #
+    #     #| - Plot Size
+    #     # "width": 200 * 4.,
+    #     # "height": 200 * 3.,
+    #     #__|
+    #
+    #     }
     #__|
 
-    # fig = Figure(data=dat_lst, layout=layout)
-    # plotly.plotly.image.save_as(fig, filename="pl_hab_opda_raman.png")
-    # plotly.offline.plot(
-    #     {
-    #         "data": dat_lst,
-    #         "layout": layout,
-    #         },
-    #     filename="plots/pl_fed_supp_graph_02.html"
-    #     )
+    layout = plotly_fed_layout(plot_title=plot_title)
+
     #__|
 
     return(dat_lst, layout)
@@ -1002,69 +1087,61 @@ def plot_all_states(
     #__|
 
     #| - Plot Layout
-    xax_labels = ["O2", "OOH", "O", "OH", "H2O"]
-    layout = {
-
-        "title": plot_title,
-
-        "font": {
-            "family": "Courier New, monospace",
-            "size": plot_title_size,
-            "color": "black",
-            },
-
-        #| - Axes --------------------------------------------------------------
-        "yaxis": {
-            "title": "Free Energy [eV]",
-            "zeroline": True,
-            "titlefont": dict(size=axes_lab_size),
-            "showgrid": False,
-            "tickfont": dict(
-                size=tick_lab_size,
-                ),
-            },
-
-        "xaxis": {
-            "title": "Reaction Coordinate",
-            "zeroline": True,
-            "titlefont": dict(size=axes_lab_size),
-            "showgrid": False,
-
-            # "showticklabels": False,
-
-            "ticktext": xax_labels,
-            "tickvals": [1.5 * i + 0.5 for i in range(len(xax_labels))],
-
-            "tickfont": dict(
-                size=tick_lab_size,
-                ),
-            },
-        #__| -------------------------------------------------------------------
-
-        #| - Legend ------------------------------------------------------------
-        "legend": {
-            "traceorder": "normal",
-            "font": dict(size=legend_size)
-            },
-        #__| -------------------------------------------------------------------
-
-        #| - Plot Size
-        "width": 200 * 4.,
-        "height": 200 * 3.,
-        #__|
-
-        }
+    # xax_labels = ["O2", "OOH", "O", "OH", "H2O"]
+    # layout = {
+    #
+    #     "title": plot_title,
+    #
+    #     "font": {
+    #         "family": "Courier New, monospace",
+    #         "size": plot_title_size,
+    #         "color": "black",
+    #         },
+    #
+    #     #| - Axes --------------------------------------------------------------
+    #     "yaxis": {
+    #         "title": "Free Energy [eV]",
+    #         "zeroline": True,
+    #         "titlefont": dict(size=axes_lab_size),
+    #         "showgrid": False,
+    #         "tickfont": dict(
+    #             size=tick_lab_size,
+    #             ),
+    #         },
+    #
+    #     "xaxis": {
+    #         "title": "Reaction Coordinate",
+    #         "zeroline": True,
+    #         "titlefont": dict(size=axes_lab_size),
+    #         "showgrid": False,
+    #
+    #         # "showticklabels": False,
+    #
+    #         "ticktext": xax_labels,
+    #         "tickvals": [1.5 * i + 0.5 for i in range(len(xax_labels))],
+    #
+    #         "tickfont": dict(
+    #             size=tick_lab_size,
+    #             ),
+    #         },
+    #     #__| -------------------------------------------------------------------
+    #
+    #     #| - Legend ------------------------------------------------------------
+    #     "legend": {
+    #         "traceorder": "normal",
+    #         "font": dict(size=legend_size)
+    #         },
+    #     #__| -------------------------------------------------------------------
+    #
+    #     #| - Plot Size
+    #     "width": 200 * 4.,
+    #     "height": 200 * 3.,
+    #     #__|
+    #
+    #     }
     #__|
 
-
-    # fig = Figure(data=dat_lst, layout=layout)
-    # plotly.offline.plot(
-    #     {
-    #         "data": dat_lst,
-    #         "layout": layout,
-    #         },
-    #     filename="plots/pl_fed_supp_graph_01.html"
-    #     )
+    layout = plotly_fed_layout(plot_title=plot_title)
 
     return(dat_lst, layout)
 

@@ -60,9 +60,10 @@ class DataFrame_Methods():
             atoms_row = "init_atoms"
             print("Couldn't find " + atoms_row + ", using 'init_atoms' instead")
 
-
         for index, row in df.iterrows():
             atoms_i = row[atoms_row]
+
+            print(atoms_i)
             if type(atoms_i) == list:
                 atoms_i = atoms_i[image]
 

@@ -234,16 +234,25 @@ class DFT_Jobs_Workflow:
         model_names=None,
         tree_level_labels_list=None,
         tree_level_values_list=None,
-
         setup_function=None,
         maint_function=None,
-
         number_of_steps=1,
         root_dir=".",
-
         run_jobs=False,
         ):
-        """
+        """Initialize DFT_Jobs_Workflow instance.
+
+        Args:
+            atoms_prefix:
+            atoms_list_names:
+            model_names:
+            tree_level_labels_list:
+            tree_level_values_list:
+            setup_function:
+            maint_function:
+            number_of_steps:
+            root_dir:
+            run_jobs:
         """
         #| - __init__
         self.mod_dir = "dir_models"
@@ -281,7 +290,10 @@ class DFT_Jobs_Workflow:
         #__|
 
     def __set_cwd__(self, root_dir):
-        """
+        """Set the working directory.
+
+        Args:
+            root_dir:
         """
         #| - __set_cwd__
         if root_dir == ".":
@@ -306,7 +318,10 @@ class DFT_Jobs_Workflow:
         #__|
 
     def __set_model_names__(self, model_names):
-        """
+        """Return list of model script names.
+
+        Args:
+            model_names:
         """
         #| - __set_model_names__
         # model_names = self.model_names
@@ -322,9 +337,7 @@ class DFT_Jobs_Workflow:
         #__|
 
     def __create_jobs_an__(self):
-        """
-        Creates Jobs_Analysis instances for each step of workflow
-        """
+        """Creates Jobs_Analysis instances for each step of workflow."""
         #| - __create_jobs_an__
         # print("PREPARING EXTENDED FOLDER SYSTEM")  #PERM_PRINT
         step_dir_names = self.step_dir_names
@@ -334,7 +347,7 @@ class DFT_Jobs_Workflow:
         for step in range(len(step_dir_names)):
             step_num = step + 1
 
-            print("Initialaizing Job Instance: " + str(step_num))  # PERM_PRINT
+            print("Initializing Job Instance: " + str(step_num))  # PERM_PRINT
 
             # dir_struct_file = master_root_dir + "/" + step_dir_names[step] + \
             #     "/jobs_bin/dir_structure.json"
@@ -343,7 +356,7 @@ class DFT_Jobs_Workflow:
             level_entries_tmp = self.tree_level_values_list[step]
 
             JobsAn = DFT_Jobs_Analysis(
-                system="aws",
+                # system="aws",
                 tree_level=level_labels_tmp,
                 level_entries=level_entries_tmp,
                 working_dir=master_root_dir + "/" + step_dir_names[step],
@@ -357,8 +370,7 @@ class DFT_Jobs_Workflow:
         #__|
 
     def __create_jobs_man__(self):
-        """
-        """
+        """Create Jobs_Manager instance(s)."""
         #| - __create_jobs_man__
         step_dir_names = self.step_dir_names
         master_root_dir = self.root_dir
@@ -371,7 +383,7 @@ class DFT_Jobs_Workflow:
             level_entries_tmp = self.tree_level_values_list[step]
 
             Jobs = DFT_Jobs_Manager(
-                system="aws",
+                # system="aws",
                 tree_level=level_labels_tmp,
                 level_entries=level_entries_tmp,
                 working_dir=master_root_dir + "/" + step_dir_names[step],
@@ -384,8 +396,7 @@ class DFT_Jobs_Workflow:
         #__|
 
     def __create_parent_dirs__(self):
-        """
-        """
+        """Create parent folders."""
         #| - __create_parent_dirs__
         step_dir_names = self.step_dir_names
         master_root_dir = self.root_dir
@@ -533,7 +544,7 @@ class DFT_Jobs_Workflow:
 # for step in range(len(step_dir_names)):
 #     step_num = step + 1
 #
-#     # print("Initialaizing Job Instance: " + str(step_num))
+#     # print("Initializing Job Instance: " + str(step_num))
 #     Jobs = DFT_Jobs_Analysis(
 #         system="aws",
 #         tree_level=tree_level_labels_list[step],

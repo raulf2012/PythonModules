@@ -268,27 +268,28 @@ class Element_Refs():
 
     def __init__(self,
          H2O_dict={
-            "gibbs_e": -476.54410902835434,
+            # "gibbs_e": -476.54410902835434,
+            "gibbs_e": -476.630481653821,
             "electronic_e": -476.6430744328504,
             },
 
         H2_dict={
+            # "gibbs_e": -32.956123446117,
             "gibbs_e": -32.956123446117,
             "electronic_e": -32.9203465588979,
             },
 
         O2_dict={
-            "gibbs_e": -883.1905704818877,
+            "gibbs_e": -883.1904356,
             "electronic_e": -882.7384356,
             },
-
 
         H2O_form_gibbs=-2.4583,
 
         oxygen_ref="H2O",  # "H2O" or "O2"
         hydrogen_ref="H2",
         ):
-        """
+        """Initialize instance.
 
         H2O, H2, and O2 energies were obtained from:
         /scratch/users/flores12/gas_phase_molec/BEEF-vdW

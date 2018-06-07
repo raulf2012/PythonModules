@@ -47,7 +47,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         skip_dirs_lst=None,
         indiv_dir_lst=None,  # <-----------------------------------------------
         working_dir=".",
-        update_job_state=True,
+        update_job_state=False,
         load_dataframe=True,
         dataframe_dir=None,
         job_type_class=None,
@@ -124,6 +124,9 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
         #__|
 
+
+    #| - Job Log **************************************************************
+
     def add_jobs_queue_data(self):
         """Add jobs queue data to jobs.csv file."""
         #| - add_jobs_queue_data
@@ -154,6 +157,8 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         return(job_info)
         #__|
 
+    #__| **********************************************************************
+
     def __load_dataframe__(self):
         """Attempt to load dataframe."""
         #| - __load_dataframe__
@@ -180,7 +185,8 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         """
         #| - __write_dataframe__
         df = self.data_frame
-        df.to_csv(self.root_dir + "/jobs_bin/job_dataframe.csv", index=False)
+
+        # df.to_csv(self.root_dir + "/jobs_bin/job_dataframe.csv", index=False)
 
         df_pickle_fle = self.root_dir + "/jobs_bin/job_dataframe.pickle"
         with open(df_pickle_fle, "wb") as fle:
@@ -597,30 +603,6 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         data_series_maxrev = dataframe[max_rev]
 
         return(data_series_maxrev)
-        #__|
-
-    def view_atoms(self, ind):
-        """
-        View last image in atoms object in GUI.
-
-        Args:
-            ind:
-                Index of dataframe corresponding to entry of interest.
-        """
-        #| - view_atoms
-        df = self.data_frame
-
-        path_i = df.iloc[ind]["path"]
-        rev_num = df.iloc[ind]["revision_number"].astype(str)
-        full_path = path_i + "_" + rev_num
-
-        print(full_path)
-
-        try:
-            atoms = df.iloc[ind]["atoms_object"][-1]
-            view(atoms)
-        except:
-            print("Couldn't read atoms object")
         #__|
 
     #__|
@@ -1253,6 +1235,32 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
 
 #| - __old__
+
+    # DEPR
+    def view_atoms(self, ind):
+        """
+        View last image in atoms object in GUI.
+
+        Args:
+            ind:
+                Index of dataframe corresponding to entry of interest.
+        """
+        #| - view_atoms
+        df = self.data_frame
+
+        path_i = df.iloc[ind]["path"]
+        rev_num = df.iloc[ind]["revision_number"].astype(str)
+        full_path = path_i + "_" + rev_num
+
+        print(full_path)
+
+        try:
+            atoms = df.iloc[ind]["atoms_object"][-1]
+            view(atoms)
+        except:
+            print("Couldn't read atoms object")
+        #__|
+
 
     # DEPR
     # Already implemented in job_setup
