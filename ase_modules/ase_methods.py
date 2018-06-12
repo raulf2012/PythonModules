@@ -314,7 +314,7 @@ def ionic_opt(
         print(mess); sys.stdout.flush()
 
         atoms.get_potential_energy()
-        write("out.traj", atoms)
+        write("out_opt.traj", atoms)
         #__|
 
     estimate_magmom(
@@ -348,19 +348,19 @@ def ionic_opt(
     if run_bader_an:
 
         #| - Running initial single-point calculation
-        params_bands = {
+        params_bader = {
             "output": {
                 "avoidio": False,
-                "removesave": False,
-                "removewf": False,
-                "wf_collect": True,
+                "removesave": True,
+                "removewf": True,
+                "wf_collect": False,
                 },
 
             "outdir": "calcdir_bader",
             }
 
         calc_bands, espresso_params_bands = set_QE_calc_params(
-            params=params_bands,
+            params=params_bader,
             )
 
         calc_bands = espresso(**espresso_params_bands)
@@ -1383,7 +1383,9 @@ def an_ads_vib(
         params=params_vib,
         )
 
-    calc_vib = vibespresso(**espresso_params_vib)
+    calc_vib = vibespresso(
+        outdirprefix="out_vib",
+        **espresso_params_vib)
 
     # atoms.set_calculator(calc)
     # calc_vib = espresso(**espresso_params_vib)
@@ -1419,6 +1421,10 @@ def an_ads_vib(
 
     dest_dir = "dir_vib"
     for fle in glob.glob(r'*.pckl*'):
+        shutil.move(fle, dest_dir + "/" + fle)
+
+
+    for fle in glob.glob(r'*out_vib*'):
         shutil.move(fle, dest_dir + "/" + fle)
     #__|
 

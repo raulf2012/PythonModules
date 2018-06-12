@@ -284,6 +284,12 @@ class Element_Refs():
             "electronic_e": -882.7384356,
             },
 
+        # COMBAK I only have the electronic energy for now
+        N2_dict={
+            "gibbs_e" -553.638294974:,
+            "electronic_e": -553.638294974,
+            },
+
         H2O_form_gibbs=-2.4583,
 
         oxygen_ref="H2O",  # "H2O" or "O2"
@@ -310,10 +316,10 @@ class Element_Refs():
             H2O_form_gibbs:
         """
         #| - __init__
-
         self.En_H2O = Energy(**H2O_dict)
         self.En_H2 = Energy(**H2_dict)
         self.En_O2 = Energy(**O2_dict)
+        self.En_N2 = ENergy(**N2_dict)
 
         self.oxygen_ref = oxygen_ref
 

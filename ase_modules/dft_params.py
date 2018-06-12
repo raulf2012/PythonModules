@@ -318,6 +318,14 @@ class Espresso_Params(DFT_Params):
         #__|
 
         #| - File Output <-----------------------------------------------------
+
+         # output = {'disk_io':'default',  # how often espresso writes wavefunctions to disk
+         #           'avoidio':False,  # will overwrite disk_io parameter if True
+         #           'removewf':True,
+         #           'removesave':False,
+         #           'wf_collect':False},
+
+
         # params["output"] = {"removesave": True}  # Aayush, saves ~nothing
         params["output"] = {
 

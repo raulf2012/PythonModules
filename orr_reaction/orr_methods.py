@@ -613,7 +613,6 @@ class ORR_Free_E_Plot:
         return(data_lst)
         #__|
 
-        #__|
 
     #__| @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -713,7 +712,6 @@ def calc_ads_e(
     bare_slab = bare_raw_e
     oxy_ref = oxy_ref_e
     hyd_ref = hyd_ref_e
-
 
     #| - Oxygen & Hydrogen Atom Count
 

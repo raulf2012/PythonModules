@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """Class defining methods to extract/manipulate data in vasp raman job folders.
 
 Development Notes:
@@ -129,6 +131,7 @@ class DFT_Methods():
         try:
             with open(path_i + "/dir_opt/elec_e.out", "r") as fle:
                 energy = float(fle.read().strip())
+
         except:
             pass
 
@@ -141,6 +144,16 @@ class DFT_Methods():
         except:
             pass
 
+        try:
+            # TEMP_PRINT
+            print("KDJFKSDKKKK")
+            print("Trying reading out_opt.traj directly")
+            atoms = io.read(path_i + "/" + "out_opt.traj")
+            energy = atoms.get_potential_energy()
+        except:
+            pass
+
+
         return(energy)
         #__|
 
@@ -151,7 +164,9 @@ class DFT_Methods():
             path_i:
         """
         #| - atoms_object
-        atoms_file_names = ["out_opt.traj", "out.traj"]
+        # atoms_file_names = ["out_opt.traj", "out.traj"]
+        # 'out.traj' should be read first
+        atoms_file_names = ["out.traj", "out_opt.traj"]
         for file_name in atoms_file_names:
             try:
                 # traj = io.read(path_i + "/" + file_name)
