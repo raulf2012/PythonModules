@@ -9,8 +9,14 @@ Development Notes:
 """
 
 #| - Import Modules
+import copy
+from itertools import compress
+
+import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
+
+from misc_modules.numpy_methods import make_filter_list
 #__|
 
 #| - Methods
@@ -40,6 +46,60 @@ def plot_dos_series(
     #__|
 
 #__|
+
+def filter_pdos_data(pdos_data, percent_keep=0.4):
+    """Filter dos and pdos data series to lower memory cost.
+
+    Args:
+        pdos_data:
+        percent_keep:
+            Fraction of data to keep, the rest is discarded
+    """
+    #| - filter_pdos_data
+    len_data = len(pdos_data[0])
+    filter_list = make_filter_list(len_data, percent_keep)
+
+    # --------------------------------------------------------------------------------------
+
+    new_pdos_data = ()
+
+    # **************************
+    new_pdos_data += (np.array(list(compress(pdos_data[0], filter_list))),)
+
+    # **************************
+    len_data = len(pdos_data[1])
+    if len_data == 2:
+        tuple_2 = [
+            np.array(list(compress(pdos_data[1][0], filter_list))),
+            np.array(list(compress(pdos_data[1][1], filter_list)))
+            ]
+
+    else:
+        tuple_2 = np.array(list(compress(pdos_data[1], filter_list)))
+
+
+    new_pdos_data += (tuple_2,)
+
+    # **************************
+    new_list = []
+    for i_ind, atom_i in enumerate(pdos_data[2]):
+        dict_i = {}
+        for key, value in atom_i.items():
+
+            series_list_new = []
+            for j_ind, data_series_i in enumerate(value):
+                tmp = np.array(list(compress(data_series_i, filter_list)))
+                series_list_new.append(tmp)
+
+            dict_i[key] = series_list_new
+
+        new_list.append(dict_i)
+
+    new_pdos_data += (new_list,)
+
+
+    return(new_pdos_data)
+    #__|
 
 def plot_pdos_dos(
     pdos_data,
@@ -334,7 +394,6 @@ def plot_pdos_dos(
 
     return(dos_data, pdos_data, layout)
     #__|
-
 
 
 

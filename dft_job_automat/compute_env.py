@@ -5,9 +5,13 @@
 
 Development Notes:
     TODO Modify .FINISHED implementation
+
     TODO Move the location of following command to base ComputerCluster class
         with open(".SUBMITTED", "w") as fle:
             fle.write("")
+
+    TODO I don't think the child class attributes for error and out file are
+    being respected by ComputerCluster
 
 """
 
@@ -47,13 +51,13 @@ class ComputerCluster():
         #__|
 
     def __parse_cluster_type__(self):
-        """
-        """
+        """Parse for the current cluster system."""
         #| - __parse_cluster_type__
         clusters_dict = {
             "aws": "AWSCluster",
             "slac": "SLACCluster",
             "sherlock": "SherlockCluster",
+            "nersc": "EdisonCluster",
             }
 
         cluster_sys = os.environ.get("COMPENV")
@@ -206,6 +210,393 @@ class ComputerCluster():
     #__| **********************************************************************
 
 ################################################################################
+
+
+
+
+
+class EdisonCluster(ComputerCluster):
+    """NERSC Edison computing cluster."""
+
+    #| - SherlockCluster ******************************************************
+    def __init__(self, root_dir="."):
+        """Initialize Sherlock cluster instance.
+
+        Args:
+            root_dir:
+        """
+        #| - __init__
+        # 24 cores (edison) 32 cpus (cori)
+
+        self.cores_per_node = 24
+
+        # self.job_queue_dir = "/u/if/flores12/usr/bin"
+
+        self.job_data_dir = ""
+        self.root_dir = root_dir
+
+        self.default_sub_params = self.default_submission_parameters()
+
+        self.queues = self.__queue_types__()
+
+        # self.job_queue_dir = "/u/if/flores12/usr/bin"
+
+        self.job_state_keys = self.job_state_dict()
+        self.job_queue_state_key = "TEMP"  # COMBAK
+
+
+        self.error_file = "job.err"
+        self.out_file = "job.out"
+
+        # self.aws_dir = os.environ["aws_sc"]
+        # self.job_queue_dir = self.aws_dir + "/jobs_bin"
+        # self.job_queue_state_key = "job_status"
+        #__|
+
+    def default_submission_parameters(self):
+        """Defaul SLURM parameters for Sherlock cluster."""
+        #| - default_submission_parameters
+        # def_params = {
+        #     "queue": "owners,iric,normal",  # -p flag
+        #     "nodes": "1",  # --nodes
+        #     "cpus": "16",  # --ntasks-per-node
+        #     "memory": "4000",  # --mem-per-cpu
+        #     "wall_time": "720",  # --time (720min -> 12hrs)
+        #     "job_name": "Default",  # --job-name
+        #     "priority": "normal",  # --qos
+        #     "email": "flores12@stanford.edu",  # --mail-user
+        #     "email_mess": "FAIL",  # --mail-type
+        #     }
+
+        def_params = {
+            "queue": "regular",  # -p flag | regular, debug
+            ##SBATCH -p regular
+            #SBATCH -p debug
+            "nodes": "10",
+            #SBATCH -N 10 # 24 cpus per node on edison, 32 per node on cori haswell, 50? on knl
+
+            "account": "m2997",  # -A flag
+            #SBATCH -A  m2997
+
+            "wall_time": "300",
+            #SBATCH -t 00:30:00
+
+            "priority": "scavenger",  # --qos -q flag
+
+            ##SBATCH --qos=scavenger
+            ##SBATCH --qos=premium
+
+            "constraints": "haswell",
+            ##SBATCH -C haswell #this is for cori haswell (old)
+            ##SBATCH -C knl #new cori
+
+            #SBATCH -e job.err#SBATCH -o job.out
+            }
+
+        return(def_params)
+        #__|
+
+    def submit_job_clust(self, **kwargs):
+        """Submit job to sherlck.
+
+        Args:
+            **kwargs:
+        """
+        #| - submit_job
+        time.sleep(1.5)
+
+        #| - Merging Submission Parameters
+        params = merge_two_dicts(self.default_sub_params, kwargs)
+
+        path = params["path_i"]
+        #__|
+
+        #| - Create vasp_run script
+
+        os.system("cd $SLURM_SUBMIT_DIR")
+
+        os.system("export TMPDIR=$SLURM_SUBMIT_DIR")
+        os.system("export VASP_SCRIPT=./run_vasp.py")
+
+        # TEMP_PRINT
+        # print(20 * "*")
+        os.system("echo import os > run_vasp.py")
+
+        # print(self.cores_per_node)
+        # print(type(self.cores_per_node))
+        # print(params["nodes"])
+        # print(type(params["nodes"]))
+        # print(str(int(self.cores_per_node * int(params["nodes"]))))
+
+        # TEMP_PRINT
+        # print("KJSKLDJFLKDSK")
+
+        exitcode_line = "exitcode = os.system('srun -n " + \
+            str(int(self.cores_per_node * int(params["nodes"]))) + \
+            " /project/projectdirs/m2997/special_edison')"
+
+        # TEMP_PRINT
+        # print("KLJDFKJ((U(*)))")
+        # print('echo ' + exitcode_line + ' >> run_vasp.py"')
+
+        # print('echo ' + '"' + exitcode_line + '" >> run_vasp.py')
+
+        line_2 = 'echo ' + '"' + exitcode_line + '" >> run_vasp.py'
+        os.system(line_2)  # on edison
+
+        # cd $SLURM_SUBMIT_DIR
+        # setenv TMPDIR $SLURM_SUBMIT_DIR
+        # setenv VASP_SCRIPT ./run_vasp.py
+        #__|
+
+        #| - Submit Job
+        os.chdir(path)
+
+        if params["job_name"] == "Default":
+            params["job_name"] = os.getcwd()
+
+        print("submitting job")
+        os.system("chmod 777 *")
+        # bash_command = "/u/if/flores12/bin/qv model.py"
+        #__| **** TEMP
+
+        #| - Bash Submisssion Command
+        bash_command = "/usr/bin/sbatch "
+
+        bash_command += "-p " +                 str(params["queue"])       + " "
+        bash_command += "--nodes " +            str(params["nodes"])       + " "
+        bash_command += "--time " +             str(params["wall_time"])   + " "
+        # bash_command += "--qos " +              str(params["priority"])    + " "  # Didn't work
+        bash_command += "--output " +           str(params["out_file"])    + " "
+        bash_command += "--error " +            str(params["err_file"])    + " "
+
+        bash_command += params["job_script"]
+
+        print("Bash Submission Command:")
+        print(bash_command)
+        #__|
+
+        try:
+            output = subprocess.Popen(
+                bash_command,
+                stdout=subprocess.PIPE,
+                shell=True,
+                )
+            sub_time = datetime.datetime.now().isoformat()
+        # except subprocess.CalledProcessError, e:
+        except subprocess.CalledProcessError as e:
+            print("Ping stdout output:\n", e.output)
+
+            os.chdir(self.root_dir)
+            print("JOB SKIPPED: ")
+            return(None)
+
+        #| - Parsing Output
+        # out = output.communicate()[0]
+        # out_copy = copy.deepcopy(out)
+        #
+        # ind = out.find("job")
+        # out = out[ind + 3:]
+        #
+        # jobid = re.sub("[^0-9]", "", out)
+        #
+        # try:
+        #     jobid = int(jobid)
+        #
+        # except:
+        #     print("Couldn't parse for jobid | !@!!")
+        #     jobid = None
+        #     pass
+        #
+        # if type(jobid) == int:
+        #     jobid = jobid
+        # else:
+        #     jobid = None
+        #__|
+
+        #| - Writing Files
+        with open(".SUBMITTED", "w") as fle:
+            fle.write("\n")
+
+        with open(".bash_comm", "w") as fle:
+            fle.write(str(bash_command) + str("\n"))
+
+        # with open(".jobid", "w") as fle:
+        #     fle.write(str(jobid) + str("\n"))
+        #
+        # with open(".sub_out", "w") as fle:
+        #     fle.write(out_copy)
+        #__|
+
+        os.chdir(self.root_dir)
+
+        # return(out, jobid)
+        #__|
+
+    def job_state_dict(self):
+        """
+        """
+        #| - job_state_dict
+        job_state_dict = {
+            "PD": "PENDING",
+            "R": "RUNNING",
+            "CF": "CONFIGURING",
+            "SUCCEEDED": "SUCCEEDED",
+
+            # "FAILED": "FAILED",
+            # "STARTING": "STARTING",
+            # "RUNNABLE": "PENDING",
+            # "SUBMITTED": "SUBMITTED",
+            }
+
+        return(job_state_dict)
+        #__|
+
+    def __queue_types__(self):
+        """Queue types for SLAC cluster
+        """
+        #| - __queue_types__
+        queue_list = [
+            "regular",
+            "debug",
+            ]
+
+        return(queue_list)
+        #__|
+
+    def get_jobid(self, path_i="."):
+        """Return the job id.
+
+        Args:
+            path_i:
+        """
+        #| - get_jobid
+        # # path_i = "."
+        # fileid_path = path_i + "/.jobid"
+        # # print(fileid_path)
+        # if os.path.isfile(fileid_path):
+        #     with open(path_i + "/.jobid") as fle:
+        #         jobid = fle.read().strip()
+        # else:
+        #     jobid=None
+        #
+        # return(jobid)
+        #__|
+
+    def job_info_batch(self, job_id, path_i=None):
+        """
+        """
+        #| - job_info_batch
+        bash_comm = "squeue -j " + str(job_id)
+
+        try:
+            out = subprocess.check_output(
+                bash_comm,
+                shell=True,
+                stderr=subprocess.STDOUT,
+                )
+
+            # 'JOBID PARTITION NAME USER ST TIME NODES NODELIST(REASON)'
+            out = out.splitlines()
+            out = out[1].split(" ")
+            out = [i for i in out if i != '']
+
+            data_dict = {
+                "PARTITION": out[1],
+                "STAT": out[4],
+                # "CF":
+                }
+
+            if path_i is not None:
+                key = self.job_queue_state_key
+                with open(path_i + "/.QUEUESTATE", "w") as fle:
+                    fle.write(self.job_state_keys[data_dict[key]])
+                    fle.write("\n")
+
+        except subprocess.CalledProcessError:
+            data_dict = None
+            pass
+
+        except:
+            data_dict = None
+            pass
+
+
+        return(data_dict)
+
+        #__|
+
+    def completed_file(self, path_i="."):
+        """
+        Check whether ".FINISHED" file exists.
+
+        Indicates that the job has gone to completion
+
+        Args:
+            path_i:
+        """
+        #| - completed_file
+        completed_fle = False
+        if os.path.exists(path_i + "/.FINISHED"):
+            completed_fle = True
+
+        return(completed_fle)
+        #__|
+
+    def job_state(self, path_i="."):
+        """
+        Return job state of path_i --> job_i.
+
+        Args:
+            path_i
+        """
+        #| - job_state
+        job_id = self.get_jobid(path_i=path_i)
+
+        job_state_out = None
+        if job_id is not None:
+            job_info = self.job_info_batch(job_id, path_i=path_i)
+
+            if job_info is not None:
+                key = self.job_queue_state_key
+                if key in job_info:
+                    job_state_out = job_info[key]
+                    job_state_out = self.job_state_keys[job_state_out]
+
+        #| - Checking for "completed" file indicating success
+        completed_fle = self.completed_file(path_i=path_i)
+        if completed_fle:
+            job_state_out = self.job_state_keys["SUCCEEDED"]
+        #__|
+
+        return(job_state_out)
+
+        #__|
+
+    def get_jobid(self, path_i="."):
+        """
+        Return job ID of job_i.
+
+        Args:
+            path_i:
+        """
+        #| - get_jobid
+        fileid_path = path_i + "/.jobid"
+        if os.path.isfile(fileid_path):
+            with open(path_i + "/.jobid") as fle:
+                jobid = fle.read().strip()
+        else:
+            jobid = None
+
+        return(jobid)
+        #__|
+
+    #__| **********************************************************************
+
+
+
+
+
 
 class SLACCluster(ComputerCluster):
     """SLAC computing cluster."""
@@ -419,7 +810,7 @@ class SLACCluster(ComputerCluster):
 
         os.chdir(self.root_dir)
 
-        return out, jobid
+        return(out, jobid)
         #__|
 
     def get_jobid(self, path_i="."):
@@ -530,7 +921,10 @@ class SherlockCluster(ComputerCluster):
 
     #| - SherlockCluster ******************************************************
     def __init__(self, root_dir="."):
-        """
+        """Initialize Sherlock cluster instance.
+
+        Args:
+            root_dir:
         """
         #| - __init__
         # self.job_queue_dir = "/u/if/flores12/usr/bin"
@@ -558,8 +952,7 @@ class SherlockCluster(ComputerCluster):
         #__|
 
     def default_submission_parameters(self):
-        """Defaul SLURM parameters for
-        """
+        """Defaul SLURM parameters for Sherlock cluster."""
         #| - default_submission_parameters
         def_params = {
             "queue": "owners,iric,normal",  # -p flag
@@ -577,8 +970,10 @@ class SherlockCluster(ComputerCluster):
         #__|
 
     def submit_job_clust(self, **kwargs):
-        """
-        Submits job to sherlck.
+        """Submits job to sherlck.
+
+        Args:
+            **kwargs:
         """
         #| - submit_job
         time.sleep(1.5)
@@ -676,7 +1071,7 @@ class SherlockCluster(ComputerCluster):
 
         os.chdir(self.root_dir)
 
-        return out, jobid
+        return(out, jobid)
 
         #__|
 
@@ -712,7 +1107,10 @@ class SherlockCluster(ComputerCluster):
         #__|
 
     def get_jobid(self, path_i="."):
-        """
+        """Return the job id.
+
+        Args:
+            path_i:
         """
         #| - get_jobid
         # # path_i = "."
@@ -1339,7 +1737,7 @@ class DummyCluster(ComputerCluster):
     #
     #     os.chdir(self.root_dir)
     #
-    #     return out, jobid
+    #     return(out, jobid)
     #
     #     #__|
     #

@@ -37,3 +37,19 @@ def smooth_data_series(y_data, box_pts):
     y_smooth = np.convolve(y_data, box, mode="same")
     return(y_smooth)
     #__|
+
+def make_filter_list(len_data, percent_keep):
+    """
+    """
+    #| - filter_list
+
+#     len_data = len(pdos_data[0])
+
+    filter_list = np.random.choice(
+        [True, False],
+        size=len_data,
+        p=[percent_keep, 1. - percent_keep]
+        )
+
+    return(filter_list)
+    #__|

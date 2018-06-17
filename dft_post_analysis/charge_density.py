@@ -441,11 +441,6 @@ class ChargeDensity(object):
             elem = atom.symbol
             color_list.append(element_color_dict[elem])
 
-            # if elem == "Fe":
-            #     color_list.append("orange")
-            # elif elem == "C":
-            #     color_list.append("grey")
-
         trace_i = go.Scatter3d(
             x=atoms.positions[:, 0],
             y=atoms.positions[:, 1],
@@ -455,12 +450,10 @@ class ChargeDensity(object):
             marker=dict(
                 size=size,
                 color=color_list,
-                # color=dens_list,
                 )
             )
 
         return(trace_i)
-
         #__|
 
     #__| **********************************************************************

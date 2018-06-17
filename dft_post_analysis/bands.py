@@ -6,7 +6,13 @@ Author: Johanness Voss mostly
 """
 
 #| - IMPORT MODULES
+import copy
+from itertools import compress
+
+import numpy as np
 import plotly.graph_objs as go
+
+from misc_modules.numpy_methods import make_filter_list
 #__|
 
 #| - Methods
@@ -40,6 +46,61 @@ def plot_band_series(
     #__|
 
 #__|
+
+def filter_bands_data(bands_data, percent_keep=0.6):
+    """Filter bands data series to lower memory cost.
+
+    Args:
+        bands_data:
+        percent_keep:
+    """
+    #| - filter_bands_data
+    len_data = len(bands_data[2])
+    filter_list = make_filter_list(len_data, percent_keep)
+
+    if type(bands_data[4]) is tuple:
+        bands = bands_data[4][0]
+    else:
+        bands = bands_data[4]
+
+    shape_len = len(bands.shape)
+
+    if shape_len == 3:
+        spinpol = True
+    elif shape_len == 2:
+        spinpol = False
+
+    new_bands_data = ()
+
+    new_bands_data += (bands_data[0],)
+    new_bands_data += (bands_data[1],)
+    new_bands_data += (np.array(list(compress(bands_data[2], filter_list))),)
+    new_bands_data += (bands_data[3],)
+
+#     spinpol = True
+    if spinpol:
+        new_data = []
+        for spin in bands:
+            spin_i_new = []
+            for series_i in spin.T:
+                tmp = np.array(list(compress(series_i, filter_list)))
+                spin_i_new.append(tmp)
+
+            spin_i_new = np.array(spin_i_new).T
+            new_data.append(spin_i_new)
+
+    else:
+        spin_i_new = []
+        for series_i in bands.T:
+            tmp = np.array(list(compress(series_i, filter_list)))
+            spin_i_new.append(tmp)
+
+        new_data = np.array(spin_i_new).T
+
+    new_bands_data += (np.array(new_data),)
+
+    return(new_bands_data)
+    #__|
 
 def plot_bands(
     bands_data,

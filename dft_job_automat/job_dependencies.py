@@ -232,8 +232,11 @@ class DFT_Jobs_Workflow:
         atoms_prefix=".traj",
         atoms_list_names=["init"],
         model_names=None,
+
         tree_level_labels_list=None,
         tree_level_values_list=None,
+
+
         setup_function=None,
         maint_function=None,
         number_of_steps=1,
@@ -355,10 +358,33 @@ class DFT_Jobs_Workflow:
             level_labels_tmp = self.tree_level_labels_list[step]
             level_entries_tmp = self.tree_level_values_list[step]
 
+            # Jobs = DFT_Jobs_Analysis(
+            #     indiv_dir_lst=dir_list,
+            #     working_dir=".",
+            #     folders_exist=True,
+            #     load_dataframe=False,
+            #     job_type_class=dft_inst,
+            #     # job_type_class=None,
+            #     )
+
+            # tree_level=None,
+            # level_entries=None,
+            # skip_dirs_lst=None,
+            # indiv_dir_lst=None,  # <-----------------------------------------------
+            # working_dir=".",
+            # update_job_state=False,
+            # load_dataframe=True,
+            # dataframe_dir=None,
+            # job_type_class=None,
+            # folders_exist=None,
+
             JobsAn = DFT_Jobs_Analysis(
                 # system="aws",
                 tree_level=level_labels_tmp,
                 level_entries=level_entries_tmp,
+
+                # indiv_dir_lst=
+
                 working_dir=master_root_dir + "/" + step_dir_names[step],
                 update_job_state=False,
                 load_dataframe=False,
