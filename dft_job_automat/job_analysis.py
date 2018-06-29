@@ -46,6 +46,8 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         level_entries=None,
         skip_dirs_lst=None,
         indiv_dir_lst=None,  # <-----------------------------------------------
+        indiv_job_lst=None,
+        root_dir=".",
         working_dir=".",
         update_job_state=False,
         load_dataframe=True,
@@ -67,6 +69,8 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             dataframe_dir:
                 Specify location of dataframe if not in working_dir
             job_type_class:
+                Job type specific class instance which constains methods
+                specific to the jobs being run that parse job folders
         """
         #| - __init__
         DFT_Jobs_Setup.__init__(self,
@@ -74,6 +78,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             level_entries=level_entries,
             skip_dirs_lst=None,
             indiv_dir_lst=indiv_dir_lst,  # <----------------------------------
+            indiv_job_lst=indiv_job_lst,
             working_dir=working_dir,
             folders_exist=folders_exist,
             )
@@ -107,7 +112,8 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
                 for method in job_type_inst.methods_to_run:
                     method_ref = getattr(job_type_inst, method)
-                    self.method = method_ref
+
+                    self.method = method_ref  # COMBAK Is this necessary??
 
                     self.add_data_column(
                         method_ref,
@@ -1037,8 +1043,16 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
         crit_0 = False
         job_state = self.cluster.cluster.job_state(path_i=path_i)
+
+
+        # print("**************************************************")
+        # print("self.cluster.cluster.job_state")
+        # print(job_state)
+        # print("**************************************************")
+
         if job_state == "PENDING":
             crit_0 = True
+
 
         crit_1 = False
         if self.job_state_file(path_i) == "PENDING":

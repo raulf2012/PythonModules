@@ -34,7 +34,6 @@ def num_of_atoms_OUTCAR_tmp(outcar_fh):
     return(num_atoms)
     #__|
 
-
 def create_vib_modes_atoms(
     path_i=".",
     file_name="OUTCAR",

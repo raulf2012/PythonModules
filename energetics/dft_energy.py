@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """Encapsulate DFT energy methods.
 
 Author: Raul A. Flores
@@ -286,7 +288,7 @@ class Element_Refs():
 
         # COMBAK I only have the electronic energy for now
         N2_dict={
-            "gibbs_e" -553.638294974:,
+            "gibbs_e": -553.638294974,
             "electronic_e": -553.638294974,
             },
 
@@ -319,7 +321,7 @@ class Element_Refs():
         self.En_H2O = Energy(**H2O_dict)
         self.En_H2 = Energy(**H2_dict)
         self.En_O2 = Energy(**O2_dict)
-        self.En_N2 = ENergy(**N2_dict)
+        self.En_N2 = Energy(**N2_dict)
 
         self.oxygen_ref = oxygen_ref
 

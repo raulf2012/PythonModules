@@ -125,9 +125,10 @@ class VASP_Params(DFT_Params):
 
     #| - VASP_Params ***********************************************************
     def __init__(self, load_defaults=True):
-        """TMP_docstring.
+        """Class encapsulating VASP job parameters.
 
-        TEMP TEMP
+        Args:
+            load_defaults:
         """
         #| - __init__
         # self.pymoddir = self.PythonPath()
@@ -259,7 +260,11 @@ class Espresso_Params(DFT_Params):
 
     #| - Espresso_Params *******************************************************
     def __init__(self, load_defaults=True):
-        """Class encapsulating quantum espresso job parameters."""
+        """Class encapsulating quantum espresso job parameters.
+
+        Args:
+            load_defaults:
+        """
         #| - __init__
         DFT_Params.__init__(self)
 

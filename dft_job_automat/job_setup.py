@@ -27,11 +27,12 @@ class Job:
     """
 
     #| - Job ******************************************************************
-
     def __init__(self,
         path_i=None,
         job_params_dict=None,
         max_revision=None,
+
+        root_dir=None,
         ):
         """COMBAK Flesh this out later.
 
@@ -47,6 +48,7 @@ class Job:
         self.full_path = path_i
         self.job_params_dict = job_params_dict
         self.max_revision = max_revision
+        self.root_dir = root_dir
 
         # Class Methods
         self.job_params = self.__set_job_parameters__(job_params_dict)
@@ -55,6 +57,9 @@ class Job:
 
     def __set_job_parameters__(self, job_params_dict):
         """
+
+        Args:
+            job_params_dict:
         """
         #| - __set_job_parameters__
         job_params_from_file = self.__read_job_params_file__()
@@ -70,12 +75,39 @@ class Job:
     def __read_job_params_file__(self):
         """Read "job_parameters.json" file from job direcory.
 
+
+        Development Notes:
+            Search in the job root dir (one level up from "_" dirs)
+
         Args:
         """
         #| - __read_job_params_file__
         job_params = {}
 
-        file_path = self.full_path + "/" + "job_parameters.json"
+        # file_path = self.full_path + "/" + "job_parameters.json"
+
+        file_path = os.path.join(
+            self.full_path,
+            "job_parameters.json",
+            )
+
+        if os.path.exists(file_path):
+            with open(file_path, "r") as fle:
+                job_params = json.load(fle)
+
+        file_path = os.path.join(
+            self.full_path[0:-2],
+            "job_parameters.json",
+            )
+        if os.path.exists(file_path):
+            with open(file_path, "r") as fle:
+                job_params = json.load(fle)
+
+
+        file_path = os.path.join(
+            self.full_path[0:-2],
+            "job_params.json",
+            )
         if os.path.exists(file_path):
             with open(file_path, "r") as fle:
                 job_params = json.load(fle)
@@ -106,9 +138,16 @@ class DFT_Jobs_Setup:
     def __init__(self,
         tree_level=None,
         level_entries=None,
-        indiv_dir_lst=None,  # <-----------------------------------------------
+
+        indiv_dir_lst=None,
+
+        indiv_job_lst=None,
+
         skip_dirs_lst=None,
+        root_dir=".",
         working_dir=".",
+        # root_dir=".",
+
         folders_exist=None,
         ):
         """Initialize DFT_Jobs_Setup Instance.
@@ -117,6 +156,8 @@ class DFT_Jobs_Setup:
             tree_level:
             level_entries:
             indiv_dir_lst:
+            indiv_job_lst:
+                List of dictionaries representing jobs
             skip_dirs_lst:
             working_dir:
             folders_exist:
@@ -133,9 +174,12 @@ class DFT_Jobs_Setup:
         self.level_entries_list = level_entries
         self.skip_dirs_lst = skip_dirs_lst
         self.indiv_dir_lst = indiv_dir_lst
+        self.indiv_job_lst = indiv_job_lst
         #__|
 
-        self.root_dir = self.__set_root_dir__(working_dir)
+        self.root_dir = self.__set_root_dir__(root_dir)
+        self.working_dir = self.__set_working_dir__(working_dir)
+
         self.cluster = ComputerCluster()
         self.jobs_att = self.__load_jobs_attributes__()
         self.__create_jobs_bin__()
@@ -155,10 +199,34 @@ class DFT_Jobs_Setup:
         #     # self.data_frame = self.__generate_data_table__()
         #__|
 
+    def __job_i_param_dict_to_job_var_lst__(self, params_dict):
+        """Constructs a job_variable list from a dictionary of parameters.
+
+        Args:
+            params_dict:
+        """
+        #| - __job_i_param_dict_to_job_var_lst__
+        assert self.tree_level_labels is not None
+
+        job_var_lst_i = []
+        for level_prop in self.tree_level_labels:
+            level_var_dict = {}
+            for key_i, value_i in params_dict.items():
+                if key_i == level_prop:
+                    level_var_dict["property"] = key_i
+                    level_var_dict["value"] = value_i
+
+                    job_var_lst_i.append(level_var_dict)
+                    break
+
+        return(job_var_lst_i)
+        #__|
+
     def __Job_list__(self):
-        """
-        """
+        """Create Job list from various input sources."""
         #| - __Job_list__
+
+        #| - Adding Jobs From Individual Directory List
         if self.indiv_dir_lst is not None:
             for job_i_dir in self.indiv_dir_lst:
 
@@ -170,7 +238,9 @@ class DFT_Jobs_Setup:
                     Job_i = Job(path_i=path_i, max_revision=max_rev)
 
                     self.Job_list.append(Job_i)
+        #__|
 
+        #| - Adding Jobs From Enumerated Job Properties Tree
         if self.job_var_lst is not None:
             for job_i in self.job_var_lst:
                 job_var_dict = self.__job_i_vars_to_dict__(job_i)
@@ -184,7 +254,36 @@ class DFT_Jobs_Setup:
                 else:
                     path_i = os.path.join(self.var_lst_to_path(job_i), "_1")
 
-                Job_i = Job(path_i=path_i, job_params_dict=job_var_dict)
+                Job_i = Job(
+                    path_i=path_i,
+                    job_params_dict=job_var_dict,
+                    root_dir=self.root_dir,
+                    )
+
+                self.Job_list.append(Job_i)
+        #__|
+
+        indiv_job = self.indiv_job_lst is not None
+        level_labels = self.tree_level_labels is not None
+        if indiv_job and level_labels:
+
+            for job_params_i in self.indiv_job_lst:
+
+                job_var_lst_i = self.__job_i_param_dict_to_job_var_lst__(
+                    job_params_i,
+                    )
+
+                path_i = os.path.join(
+                    self.new_var_lst_to_path(job_var_lst_i),
+                    "_1",
+                    )
+
+                Job_i = Job(
+                    path_i=path_i,
+                    job_params_dict=job_params_i,
+                    max_revision=None,
+                    root_dir=self.root_dir,
+                    )
 
                 self.Job_list.append(Job_i)
         #__|
@@ -194,6 +293,9 @@ class DFT_Jobs_Setup:
 
     def __job_i_vars_to_dict__(self, job_i_vars):
         """
+
+        Args:
+            job_i_vars:
         """
         #| - __job_i_vars_to_dict__
         job_vars_dict = {}
@@ -209,7 +311,9 @@ class DFT_Jobs_Setup:
     def __create_jobs_bin__(self):
         """Create /jobs_bin folder if it doesn't exist."""
         #| - __create_jobs_bin__
-        folder_dir = self.root_dir + "/jobs_bin"
+        folder_dir = os.path.join(self.root_dir, self.working_dir, "jobs_bin")
+        # folder_dir = self.root_dir + "/jobs_bin"
+
         if not os.path.exists(folder_dir):
             os.makedirs(folder_dir)
         #__|
@@ -251,16 +355,29 @@ class DFT_Jobs_Setup:
         return(folders_exist)
         #__|
 
-    def __set_root_dir__(self, working_dir):
+    def __set_root_dir__(self, root_dir_in):
         """Returns root directory."""
         #| - __set_root_dir__
-        if working_dir == ".":
+        if root_dir_in == ".":
             root_dir = os.getcwd()
         else:
-            root_dir = working_dir
+            root_dir = root_dir_in
 
         return(root_dir)
         #__|
+
+    def __set_working_dir__(self, working_dir_in):
+        """
+        """
+        #| - __set_working_dir__
+        if working_dir_in == ".":
+            working_dir = ""
+        else:
+            working_dir = working_dir_in
+
+        return(working_dir)
+        #__|
+
 
     def __check_input__(self):
         """Check that tree_level and level_entries are of matching length."""
@@ -305,13 +422,84 @@ class DFT_Jobs_Setup:
         return(num_jobs)
         #__|
 
-    def var_lst_to_path(self,
+
+    def new_var_lst_to_path(self,
         variable_lst,
         job_rev="False",
         relative_path=True,
         ):
         """
-        Construct path string from variable list.
+        """
+        #| - new_var_lst_to_path
+        if isinstance(variable_lst, str):
+            variable_lst = ast.literal_eval(variable_lst)
+        else:
+            pass
+
+        level_cnt = 0
+        dir_name = "data/"
+        for level in variable_lst:
+            level_cnt += 1
+
+            if self.level_entries is not None:
+                tmp = self.tree_level_labels[level_cnt - 1]
+                index = self.level_entries[tmp].index(level["value"]) + 1
+                if index < 10:
+                    index = "0" + str(index)
+                else:
+                    index = str(index)
+
+                beggining = index + self.sep
+
+            else:
+                index = ""
+                beggining = index
+
+            #| - REPLACING PERIODS WITH "p" and NEGATIVE SIGNS WITH "n"
+            # if type(level["value"]) == type(1.23):
+            if isinstance(level["value"], float):
+                prop_value = str(level["value"]).replace(".", "p")
+
+                if "-" in str(level["value"]):
+                    prop_value = prop_value.replace("-", "n")
+
+            else:
+                prop_value = str(level["value"])
+            #__|
+
+            dir_name += beggining + prop_value + "/"
+
+        if job_rev == "Auto":
+            # __revision_list_and_max__
+            # def __revision_list_and_max__(self, path_i):
+
+            revision_dirs, highest_rev = self.__revision_list_and_max__(
+                self.var_lst_to_path(variable_lst),
+                )
+
+            dir_name += "_" + str(highest_rev)
+
+        if relative_path is False:
+            dir_name = os.path.join(
+                self.root_dir,
+                self.working_dir,
+                dir_name,
+                )
+        else:
+            dir_name = os.path.join(
+                self.working_dir,
+                dir_name,
+                )
+
+        return(dir_name)
+        #__|
+
+    def var_lst_to_path(self,
+        variable_lst,
+        job_rev="False",
+        relative_path=True,
+        ):
+        """Construct path string from variable list.
 
         Args:
             variable_lst: <type 'list'>
@@ -321,7 +509,6 @@ class DFT_Jobs_Setup:
                 Auto:
         """
         #| - var_lst_to_path
-        # if type(variable_lst) == type("str"):
         if isinstance(variable_lst, str):
             variable_lst = ast.literal_eval(variable_lst)
         else:
@@ -600,7 +787,65 @@ class DFT_Jobs_Setup:
 
 
     #| - Create Directory Tree
+
+
+
+
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+    # NEW
     def create_dir_struct(self, create_first_rev_folder="True"):
+        """Create directory structure according to job variable list & dict.
+
+        Development Notes:
+            This should really be looping over the jobs_list I think
+
+        Args:
+            create_first_rev_folder:
+        """
+        #| - create_dir_struct
+        for Job_i in self.Job_list:
+
+            #| - FOR LOOP BODY
+            # if create_first_rev_folder == "True":
+            #     path = os.path.join(Job_i.full_path, "_1")
+            # elif create_first_rev_folder == "False":
+            #     path = Job_i.full_path
+
+            path = Job_i.full_path
+
+            if os.path.exists(path):
+                # mess = "Path already exists: " + str(path)
+                # print(mess)
+                pass
+
+            elif not os.path.exists(path):
+                os.makedirs(path)
+            #__|
+
+        #| - folders_exist attribute should be True from now on
+        # file_name = self.root_dir + "/jobs_bin/.folders_exist"
+        file_name = os.path.join(
+            self.root_dir,
+            self.working_dir,
+            "jobs_bin/.folders_exist"
+            )
+
+        with open(file_name, "w") as fle:
+            fle.write("\n")
+
+        self.folders_exist = self.__folders_exist__(True)
+        #__|
+
+        #__|
+
+    def old_create_dir_struct(self, create_first_rev_folder="True"):
         """Create directory structure according to job variable list & dict.
 
         Development Notes:
@@ -671,6 +916,32 @@ class DFT_Jobs_Setup:
 
         #__|
 
+
+
+
+
+
+
+
+
+
+
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+
+
+
+
+
+
+
+
     def __create_dir_structure_file__(self):
         """
         Create directory structure file.
@@ -685,7 +956,13 @@ class DFT_Jobs_Setup:
         # TEMP
         dir_structure_data["skip_dirs"] = self.skip_dirs_lst
 
-        fle_name = self.root_dir + "/jobs_bin/dir_structure.json"
+        fle_name = os.path.join(
+            self.root_dir,
+            self.working_dir,
+            "jobs_bin/dir_structure.json",
+            )
+        # fle_name = self.root_dir + "/jobs_bin/dir_structure.json"
+
         with open(fle_name, "w") as fle:
             json.dump(dir_structure_data, fle, indent=2)
         #__|
@@ -780,7 +1057,7 @@ class DFT_Jobs_Setup:
 
         New methods iterates through Job instances
         """
-        #| - __generate_data_table__2
+        #| - __generate_data_table
         rows_list = []
         for Job_i in self.Job_list:
             #| - FOR LOOP BODY
@@ -805,14 +1082,17 @@ class DFT_Jobs_Setup:
         """Return list of revisions for given job path and highest revision.
 
         If there are no revision folders or the directory structure hasn't been
-        created yet 1 will be returned.
+        created yet the following dummy values will be returned:
+            (
+                ["_1"],
+                1,
+                )
 
         Args:
             path_i:
         """
         #| - __revision_list_and_max__
         if self.folders_exist:
-
             dirs = os.listdir(os.path.join(self.root_dir, path_i))
 
             revision_dirs = [dir for dir in dirs if dir[0] == "_" and
@@ -824,8 +1104,12 @@ class DFT_Jobs_Setup:
 
             return(revision_dirs, highest_rev)
         else:
-            # FIXME Should return tuple
-            return(1)
+            dummy_return = (
+                ["_1"],
+                1,
+                )
+
+            return(dummy_return)
         #__|
 
     def copy_files_jd(self, file_list, variable_lst, revision="Auto"):
@@ -843,7 +1127,6 @@ class DFT_Jobs_Setup:
 
         for file in file_list:
             shutil.copyfile(self.root_dir + "/" + file, path + "/" + file)
-
         #__|
 
 
@@ -852,7 +1135,6 @@ class DFT_Jobs_Setup:
 
 
     #| - __old__
-
     # DEPR
     def __generate_data_table__(self):
         """Initialze data table from the properties of the jobs directory.

@@ -25,12 +25,13 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
     """
 
     #| - DFT_Jobs_Manager *****************************************************
-
     def __init__(self,
-        # system="sherlock",
         tree_level=None,
         level_entries=None,
         skip_dirs_lst=None,
+        indiv_dir_lst=None,  # <-----------------------------------------------
+        indiv_job_lst=None,
+        root_dir=".",
         working_dir=".",
         update_job_state=False,
         load_dataframe=True,
@@ -48,13 +49,32 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         TEMP TEMP
         """
         #| - __init__
+
+
+
+
         DFT_Jobs_Analysis.__init__(self,
-            # system=system,
+            # # system=system,
+            # tree_level=tree_level,
+            # level_entries=level_entries,
+            # working_dir=working_dir,
+            # update_job_state=update_job_state,
+            # load_dataframe=load_dataframe,
+
             tree_level=tree_level,
             level_entries=level_entries,
+            skip_dirs_lst=skip_dirs_lst,
+            indiv_dir_lst=indiv_dir_lst,
+            indiv_job_lst=indiv_job_lst,
+            root_dir=root_dir,
             working_dir=working_dir,
             update_job_state=update_job_state,
             load_dataframe=load_dataframe,
+
+            # dataframe_dir=None,
+            # job_type_class=None,
+            # folders_exist=None,
+
             )
         #__|
 
@@ -240,11 +260,10 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         #__|
 
     def submit_job(self, **kwargs):
-        """
-        Submit job to appropriate cluster.
+        """Submit job to appropriate cluster.
 
         Args:
-            kwargs:
+            **kwargs:
         """
         #| - submit_job
         # path_i = kwargs["path_i"]

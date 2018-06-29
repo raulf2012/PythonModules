@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Test Test TEST TEST
+
 """Methods for ASE scripts, mostly DFT scripts.
 
 Author: Raul A. Flores
@@ -2030,6 +2030,26 @@ def highest_position_of_element(atoms, element_symbol):
     return(highest_z_pos)
     #__|
 
+
+def create_species_element_dict(atoms):
+    """Create dict from an atoms object with element: element number entries.
+
+    Args:
+        atoms
+    """
+    #| - create_species_element_dict
+    chem_syms = atoms.get_chemical_symbols()
+    chem_syms_unique = set(chem_syms)
+
+    species_elem_dict = {}
+    for elem_i in chem_syms_unique:
+        num_elem_i = chem_syms.count(elem_i)
+
+        species_elem_dict[elem_i] = num_elem_i
+
+    return(species_elem_dict)
+    #__|
+
 #__| **************************************************************************
 
 #| - Visualization ************************************************************
@@ -2209,3 +2229,29 @@ def create_gif_from_atoms_movies(
     #__|
 
 #__| **************************************************************************
+
+#| - MISC
+
+def max_force(atoms):
+    """Return largest force on any atom.
+
+    Args:
+        atoms
+    """
+    #| - number_of_atoms
+    forces = atoms.get_forces()
+
+    sum = 0.0
+    largest = 0.0
+    for a in range(len(atoms)):
+        force = np.sqrt(forces[a][0] ** 2 + forces[a][1] ** 2 + forces[a][2] ** 2)
+        sum += force
+        if(force > largest):
+            largest = force
+
+    return(largest, sum)
+    #__|
+
+
+
+#__|

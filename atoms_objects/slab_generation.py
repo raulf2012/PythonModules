@@ -97,7 +97,7 @@ def cut_slab_pymatgen(
 def cut_slab_catkit(
     bulk,
     facet,
-    layers=6,
+    slab_thickness=6,
     vacuum=8.,
     ):
     """Cut slab from bulk using CatKit.
@@ -107,31 +107,17 @@ def cut_slab_catkit(
         facet:
     """
     #| - cut_slab_catkit
-    # Make a test slab
-    # atoms = bulk('Pd', 'fcc', cubic=True)
-    # atoms[3].symbol = 'Cu'
-    # atoms = io.read("IrO2.cif")
-    # slab = io.read("init.cif")
-
     gen = SlabGenerator_catkit(
         bulk,
-        miller_index=(1, 1, 0),
-        layers=layers,
-        fixed=2,
+        miller_index=facet,
+        layers=slab_thickness,
         vacuum=vacuum,
+        fixed=2,
         layer_type='ang',
-        standardize_bulk=False,
-        )
-
-        # bulk,
-        # miller_index,
-        # layers,
-        # vacuum=None,
-        # fixed=None,
-        # layer_type='trim',
         # attach_graph=True,
-        # standardize_bulk=True,
-        # tol=1e-8
+        standardize_bulk=False,
+        tol=1e-8
+        )
 
     terminations = gen.get_unique_terminations()
 

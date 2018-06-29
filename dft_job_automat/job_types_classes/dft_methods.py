@@ -4,13 +4,14 @@
 
 Development Notes:
     TODO Figure out how to pass additional parameters to these methods
+    Make methods work for VASP and QE by using teh DFT_code attribute
 """
 
 #| - Import Modules
 import os
 import pickle as pickle
 from ase import io
-from ase.io.trajectory import Trajectory
+# from ase.io.trajectory import Trajectory
 
 # My Modules
 from ase_modules.ase_methods import number_of_atoms
@@ -21,7 +22,10 @@ class DFT_Methods():
     """Methods and analysis to perform within DFT jobs folders."""
 
     #| - DFT_Methods **********************************************************
-    def __init__(self, methods_to_run=[]):
+    def __init__(self,
+        methods_to_run=[],
+        DFT_code="QE",  # VASP
+        ):
         """Initialize DFT_Methods instance with methods_to_run list.
 
         Args:
@@ -29,6 +33,7 @@ class DFT_Methods():
         """
         #| - __init__
         self.methods_to_run = methods_to_run
+        self.DFT_code = DFT_code
         #__|
 
     def pdos_data(self, path_i):
@@ -145,9 +150,11 @@ class DFT_Methods():
             pass
 
         try:
+
             # TEMP_PRINT
             print("KDJFKSDKKKK")
             print("Trying reading out_opt.traj directly")
+
             atoms = io.read(path_i + "/" + "out_opt.traj")
             energy = atoms.get_potential_energy()
         except:
@@ -166,22 +173,39 @@ class DFT_Methods():
         #| - atoms_object
         # atoms_file_names = ["out_opt.traj", "out.traj"]
         # 'out.traj' should be read first
-        atoms_file_names = ["out.traj", "out_opt.traj"]
+
+        atoms_file_names = ["out.traj", "out_opt.traj",
+            "OUTCAR",  # VASP
+            ]
+
         for file_name in atoms_file_names:
             try:
-                # traj = io.read(path_i + "/" + file_name)
-                traj = Trajectory(path_i + "/" + file_name)
 
-                # Traj object can't be pickled, this is a work around for now
-                traj_list = []
-                for image in traj:
-                    traj_list.append(image)
-                traj = traj_list
+                #| - try to read atoms
+                if self.DFT_code == "VASP":
+
+                    cwd = os.getcwd()
+                    os.chdir(path_i)
+
+                    traj = io.read(
+                        os.path.join(path_i, file_name),
+                        index=":",
+                        )
+
+                    os.chdir(cwd)
+
+                else:
+
+                    traj = io.read(
+                        os.path.join(path_i, file_name),
+                        index=":",
+                        )
+
                 break
+                #__|
 
             except:
                 traj = None
-                # pass
 
         return(traj)
         #__|

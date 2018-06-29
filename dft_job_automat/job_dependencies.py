@@ -235,7 +235,8 @@ class DFT_Jobs_Workflow:
 
         tree_level_labels_list=None,
         tree_level_values_list=None,
-
+        indiv_dir_lst_list=None,
+        indiv_job_lst_list=None,
 
         setup_function=None,
         maint_function=None,
@@ -249,8 +250,11 @@ class DFT_Jobs_Workflow:
             atoms_prefix:
             atoms_list_names:
             model_names:
+
             tree_level_labels_list:
             tree_level_values_list:
+            indiv_dir_lst_list:
+
             setup_function:
             maint_function:
             number_of_steps:
@@ -263,10 +267,26 @@ class DFT_Jobs_Workflow:
 
         self.atoms_ext = atoms_prefix
         self.atoms_list_names = atoms_list_names
-        self.tree_level_labels_list = tree_level_labels_list
-        self.tree_level_values_list = tree_level_values_list
-        # self.model_names = model_names
+
         self.num_steps = number_of_steps
+
+        self.tree_level_labels_list = self.list_of_None_if_None(
+            tree_level_labels_list,
+            )
+
+        self.tree_level_values_list = self.list_of_None_if_None(
+            tree_level_values_list,
+            )
+
+        self.indiv_dir_lst_list = self.list_of_None_if_None(
+            indiv_dir_lst_list,
+            )
+
+        self.indiv_job_lst_list = self.list_of_None_if_None(
+            indiv_job_lst_list,
+            )
+
+        # self.model_names = model_names
 
         self.setup_function = setup_function
         self.maint_function = maint_function
@@ -274,11 +294,11 @@ class DFT_Jobs_Workflow:
         self.run_jobs = run_jobs
 
         self.root_dir = self.__set_cwd__(root_dir)
-        self.atoms_dict = create_atoms_list(
-            atoms_list_names,
-            atoms_prefix,
-            self.root_dir,
-            )
+        # self.atoms_dict = create_atoms_list(
+        #     atoms_list_names,
+        #     atoms_prefix,
+        #     self.root_dir,
+        #     )
 
         self.step_dir_names = self.__set_step_dir_names__()
         self.model_names = self.__set_model_names__(model_names)
@@ -290,6 +310,18 @@ class DFT_Jobs_Workflow:
 
         self.jobs_man_list = self.__create_jobs_man__()
         self.__job_maint__()
+        #__|
+
+    def list_of_None_if_None(self, input):
+        """Return list of 'None' of length == # of steps, if input is None
+        """
+        #| - list_of_None_if_None
+        if input is None:
+            none_list = [None for i in range(self.num_steps)]
+
+            return(none_list)
+        else:
+            return(input)
         #__|
 
     def __set_cwd__(self, root_dir):
@@ -340,7 +372,7 @@ class DFT_Jobs_Workflow:
         #__|
 
     def __create_jobs_an__(self):
-        """Creates Jobs_Analysis instances for each step of workflow."""
+        """Create Jobs_Analysis instances for each step of workflow."""
         #| - __create_jobs_an__
         # print("PREPARING EXTENDED FOLDER SYSTEM")  #PERM_PRINT
         step_dir_names = self.step_dir_names
@@ -358,34 +390,17 @@ class DFT_Jobs_Workflow:
             level_labels_tmp = self.tree_level_labels_list[step]
             level_entries_tmp = self.tree_level_values_list[step]
 
-            # Jobs = DFT_Jobs_Analysis(
-            #     indiv_dir_lst=dir_list,
-            #     working_dir=".",
-            #     folders_exist=True,
-            #     load_dataframe=False,
-            #     job_type_class=dft_inst,
-            #     # job_type_class=None,
-            #     )
-
-            # tree_level=None,
-            # level_entries=None,
-            # skip_dirs_lst=None,
-            # indiv_dir_lst=None,  # <-----------------------------------------------
-            # working_dir=".",
-            # update_job_state=False,
-            # load_dataframe=True,
-            # dataframe_dir=None,
-            # job_type_class=None,
-            # folders_exist=None,
+            indiv_dir_lst_tmp = self.indiv_dir_lst_list[step]
+            indiv_job_lst_tmp = self.indiv_job_lst_list[step]
 
             JobsAn = DFT_Jobs_Analysis(
-                # system="aws",
                 tree_level=level_labels_tmp,
                 level_entries=level_entries_tmp,
+                indiv_dir_lst=indiv_dir_lst_tmp,
+                indiv_job_lst=indiv_job_lst_tmp,
 
-                # indiv_dir_lst=
-
-                working_dir=master_root_dir + "/" + step_dir_names[step],
+                root_dir=master_root_dir,
+                working_dir=step_dir_names[step],
                 update_job_state=False,
                 load_dataframe=False,
                 )
@@ -408,12 +423,29 @@ class DFT_Jobs_Workflow:
             level_labels_tmp = self.tree_level_labels_list[step]
             level_entries_tmp = self.tree_level_values_list[step]
 
+            indiv_dir_lst_tmp = self.indiv_dir_lst_list[step]
+            indiv_job_lst_tmp = self.indiv_job_lst_list[step]
+
             Jobs = DFT_Jobs_Manager(
-                # system="aws",
+
+
                 tree_level=level_labels_tmp,
                 level_entries=level_entries_tmp,
-                working_dir=master_root_dir + "/" + step_dir_names[step],
+
+                skip_dirs_lst=None,
+                indiv_dir_lst=indiv_dir_lst_tmp,  # <-----------------------------------------------
+                indiv_job_lst=indiv_job_lst_tmp,
+
+                root_dir=master_root_dir,
+                working_dir=step_dir_names[step],
+
+                update_job_state=False,
                 load_dataframe=False,
+
+                # tree_level=level_labels_tmp,
+                # level_entries=level_entries_tmp,
+                # working_dir=master_root_dir + "/" + step_dir_names[step],
+                # load_dataframe=False,
                 )
 
             Jobs_Inst_list.append(Jobs)
@@ -454,30 +486,38 @@ class DFT_Jobs_Workflow:
             files_placed_file = master_root_dir + "/" + \
                 step_dir_names[step] + "/.FILES_PLACED"
 
-            if not os.path.isfile(files_placed_file):
+            # if not os.path.isfile(files_placed_file):
+            if True:
 
                 #| - Create Step Folder Structure
                 JobsAn.create_dir_struct(create_first_rev_folder="True")
                 #__|
 
-                for job_i in JobsAn.job_var_lst:
-                    path_i = JobsAn.var_lst_to_path(
-                        job_i,
-                        job_rev="Auto",
-                        relative_path=False,
-                        )
+                for Job_i in JobsAn.Job_list:
+                    path_i = Job_i.full_path
 
-                    #| - Job_i Parameters
-                    job_i_params = {}
-                    for variable in JobsAn.tree_level_labels:
-                        job_i_var_j = JobsAn.extract_prop_from_var_lst(
-                            job_i,
-                            variable,
-                            )
-                        job_i_params[variable] = job_i_var_j
-                    #__|
+                    job_i_params = Job_i.job_params
 
                     self.setup_function(step, path_i, job_i_params, wf_vars)
+
+                # for job_i in JobsAn.job_var_lst:
+                #     path_i = JobsAn.var_lst_to_path(
+                #         job_i,
+                #         job_rev="Auto",
+                #         relative_path=False,
+                #         )
+                #
+                #     #| - Job_i Parameters
+                #     job_i_params = {}
+                #     for variable in JobsAn.tree_level_labels:
+                #         job_i_var_j = JobsAn.extract_prop_from_var_lst(
+                #             job_i,
+                #             variable,
+                #             )
+                #         job_i_params[variable] = job_i_var_j
+                #     #__|
+                #
+                #     self.setup_function(step, path_i, job_i_params, wf_vars)
 
                 file_name = master_root_dir + "/" + step_dir_names[step]
                 file = open(file_name + "/.FILES_PLACED", "w")
@@ -527,31 +567,50 @@ class DFT_Jobs_Workflow:
                     }
 
                 wf_vars = vars(self)
-                for job_i in Jobs.job_var_lst:
-                    path_i = Jobs.var_lst_to_path(
-                        job_i,
-                        job_rev="Auto",
-                        relative_path=False,
-                        )
 
-                    #| - Job_i Parameters
-                    job_i_params = {}
-                    for variable in Jobs.tree_level_labels:
-                        job_i_param_j = Jobs.extract_prop_from_var_lst(
-                            job_i,
-                            variable,
-                            )
+                for Job_i in Jobs.Job_list:
+                    path_i = Job_i.full_path
+                    job_i_params = Job_i.job_params
 
-                        job_i_params[variable] = job_i_param_j
-                    #__|
+                    # Why is this being run again #COMBAK
+                    self.setup_function(step, path_i, job_i_params, wf_vars)
 
                     tally = self.maint_function(
                         step,
-                        job_i,
+                        # job_i,
+                        path_i,
                         job_i_params,
                         wf_vars,
                         tally,
                         )
+
+                #| - __old__
+                # for job_i in Jobs.job_var_lst:
+                #     path_i = Jobs.var_lst_to_path(
+                #         job_i,
+                #         job_rev="Auto",
+                #         relative_path=False,
+                #         )
+                #
+                #     #| - Job_i Parameters
+                #     job_i_params = {}
+                #     for variable in Jobs.tree_level_labels:
+                #         job_i_param_j = Jobs.extract_prop_from_var_lst(
+                #             job_i,
+                #             variable,
+                #             )
+                #
+                #         job_i_params[variable] = job_i_param_j
+                #     #__|
+                #
+                #     tally = self.maint_function(
+                #         step,
+                #         job_i,
+                #         job_i_params,
+                #         wf_vars,
+                #         tally,
+                #         )
+                #__|
 
                     # TODO Check that tally is being incremented by 1 only
 
