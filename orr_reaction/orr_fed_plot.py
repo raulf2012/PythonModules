@@ -6,11 +6,11 @@ Author: Raul A. Flores
 """
 
 #| - IMPORT MODULES
-import copy
 import numpy as np
 import pandas as pd
 
-from plotly.graph_objs import Scatter
+import plotly.plotly as py
+import plotly.graph_objs as go
 
 pd.options.mode.chained_assignment = None
 
@@ -19,6 +19,10 @@ from orr_reaction.orr_series import ORR_Free_E_Series
 
 class ORR_Free_E_Plot:
     """ORR free energy diagram class.
+
+    ACTUALLY THIS IS GOING TO BE A GENERAL ORR/OER CLASS NOW!!!!!!!!!!!!!!!!!!!
+
+
 
     Development Notes:
         # TODO Should we consider the case where the bulk energy is not 0, and
@@ -107,17 +111,14 @@ class ORR_Free_E_Plot:
             self.rxn_mech_states = ["bulk", "oh", "o", "ooh", "bulk"]
             self.ideal_energy = [0, 1.23, 2.46, 3.69, 4.92]
 
-
         self.rxn_x_coord_array = self.create_rxn_coord_array(
             self.num_states,
             spacing=self.plot_states_sep,
             step_size=self.plot_states_width,
             )
 
-
         self.mid_state_x_array = self.create_mid_state_x_array()
         # x_array_data = self.rxn_x_coord_array
-
 
         if ORR_Free_E_series_list is None:
             self.series_list = []
@@ -198,6 +199,7 @@ class ORR_Free_E_Plot:
         opt_name=None,
         smart_format=True,
         overpotential_type="ORR",
+        system_properties=None,
         ):
         """
         """
@@ -226,7 +228,7 @@ class ORR_Free_E_Plot:
 
         ORR_Series = ORR_Free_E_Series(
             free_energy_df=fe_df,
-            # system_properties=None,
+            properties=system_properties,
             state_title=self.state_title,
             free_e_title=self.fe_title,
             bias=self.bias,
@@ -265,7 +267,7 @@ class ORR_Free_E_Plot:
         axes_lab_size=18,
         legend_size=18,
         # font_family="Computer Modern"  # "Courier New, monospace"
-        font_family="Courier New, monospace"  # "Courier New, monospace"
+        font_family="Courier New, monospace",  # "Courier New, monospace"
         ):
         """
 
@@ -545,6 +547,234 @@ class ORR_Free_E_Plot:
             cnt += 2
 
         return(short_x)
+        #__|
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def create_scaling_relations_plot(self,
+        y_ax_spec,
+        x_ax_spec="oh",
+        smart_format_dict=None,
+        x_range=[0, 1.5]
+        ):
+        """Return plotly data and layout objects for scaling relations.
+
+        Args:
+            y_ax_spec:
+            x_ax_spec:
+        """
+        #| - create_scaling_relations_plot
+
+        #| - Internal Methods
+        # TODO Should put these in a more accesible place
+
+        def create_smart_format_dict(property_dict, smart_format_dict):
+            """Create smart format dictionary.
+
+            Args:
+                property_dict:
+                smart_format_dict:
+            """
+            format_dict = {}
+            for key_i, value_i in property_dict.items():
+                for format_i in smart_format_dict:
+                    if list(format_i[0])[0] == key_i:
+                        if list(format_i[0].values())[0] == value_i:
+                            format_dict.update(format_i[1])
+
+            return(format_dict)
+
+        def create_series_name(series):
+            """
+            """
+            #| - create_series_name
+            name_i = ""
+            for key, value in series_i.properties.items():
+                if key == "coverage":
+                    continue
+
+                name_i += str(key) + ": " + str(value) + " | "
+
+            return(name_i)
+            #__|
+
+        def ooh_oh_scaling(E_OH):
+            return(E_OH + 3.2)
+
+        def o_oh_scaling(E_OH):
+            return(2 * E_OH)
+
+        def create_trace_i(
+            x_energy,
+            y_energy,
+            smart_format_i
+            ):
+            """
+            """
+            #| - create_trace_i
+            trace_i = go.Scatter(
+                x=x_energy,
+                y=y_energy,
+                text=name_i,
+                name=name_i,
+                mode='markers',
+                marker=dict(
+                    size=14,
+                    color=smart_format_i["color2"],
+                    line=dict(
+                        color=smart_format_i["color1"],
+                        width=4,
+                        )
+                    )
+                )
+
+            return(trace_i)
+            #__|
+
+        def create_layout(
+            y_ax_spec,
+            x_ax_spec,
+            title="Scaling Relations",
+            ):
+            """
+            """
+            #| - create_layout
+            if y_ax_spec == "ooh":
+                y_ax_title = "G_OOH"
+            elif y_ax_spec == "o":
+                y_ax_title = "G_O"
+
+            if x_ax_spec == "oh":
+                x_ax_title = "G_OH"
+
+            layout_i = dict(
+                title=title,
+                xaxis=dict(
+                    title=x_ax_title,
+                    zeroline=False,
+                    ),
+                yaxis=dict(
+                    title=y_ax_title,
+                    zeroline=False,
+                    ),
+                legend=dict(
+                    x=0.,
+                    y=1.8,
+                    font=dict(
+                        size=10,
+                        ),
+                    ),
+                )
+
+            return(layout_i)
+            #__|
+
+        #__|
+
+        #| - Default Smart Format Dict
+        if smart_format_dict is None:
+            print("No smart format given!")
+            smart_format_dict = [
+                [{"bulk_system": "IrO3"}, {"color2": "green"}],
+                [{"bulk_system": "IrO2"}, {"color2": "yellow"}],
+
+                [{"coverage_type": "o_covered"}, {"symbol": "s"}],
+                [{"coverage_type": "h_covered"}, {"symbol": "^"}],
+
+                [{"facet": "110"}, {"color1": "red"}],
+                [{"facet": "211"}, {"color1": "green"}],
+                [{"facet": "100"}, {"color1": "black"}],
+                ]
+        #__|
+
+        assert (x_ax_spec == "oh"), "Only *OH as the x-axis is allowed now"
+
+        #| - Processing Data Points
+        data_ooh_oh = []
+        data_o_oh = []
+        for series_i in self.series_list:
+            e_oh = series_i.energy_states_dict["oh"]
+            e_ooh = series_i.energy_states_dict["ooh"]
+            e_o = series_i.energy_states_dict["o"]
+
+
+            # print(series_i.properties)
+            # print(smart_format_dict)
+            # print("________________________")
+
+
+            smart_format_i = create_smart_format_dict(
+                series_i.properties,
+                smart_format_dict,
+                )
+
+            print(smart_format_i)
+
+
+            name_i = create_series_name(series_i)
+
+            trace_i = create_trace_i(e_oh, e_ooh, smart_format_i)
+            data_ooh_oh.append(trace_i)
+
+            trace_i = create_trace_i(e_oh, e_o, smart_format_i)
+            data_o_oh.append(trace_i)
+        #__|
+
+        #| - Ideal Scaling Lines
+        scaling_trace = go.Scatter(
+            x=[x_range[0], x_range[1]],
+            y=[ooh_oh_scaling(x_range[0]), ooh_oh_scaling(x_range[1])],
+            name='OOH_OH Scaling',
+            mode='lines',
+            line=dict(
+                color="black",
+                width=1,
+                ),
+            )
+        data_ooh_oh.append(scaling_trace)
+
+        scaling_trace = go.Scatter(
+            x=[x_range[0], x_range[1]],
+            y=[o_oh_scaling(x_range[0]), o_oh_scaling(x_range[1])],
+            name='O_OH Scaling',
+            mode='lines',
+            line=dict(
+                color="black",
+                width=1,
+                ),
+            )
+        data_o_oh.append(scaling_trace)
+        #__|
+
+        #| - Plot Layout Settings
+        layout_ooh_oh = create_layout(
+            y_ax_spec,
+            x_ax_spec,
+            title="OOH vs OH Scaling",
+            )
+
+        layout_o_oh = create_layout(
+            y_ax_spec,
+            x_ax_spec,
+            title="O vs OH Scaling",
+            )
+        #__|
+
+        if y_ax_spec == "ooh":
+            return(data_ooh_oh, layout_ooh_oh)
+        elif y_ax_spec == "o":
+            return(data_o_oh, layout_o_oh)
         #__|
 
     #__| **********************************************************************

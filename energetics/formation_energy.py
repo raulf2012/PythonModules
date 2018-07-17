@@ -11,7 +11,12 @@ import numpy as np
 from ase_modules.ase_methods import create_species_element_dict
 #__|
 
-def calc_formation_energy(atoms, energy, reference_states):
+def calc_formation_energy(
+    atoms,
+    energy,
+    reference_states,
+    normalize_per_atom=True,
+    ):
     """Calculate formation energy of structure on a per atom basis.
 
         reference states = [
@@ -29,6 +34,7 @@ def calc_formation_energy(atoms, energy, reference_states):
         atoms:
         energy:
         reference_dict:
+        normalize_per_atom:
     """
     #| - calc_formation_energy
     atoms.info["element_dict"] = create_species_element_dict(atoms)
@@ -92,8 +98,11 @@ def calc_formation_energy(atoms, energy, reference_states):
         ref_e_sum += ref_i_contribution
 
     form_e = energy - ref_e_sum
-    form_e = form_e / num_atoms
+
+    if normalize_per_atom:
+        form_e = form_e / num_atoms
     #__|
+
 
     return(form_e)
     #__|

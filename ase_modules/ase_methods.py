@@ -30,9 +30,11 @@ import matplotlib as plt
 from ase.io import read, write, Trajectory
 from ase import io
 from ase.dft.kpoints import ibz_points, get_bandpath
-
 from ase.vibrations import Vibrations
 from ase.thermochemistry import HarmonicThermo
+
+# pymatgen
+from pymatgen.core.periodic_table import _pt_data as periodic_table_dict
 
 # My Modules
 from misc_modules.numpy_methods import angle_between
@@ -1961,25 +1963,6 @@ def change_vacuum(atoms, vacuum):
 
 #| - Atoms Information Methods ************************************************
 
-def number_of_atoms(atoms):
-    """Return atom count dictionary.
-
-    Args:
-        atoms
-    """
-    #| - number_of_atoms
-    atoms_sym_list = atoms.get_chemical_symbols()
-
-    unique_atom_symbols = list(set(atoms_sym_list))
-
-    atom_dict = {}
-    for atom_sym_i in unique_atom_symbols:
-        atom_i_cnt = atoms_sym_list.count(atom_sym_i)
-
-        atom_dict[atom_sym_i] = atom_i_cnt
-
-    return(atom_dict)
-    #__|
 
 def number_of_constrained_atoms(atoms):
     """Count number of constrained atoms in atoms object.
@@ -2030,14 +2013,61 @@ def highest_position_of_element(atoms, element_symbol):
     return(highest_z_pos)
     #__|
 
+def number_of_atoms(atoms):
+    """Return atom count dictionary.
 
-def create_species_element_dict(atoms):
-    """Create dict from an atoms object with element: element number entries.
+    DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
+    create_species_element_dict
 
     Args:
         atoms
     """
+    #| - number_of_atoms
+    atoms_sym_list = atoms.get_chemical_symbols()
+    unique_atom_symbols = list(set(atoms_sym_list))
+
+    atom_dict = {}
+    for atom_sym_i in unique_atom_symbols:
+        atom_i_cnt = atoms_sym_list.count(atom_sym_i)
+
+        atom_dict[atom_sym_i] = atom_i_cnt
+
+    print("THIS HAS BEEN DEPRECATED to create_species_element_dict")
+    print("THIS HAS BEEN DEPRECATED to create_species_element_dict")
+    print("THIS HAS BEEN DEPRECATED to create_species_element_dict")
+    print("THIS HAS BEEN DEPRECATED to create_species_element_dict")
+
+    # return(atom_dict)
+    #__|
+
+def create_species_element_dict(
+    atoms,
+    include_all_elems=False,
+    elems_to_always_include=None,
+    ):
+    """Create dict from an atoms object with element: element number entries.
+
+    If 'include_all_elems' is True then 'elems_to_always_include' must be None
+
+    Args:
+        atoms:
+        include_all_elems: <boolean> or <list>
+            False: Does not add additional elements other than the ones
+            present in the atoms object
+
+            True: Includes all elements in the periodic table, with 0 values
+            for the elements not present in the atoms object
+
+        elems_to_always_include:
+            List: List of elements to include in the final dict, not including
+            the elements present in the atoms object.
+
+    """
     #| - create_species_element_dict
+    from misc_modules.misc_methods import merge_two_dicts
+
+    all_elements = list(periodic_table_dict)
+
     chem_syms = atoms.get_chemical_symbols()
     chem_syms_unique = set(chem_syms)
 
@@ -2046,6 +2076,42 @@ def create_species_element_dict(atoms):
         num_elem_i = chem_syms.count(elem_i)
 
         species_elem_dict[elem_i] = num_elem_i
+
+    #| - Include All Elements in the periodic table
+    if include_all_elems or elems_to_always_include is not None:
+        all_non_occuring_elements = list(
+            filter(
+                lambda x: x not in set(list(species_elem_dict)), all_elements
+                )
+            )
+#         print(all_non_occuring_elements)
+
+#         if elems_to_always_include is not None:
+        if elems_to_always_include is not None and type(elems_to_always_include) == list:
+            non_occuring_elements = [i for i in all_non_occuring_elements if i in elems_to_always_include]
+        else:
+            non_occuring_elements = all_non_occuring_elements
+
+        non_occuring_species_elem_dict = dict(
+            zip(
+                non_occuring_elements,
+                [0 for i in non_occuring_elements],
+                )
+            )
+
+#         non_occuring_species_elem_dict = dict(
+#             zip(
+#                 all_non_occuring_elements,
+#                 [0 for i in all_non_occuring_elements],
+#                 )
+#             )
+
+
+        species_elem_dict = merge_two_dicts(
+            non_occuring_species_elem_dict,
+            species_elem_dict,
+            )
+    #__|
 
     return(species_elem_dict)
     #__|
@@ -2238,13 +2304,18 @@ def max_force(atoms):
     Args:
         atoms
     """
-    #| - number_of_atoms
+    #| - max_force
     forces = atoms.get_forces()
 
     sum = 0.0
     largest = 0.0
     for a in range(len(atoms)):
-        force = np.sqrt(forces[a][0] ** 2 + forces[a][1] ** 2 + forces[a][2] ** 2)
+        force = np.sqrt(
+            forces[a][0] ** 2 +
+            forces[a][1] ** 2 +
+            forces[a][2] ** 2
+            )
+
         sum += force
         if(force > largest):
             largest = force

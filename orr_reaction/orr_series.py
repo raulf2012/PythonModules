@@ -11,16 +11,9 @@ import numpy as np
 import pandas as pd
 
 from plotly.graph_objs import Scatter
-
-
 pd.options.mode.chained_assignment = None
-
-# from orr_reaction.orr_series import ORR_Free_E_Series
-# from orr_reaction.orr_fed_plot import ORR_Free_E_Plot
 #__|
 
-
-# class ORR_Free_E_Series(ORR_Free_E_Plot):
 class ORR_Free_E_Series():
     """ORR free energy diagram series class.
 
@@ -98,7 +91,6 @@ class ORR_Free_E_Series():
             self.rxn_mech_states = ["bulk", "oh", "o", "ooh", "bulk"]
             self.ideal_energy = [0, 1.23, 2.46, 3.69, 4.92]
 
-
         if free_energy_df is not None:
             self.add_bulk_entry()
             self.fill_missing_data()
@@ -113,8 +105,10 @@ class ORR_Free_E_Series():
             self.overpotential_h2o2 = self.calc_overpotential_h2o2()
             self.overpotential_OER = self.calc_overpotential_OER()[0]
 
-            self.series_plot = self.plot_fed_series(
+            self.energy_states_dict = self.__energy_states_dict__()
 
+
+            self.series_plot = self.plot_fed_series(
                 bias=self.bias,
                 opt_name=self.opt_name,
                 properties=self.properties,
@@ -124,6 +118,9 @@ class ORR_Free_E_Series():
                 plot_mode=self.plot_mode,
                 smart_format=self.smart_format,
                 overpotential_type=self.rxn_type,
+                )
+
+            #| - __old__
                 # bias=0.,
                 # opt_name=None,
                 # properties=None,
@@ -132,10 +129,24 @@ class ORR_Free_E_Series():
                 # hover_text_col=None,
                 # plot_mode="all",
                 # smart_format=None,
-                )
+            #__|
 
         #__|
 
+
+    def __energy_states_dict__(self):
+        """
+        """
+        #| - __energy_states_dict__
+        energy_lst = self.energy_lst
+        rxn_mech_states = self.rxn_mech_states
+
+        energy_states_dict = dict(zip(rxn_mech_states, energy_lst))
+        energy_states_dict.pop("bulk", None)
+
+        return(energy_states_dict)
+        # energy_states_dict
+        #__|
 
     def add_bulk_entry(self,
         bulk_e=0.0,
@@ -479,7 +490,6 @@ class ORR_Free_E_Series():
             name_i = prop_name + \
                 " (OP: " + str(round(overpot_i, 2)) + ")"
         #__|
-
 
         #| - Hover Text
         if hover_text_col is not None:

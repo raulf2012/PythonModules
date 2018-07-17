@@ -478,8 +478,15 @@ class EdisonCluster(ComputerCluster):
         with open(".jobid", "w") as fle:
             fle.write(str(job_id) + str("\n"))
 
-        with open(".sub_out", "w") as fle:
-            fle.write(out_copy)
+        if sys.version_info >= (3, 0):
+            with open(".sub_out", "wb") as fle:
+                fle.write(out_copy)
+
+        else:
+            with open(".sub_out", "w") as fle:
+                fle.write(out_copy)
+
+
         #__|
 
         os.chdir(self.root_dir)
@@ -1118,11 +1125,24 @@ class SherlockCluster(ComputerCluster):
         #__|
 
         try:
-            output = subprocess.Popen(
-                bash_command,
-                stdout=subprocess.PIPE,
-                shell=True,
-                )
+
+            if sys.version_info[0] < 3:
+                # raise Exception("Must be using Python 3")
+                output = subprocess.Popen(
+                    bash_command,
+                    stdout=subprocess.PIPE,
+                    shell=True,
+                    # encoding="utf8",
+                    )
+
+            else:
+                output = subprocess.Popen(
+                    bash_command,
+                    stdout=subprocess.PIPE,
+                    shell=True,
+                    encoding="utf8",
+                    )
+
             sub_time = datetime.datetime.now().isoformat()
         # except subprocess.CalledProcessError, e:
         except subprocess.CalledProcessError as e:
@@ -1137,6 +1157,7 @@ class SherlockCluster(ComputerCluster):
         out_copy = copy.deepcopy(out)
 
         ind = out.find("job")
+
         out = out[ind + 3:]
 
         jobid = re.sub("[^0-9]", "", out)
