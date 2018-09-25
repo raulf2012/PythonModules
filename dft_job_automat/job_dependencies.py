@@ -569,15 +569,22 @@ class DFT_Jobs_Workflow:
                 wf_vars = vars(self)
 
                 for Job_i in Jobs.Job_list:
+
                     path_i = Job_i.full_path
                     job_i_params = Job_i.job_params
 
                     # Why is this being run again #COMBAK
                     self.setup_function(step, path_i, job_i_params, wf_vars)
 
+                    # print(self.maint_function)
+                    # step_i,
+                    # job_i,
+                    # job_i_params,
+                    # wf_vars,
+                    # tally,
+
                     tally = self.maint_function(
                         step,
-                        # job_i,
                         path_i,
                         job_i_params,
                         wf_vars,
@@ -612,10 +619,8 @@ class DFT_Jobs_Workflow:
                 #         )
                 #__|
 
-                    # TODO Check that tally is being incremented by 1 only
-
+                # TODO Check that tally is being incremented by 1 only
                 print(tally)
-
             print("")
             #__|
 

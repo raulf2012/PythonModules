@@ -29,7 +29,7 @@ class ORR_Free_E_Plot:
         we have to normalize all of the species energies by it?
     """
 
-    #| - ORR_Free_E_Plot *******************************************************
+    #| - ORR_Free_E_Plot ******************************************************
 
     def __init__(self,
         free_energy_df=None,
@@ -37,22 +37,14 @@ class ORR_Free_E_Plot:
         # system_properties=None,
         state_title="adsorbate",
         free_e_title="ads_e",
-
         num_states=5,
-
         smart_format=None,
-
         bias=0.,
-
         # opt_name=None,
         # properties=None,
-
         color_list=None,
-
         # i_cnt=0,
-
         hover_text_col=None,
-
         # plot_mode="all",
         # smart_format=None,
 
@@ -268,6 +260,10 @@ class ORR_Free_E_Plot:
         legend_size=18,
         # font_family="Computer Modern"  # "Courier New, monospace"
         font_family="Courier New, monospace",  # "Courier New, monospace"
+        plot_width=680,
+        plot_height=510,
+
+        annotation_size=12,
         ):
         """
 
@@ -279,13 +275,22 @@ class ORR_Free_E_Plot:
 
         if self.rxn_type == "ORR":
             # xax_labels = ["$O_{2}$", "$*OOH$", "$*O$", "$*OH$", "$H_{2}O$"]
-            xax_labels = ["O2", "*OOH", "*O", "*OH", "H2O"]
+            # xax_labels = ["O2", "*OOH", "*O", "*OH", "H2O"]
 
-            # xax_labels = ["O<sub>2</sub>", "*OOH", "*O", "*OH", "H<sub>2</sub>O"]
+            xax_labels = [
+                "O<sub>2</sub>",
+                "*OOH",
+                "*O",
+                "*OH",
+                "H<sub>2</sub>O",
+                ]
 
         elif self.rxn_type == "OER":
             # xax_labels = ["$H_{2}O$", "$*OH$", "$*O$", "$*OOH$", "$O_{2}$"]
             xax_labels = ["H2O", "*OH", "*O", "*OOH", "O2"]
+
+        print(axes_lab_size)
+        print(tick_lab_size)
 
         layout = {
             "title": plot_title,
@@ -297,12 +302,14 @@ class ORR_Free_E_Plot:
                 "color": "black",
                 },
 
-            #| - Axes --------------------------------------------------------------
+
+            #| - Axes ---------------------------------------------------------
             "yaxis": {
                 "title": "Free Energy (eV)",
                 # "title": "$\\Delta G (ev)$",
 
-                "zeroline": True,
+                "zeroline": False,
+                "linecolor": 'black',
                 "showline": True,
                 "mirror": 'ticks',
                 "showgrid": False,
@@ -313,20 +320,21 @@ class ORR_Free_E_Plot:
                     size=tick_lab_size,
                     ),
 
-                "autotick": False,
+                # "autotick": False,
                 "ticks": 'inside',
                 "tick0": 0,
-                "dtick": 0.5,
-                "ticklen": 8,
-                "tickwidth": 2,
-                # "tickcolor": '#000'
+                "dtick": 1.0,
+                "ticklen": 2,
+                "tickwidth": 1,
+                "tickcolor": 'black',
 
                 },
 
             "xaxis": {
-                # "title": "Reaction Coordinate",
+                "title": "Reaction Coordinate",
 
-                "zeroline": True,
+                "zeroline": False,
+                "linecolor": 'black',
                 "showline": True,
                 "mirror": 'ticks',
                 "showgrid": False,
@@ -337,36 +345,47 @@ class ORR_Free_E_Plot:
 
                 "showticklabels": True,
 
+                "ticks": "",
                 "ticktext": xax_labels,
                 # "tickvals": [1.5 * i + 0.5 for i in range(len(xax_labels))],
                 # "tickvals": [self.plot_states_width * i + 0.5
                 #     for i in range(len(xax_labels))],
                 "tickvals": self.mid_state_x_array,
-
+                "tickcolor": 'black',
                 "tickfont": dict(
                     size=tick_lab_size,
                     ),
                 },
-            #__| -------------------------------------------------------------------
+            #__| --------------------------------------------------------------
 
-            #| - Legend ------------------------------------------------------------
+            #| - Legend -------------------------------------------------------
             "legend": {
                 "traceorder": "normal",
                 "font": dict(size=legend_size)
                 },
-            #__| -------------------------------------------------------------------
+
+            "showlegend": self.show_legend,
+
+            #__| --------------------------------------------------------------
 
             #| - Plot Size
             # "width": 200 * 4.,
             # "height": 200 * 3.,
             #__|
 
-            "showlegend": self.show_legend,
+            # "paper_bgcolor": 'rgba(0,0,0,0)',
+            "plot_bgcolor": 'rgba(0,0,0,0)',
+
+            # "width": 9. * 37.795275591,
+            # "height": 9 * 37.795275591,
+
+            "width": plot_width,
+            "height": plot_height,
 
             }
 
         if self.show_H_e_pairs_annotations:
-            annotations = self.H_e_pairs_annotations()
+            annotations = self.H_e_pairs_annotations(font_size=annotation_size)
 
             if "annotations" in list(layout):
                 layout["annotations"] += annotations

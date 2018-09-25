@@ -76,9 +76,10 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         DFT_Jobs_Setup.__init__(self,
             tree_level=tree_level,
             level_entries=level_entries,
-            skip_dirs_lst=None,
-            indiv_dir_lst=indiv_dir_lst,  # <----------------------------------
+            indiv_dir_lst=indiv_dir_lst,
             indiv_job_lst=indiv_job_lst,
+            skip_dirs_lst=skip_dirs_lst,
+            root_dir=root_dir,
             working_dir=working_dir,
             folders_exist=folders_exist,
             )
@@ -129,7 +130,6 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         #__|
 
         #__|
-
 
     #| - Job Log **************************************************************
 
@@ -194,7 +194,13 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
         # df.to_csv(self.root_dir + "/jobs_bin/job_dataframe.csv", index=False)
 
-        df_pickle_fle = self.root_dir + "/jobs_bin/job_dataframe.pickle"
+        df_pickle_fle = os.path.join(
+            self.root_dir,
+            self.working_dir,
+            "jobs_bin/job_dataframe.pickle",
+            )
+        # df_pickle_fle = self.root_dir + "/jobs_bin/job_dataframe.pickle"
+
         with open(df_pickle_fle, "wb") as fle:
             pickle.dump(df, fle)
         #__|
@@ -325,6 +331,11 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         job_rev_lst = []
         print("Adding " + str(column_name))
         # for entry in self.data:
+
+        # TEMP
+        # import tqdm
+        # for entry in tqdm(self.data_frame["Job"]):
+
         for entry in self.data_frame["Job"]:
 
             # path = self.var_lst_to_path(

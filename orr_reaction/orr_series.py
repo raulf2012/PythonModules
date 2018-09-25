@@ -692,7 +692,7 @@ class ORR_Free_E_Series():
             line=dict(
                 # color=color,
                 color=plot_parameter_dict["color"],
-                width=6,
+                width=2,
                 # dash="dot",  # TEMP
                 dash=plot_parameter_dict["dash"],  # TEMP
                 ),

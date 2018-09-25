@@ -7,12 +7,16 @@ Author: Raul A. Flores
 """
 
 #| - Import Modules
-import itertools
 import os
+import shutil
+
+import itertools
 import pickle
 import json
-import shutil
+
+import numpy as np
 import pandas as pd
+
 import ast
 
 # My Modules
@@ -138,16 +142,12 @@ class DFT_Jobs_Setup:
     def __init__(self,
         tree_level=None,
         level_entries=None,
-
         indiv_dir_lst=None,
-
         indiv_job_lst=None,
-
         skip_dirs_lst=None,
         root_dir=".",
         working_dir=".",
         # root_dir=".",
-
         folders_exist=None,
         ):
         """Initialize DFT_Jobs_Setup Instance.
@@ -178,6 +178,7 @@ class DFT_Jobs_Setup:
         #__|
 
         self.root_dir = self.__set_root_dir__(root_dir)
+
         self.working_dir = self.__set_working_dir__(working_dir)
 
         self.cluster = ComputerCluster()
@@ -186,17 +187,15 @@ class DFT_Jobs_Setup:
         self.folders_exist = self.__folders_exist__(folders_exist)
 
         self.load_dir_struct()
-
         self.__create_dir_structure_file__()
-
         self.num_jobs = self.__number_of_jobs__()
-
         self.__Job_list__()
-
         self.data_frame = self.__gen_datatable__()
 
         # if self.folders_exist:
         #     # self.data_frame = self.__generate_data_table__()
+
+        self.check_inputs()
         #__|
 
     def __job_i_param_dict_to_job_var_lst__(self, params_dict):
@@ -458,6 +457,13 @@ class DFT_Jobs_Setup:
             #| - REPLACING PERIODS WITH "p" and NEGATIVE SIGNS WITH "n"
             # if type(level["value"]) == type(1.23):
             if isinstance(level["value"], float):
+
+                # TODO
+                # NOTE
+                # Replace the line with the commented out line such that floats
+                # are rounded in their path representation
+
+                # prop_value = str(round(level["value"], 4)).replace(".", "p")
                 prop_value = str(level["value"]).replace(".", "p")
 
                 if "-" in str(level["value"]):
@@ -643,8 +649,10 @@ class DFT_Jobs_Setup:
         try:
             try:
                 fle_name = self.root_dir + "/jobs_bin/dir_structure.json"
+
                 with open(fle_name, "r") as dir_struct_f:
                     data = json.load(dir_struct_f)
+
                     tree_level = data["tree_level_labels"]
                     level_entries = data["level_entries_dict"]
 
@@ -660,6 +668,7 @@ class DFT_Jobs_Setup:
                 print("Couldn't read /jobs_bin/dir_structure.json")
 
                 try:
+
                     #| - __old__
                     tmp = 42
                     # print("old - Reading dir_structure.json file \
@@ -788,16 +797,10 @@ class DFT_Jobs_Setup:
 
     #| - Create Directory Tree
 
-
-
-
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
 
     # NEW
     def create_dir_struct(self, create_first_rev_folder="True"):
@@ -937,10 +940,18 @@ class DFT_Jobs_Setup:
 
 
 
+    def check_inputs(self):
+        """
+        """
+        #| - check_inputs
+        if self.tree_level_labels is not None:
+            assert isinstance(self.tree_level_labels[0], np.ndarray) is False, \
+                "Please don't use numpy array types, can't be json serialized"
 
-
-
-
+        if self.level_entries_list is not None:
+            assert isinstance(self.level_entries_list[0], np.ndarray) is False, \
+                "Please don't use numpy array types, can't be json serialized"
+        #__|
 
     def __create_dir_structure_file__(self):
         """
@@ -950,6 +961,7 @@ class DFT_Jobs_Setup:
         loaded from.
         """
         #| - __create_dir_structure_file__
+
         dir_structure_data = {}
         dir_structure_data["tree_level_labels"] = self.tree_level_labels
         dir_structure_data["level_entries_dict"] = self.level_entries_list
@@ -961,7 +973,6 @@ class DFT_Jobs_Setup:
             self.working_dir,
             "jobs_bin/dir_structure.json",
             )
-        # fle_name = self.root_dir + "/jobs_bin/dir_structure.json"
 
         with open(fle_name, "w") as fle:
             json.dump(dir_structure_data, fle, indent=2)
@@ -1032,7 +1043,6 @@ class DFT_Jobs_Setup:
 
         return(jobs_att)
         #__|
-
 
     def append_jobs_attributes(self, attribute):
         """

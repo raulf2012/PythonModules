@@ -281,8 +281,12 @@ class Espresso_Params(DFT_Params):
         #| - default_params
         params = {}
 
-        params["pw"] = 500            # plane-wave cutoff
-        params["dw"] = 5000           # density cutoff
+        # params["mode"] = "ase3"
+        # params["opt_algorithm"] = "bfgs"
+        # params["cell_dynamics"] = "bfgs"
+
+        params["pw"] = 500  # plane-wave cutoff
+        params["dw"] = 5000  # density cutoff
         params["dipole"] = {"status": True}  # Turn on only for slabs not bulk
         params["xc"] = "BEEF-vdW"  # exchange-correlation functional
         params["kpts"] = (3, 3, 1)  # k-points for hexagonal symm in 2-D mater

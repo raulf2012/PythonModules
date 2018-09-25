@@ -9,8 +9,6 @@ Author: Raul A. Flores
 import gc
 import pickle
 
-import math
-
 import itertools
 
 import numpy as np
@@ -171,9 +169,12 @@ def calc_lennard_jones_all_atoms(
             predicted_forces.append(lj_forces_i)
             #__|
 
-        predicted_forces = np.array(predicted_forces)
+        predicted_forces = np.array(predicted_energies)
 
         return(predicted_forces)
+
+    # predicted_energies = np.array(predicted_energies)
+    # return(predicted_energies)
     #__|
 
 def objective(
@@ -215,11 +216,6 @@ def objective(
             reference_atoms,
             )
 
-    denominator_i = math.sqrt(np.sum(known_energies ** 2))
-    numerator_i = math.sqrt(np.sum(err ** 2))
-
-    energy_term = numerator_i / denominator_i
-
     MSE = np.mean(err ** 2)
     #__|
 
@@ -239,11 +235,7 @@ def objective(
         return(sum_of_normals)
         #__|
 
-
-    sum_of_structures_forces_known = 0.
-    for atoms_i in known_forces:
-        sum_of_normals_i = calc_sum_of_normals_of_forces(atoms_i)
-        sum_of_structures_forces_known += sum_of_normals_i
+    known_sum_of_normals = calc_sum_of_normals_of_forces(known_forces)
 
     lj_forces = calc_lennard_jones_all_atoms(
         (epsilon, sigma),
@@ -253,52 +245,41 @@ def objective(
         )
 
     sum_of_structures_forces = 0.
-    for atoms_i in lj_forces:
-        sum_of_normals_i = calc_sum_of_normals_of_forces(atoms_i)
+    for atom_i in lj_forces:
+        sum_of_normals_i = calc_sum_of_normals_of_forces(atom_i)
         sum_of_structures_forces += sum_of_normals_i
 
 
-    force_term = sum_of_structures_forces / sum_of_structures_forces_known
+    print(sum_of_structures_forces / known_sum_of_normals)
+
+    # print(tmp)
+
+    print(30 * "&")
     #__|
 
-    #| - Score Function
-    w_energy = 1.
-    w_force = 0.0001
 
-    score_function = w_energy * energy_term + w_force * force_term
-
-    print(score_function)
-    #__|
-
-    #| - Display Real-time Info
-    clear_output(wait=True)
-
-    display("Iter: " + str(info["Nfeval"]))
-    display("MSE: " + str(MSE))
-
-    display("Energy Term: " + str(energy_term))
-    display("Force Term: " + str(force_term))
-
-    display("Energy Term (weighted): " + str(w_energy * energy_term))
-    display("Force Term (weighted): " + str(w_force * force_term))
-
-
-    display("Score Function: " + str(score_function))
-    display("Epsilon Matrix: ")
-    display(epsilon)
-    display("Sigma Matrix: ")
-    display(sigma)
-    display("__________________________")
-
-    display(epsilon.values)
-    display(sigma.values)
+    # clear_output(wait=True)
+    #
+    #
+    # display(tmp)
+    # display(20 * "*")
+    #
+    #
+    #
+    # display("Iter: " + str(info["Nfeval"]))
+    # display("MSE: " + str(MSE))
+    # display("Epsilon Matrix: ")
+    # display(epsilon)
+    # display("Sigma Matrix: ")
+    # display(sigma)
+    # display("__________________________")
+    #
+    # display(epsilon.values)
+    # display(sigma.values)
 
     info["Nfeval"] += 1
-    #__|
 
-    return(score_function)
-
-    # return(MSE)
+    return(MSE)
     #__|
 
 def flatten_eps_sig_triangular_matrices(
@@ -481,13 +462,13 @@ def unflatten_eps_sig_array(
         epsilon = unflatten_tri_matrix_with_defined_cross_terms(
             epsilon_short,
             N,
-            cross_terms_mode="geo",
+            cross_terms_mode="ave",
             )
 
         sigma = unflatten_tri_matrix_with_defined_cross_terms(
             sigma_short,
             N,
-            cross_terms_mode="ave",
+            cross_terms_mode="geo",
             )
 
     epsilon = pd.DataFrame(

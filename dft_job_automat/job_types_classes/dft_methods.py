@@ -151,10 +151,6 @@ class DFT_Methods():
 
         try:
 
-            # TEMP_PRINT
-            print("KDJFKSDKKKK")
-            print("Trying reading out_opt.traj directly")
-
             atoms = io.read(path_i + "/" + "out_opt.traj")
             energy = atoms.get_potential_energy()
         except:
@@ -217,9 +213,15 @@ class DFT_Methods():
             path_i:
         """
         #| - init_atoms
-        # print("Attempting to read init atoms")
         traj = None
-        atoms_file_names = ["init.traj", "init.POSCAR", "out_opt.traj"]
+
+        atoms_file_names = [
+            "init.traj",
+            "init.POSCAR",
+            "out_opt.traj",
+            "init.cif",
+            ]
+
         for file_name in atoms_file_names:
             try:
                 traj = io.read(path_i + "/" + file_name)

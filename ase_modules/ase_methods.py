@@ -217,11 +217,26 @@ def ionic_opt(
         mess = "Running regular optimization "
         print(mess); sys.stdout.flush()
 
-        qn = QuasiNewton(
-            atoms,
-            # trajectory="out_opt.traj",
-            logfile="qn.log",
-            )
+        # TEMP
+        do_strain_filter = False
+        if do_strain_filter:
+            print("Performing opt with StrainFilter class")
+            from ase.constraints import StrainFilter
+            SF = StrainFilter(atoms)
+            # atoms.set_constraint(SF)
+
+            qn = QuasiNewton(
+                SF,
+                # trajectory="out_opt.traj",
+                logfile="qn.log",
+                )
+
+        else:
+            qn = QuasiNewton(
+                atoms,
+                # trajectory="out_opt.traj",
+                logfile="qn.log",
+                )
 
         if traj is not None:
             qn.attach(traj)  # COMBAK Test feature (restarting traj files)
@@ -2302,10 +2317,26 @@ def max_force(atoms):
     """Return largest force on any atom.
 
     Args:
-        atoms
+        atoms:
+
     """
     #| - max_force
-    forces = atoms.get_forces()
+    from ase import Atoms
+    from numpy import ndarray
+
+    if isinstance(atoms, Atoms):
+        forces = atoms.get_forces()
+
+    elif isinstance(atoms, ndarray):
+        forces = atoms
+
+    elif isinstance(atoms, list):
+        forces = np.array(atoms)
+
+    assert len(forces.shape) == 2, "Wrong shape"
+    assert forces.shape[1] == 3, "Incorrect number of compenents"
+
+    # forces = atoms.get_forces()
 
     sum = 0.0
     largest = 0.0
