@@ -2,6 +2,10 @@
 
 """DFT calculator's default parameters.
 
+User Notes:
+  Must set COMPENV environment variable
+    (actually not a big deal if not using AWS cluster)
+
 Development Notes:
     TODO Automatically scale bands with system size
     TODO Call test_check in the write method or something so that I won't have
@@ -222,7 +226,7 @@ class VASP_Params(DFT_Params):
             pbe_val = "PBE"
         # print(pbe_val)  # TEMP_PRINT
         params["xc"] = pbe_val  # TEMP
-        params["gga"] = " PE"  # sets the PBE functiona
+        params["gga"] = " PE"  # sets the PBE functional
 
         # Compuational Parameters
         params["npar"] = my_npar

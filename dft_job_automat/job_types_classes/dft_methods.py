@@ -170,7 +170,9 @@ class DFT_Methods():
         # atoms_file_names = ["out_opt.traj", "out.traj"]
         # 'out.traj' should be read first
 
-        atoms_file_names = ["out.traj", "out_opt.traj",
+        atoms_file_names = [
+            "out.traj",
+            "out_opt.traj",
             "OUTCAR",  # VASP
             ]
 
@@ -204,6 +206,70 @@ class DFT_Methods():
                 traj = None
 
         return(traj)
+        #__|
+
+
+    def outcar(self, path_i):
+        """Attempt to read and return outcar.
+
+        Args:
+            path_i:
+        """
+        #| - atoms_object
+        line_list = []
+        with open(os.path.join(path_i, "OUTCAR")) as fle:
+            for line in fle:
+                line = line.rstrip()
+                line_list.append(line)
+
+        return(line_list)
+
+        #| - __old__
+        # for file_name in atoms_file_names:
+        #     try:
+        #
+        #         #| - try to read atoms
+        #         if self.DFT_code == "VASP":
+        #
+        #             cwd = os.getcwd()
+        #             os.chdir(path_i)
+        #
+        #             traj = io.read(
+        #                 os.path.join(path_i, file_name),
+        #                 index=":",
+        #                 )
+        #
+        #             os.chdir(cwd)
+        #
+        #         else:
+        #             traj = io.read(
+        #                 os.path.join(path_i, file_name),
+        #                 index=":",
+        #                 )
+        #
+        #         break
+        #         #__|
+        #
+        #     except:
+        #         traj = None
+        #
+        # return(traj)
+        #__|
+
+        #__|
+
+
+    def incar(self, path_i):
+        """
+        """
+        #| - incar
+        line_list = []
+        with open(os.path.join(path_i, "INCAR")) as fle:
+            for line in fle:
+                line = line.rstrip()
+                line_list.append(line)
+
+        return(line_list)
         #__|
 
     def init_atoms(self, path_i):

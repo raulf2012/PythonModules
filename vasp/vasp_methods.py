@@ -173,3 +173,157 @@ def create_vdw_kernel_symlink():
         pass
 
     #__|
+
+
+def parse_incar(incar_list):
+    """Manipulate INCAR data into python dictionary with correct data types.
+
+    Args:
+        incar_list:
+            INCAR file in python list where each line represents a line from
+            the file.
+    """
+    #| - parse_incar
+    incar_1 = [line for line in incar_list if " = " in line]
+
+    incar_dict = {}
+    for line in incar_1:
+        line_i = line.split("=")
+        mess = "Each incar row should have 1 equals sign which will be parsed into the LHS (key) and RHS (value)"
+        assert len(line_i) == 2, mess
+        incar_dict.update({line_i[0].strip(): line_i[1].strip()})
+
+    #| - Incar keys list
+    # incar_keys = [
+    #     "ENCUT",
+    #     "AMIX_MAG",
+    #     "BMIX_MAG",
+    #     "BMIX",
+    #     "SIGMA",
+    #     "AMIX",
+    #     "EDIFF",
+    #     "EDIFFG",
+    #     "PREC",
+    #     "GGA",
+    #     "ALGO",
+    #     "ISMEAR",
+    #     "NPAR",
+    #     "LDAUPRINT",
+    #     "NELM",
+    #     "IBRION",
+    #     "IDIPOL",
+    #     "ISIF",
+    #     "ISPIN",
+    #     "INIMIX",
+    #     "NSW",
+    #     "LORBIT",
+    #     "LMAXMIX",
+    #     "KPAR",
+    #     "LDAUTYPE",
+    #     "DIPOL",
+    #     "LDAU",
+    #     "LVTOT",
+    #     "LDIPOL",
+    #     "LASPH",
+    #     "LREAL",
+    #     "LDAUL",
+    #     "LDAUU",
+    #     "LDAUJ",
+    #     ]
+    #__|
+
+    #| - Incar Types Dict
+
+    incar_types_dict = {
+        "ENCUT": "float",
+        "AMIX_MAG": "float",
+        "BMIX_MAG": "float",
+        "BMIX": "float",
+        "SIGMA": "float",
+        "AMIX": "float",
+        "EDIFF": "float",
+        "EDIFFG": "float",
+
+        # string
+        "PREC": "string",
+        "GGA": "string",
+        "ALGO": "string",
+
+        # float
+        "ISMEAR": "integer",
+        "NPAR": "integer",
+        "LDAUPRINT": "integer",
+        "NELM": "integer",
+        "IBRION": "integer",
+        "IDIPOL": "integer",
+        "ISIF": "integer",
+        "ISPIN": "integer",
+        "INIMIX": "integer",
+        "NSW": "integer",
+        "LORBIT": "integer",
+        "LMAXMIX": "integer",
+        "KPAR": "integer",
+        "LDAUTYPE": "integer",
+
+        # [a, b, c]
+        "DIPOL": "list",
+
+        # True/False
+        "LDAU": "boolean",
+        "LVTOT": "boolean",
+        "LDIPOL": "boolean",
+        "LASPH": "boolean",
+
+        # string
+        "LREAL": "string",
+
+        # [a, b]
+        "LDAUL": "list",
+        "LDAUU": "list",
+        "LDAUJ": "list",
+        }
+    #__|
+
+    #| - Formatting Dict to Proper Data Types
+    formatted_incar_dict = {}
+    for key, value in incar_dict.items():
+
+        # if key == "LDIPOL":
+        #     print(key)
+        #     print(value)
+        #     print("___;_-___--__")
+
+        if key in incar_types_dict:
+
+            data_type = incar_types_dict[key]
+
+            if data_type == "float":
+                value_new = float(value)
+            elif data_type == "string":
+                # Basically leave it alone
+                value_new = value
+            elif data_type == "integer":
+                value_new = int(value)
+            elif data_type == "list":
+                # Figure this out later
+                value_new = value
+            elif data_type == "boolean":
+                if value == ".FALSE.":
+                    value_new = False
+                elif value == ".TRUE.":
+                    value_new = True
+                else:
+                    value_new = "ERROR 0847589347"
+
+            else:
+                value_new = value
+        else:
+            value_new = value
+
+        formatted_incar_dict.update({key: value_new})
+    #__|
+
+    return(formatted_incar_dict)
+
+    # return(incar_dict)
+    #__|

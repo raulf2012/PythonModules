@@ -90,32 +90,36 @@ class Job:
 
         # file_path = self.full_path + "/" + "job_parameters.json"
 
+        file_exists = False
+
         file_path = os.path.join(
             self.full_path,
-            "job_parameters.json",
-            )
-
+            "job_parameters.json")
         if os.path.exists(file_path):
+            file_exists = True
             with open(file_path, "r") as fle:
                 job_params = json.load(fle)
 
         file_path = os.path.join(
             self.full_path[0:-2],
-            "job_parameters.json",
-            )
+            "job_parameters.json")
         if os.path.exists(file_path):
+            file_exists = True
             with open(file_path, "r") as fle:
                 job_params = json.load(fle)
 
 
         file_path = os.path.join(
             self.full_path[0:-2],
-            "job_params.json",
-            )
+            "job_params.json")
         if os.path.exists(file_path):
+            file_exists = True
             with open(file_path, "r") as fle:
                 job_params = json.load(fle)
 
+        if not file_exists:
+            print("No job_params file found for following job:")
+            print(self.full_path)
 
         return(job_params)
         #__|
@@ -314,6 +318,8 @@ class DFT_Jobs_Setup:
         # folder_dir = self.root_dir + "/jobs_bin"
 
         if not os.path.exists(folder_dir):
+            # print("KDJFDI__")
+            # print(folder_dir)
             os.makedirs(folder_dir)
         #__|
 
@@ -1106,7 +1112,8 @@ class DFT_Jobs_Setup:
             dirs = os.listdir(os.path.join(self.root_dir, path_i))
 
             revision_dirs = [dir for dir in dirs if dir[0] == "_" and
-                dir[1].isdigit() and " " not in dir]
+                dir[-1].isdigit() and " " not in dir]
+                # dir[1].isdigit() and " " not in dir]
 
             revision_dirs.sort()
 

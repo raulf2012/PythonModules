@@ -53,6 +53,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         load_dataframe=True,
         dataframe_dir=None,
         job_type_class=None,
+        methods_to_run=None,
         folders_exist=None,
         ):
         """Initialize DFT_Jobs_Analysis Instance.
@@ -64,13 +65,16 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             skip_dirs_lst:
             working_dir:
             update_job_state:
-                Updates job status for all jobs in ensemble
+                Updates job status for all jobs in ensemble.
             load_dataframe:
             dataframe_dir:
-                Specify location of dataframe if not in working_dir
+                Specify location of dataframe if not in working_dir.
             job_type_class:
                 Job type specific class instance which constains methods
-                specific to the jobs being run that parse job folders
+                specific to the jobs being run that parse job folders.
+            methods_to_run:
+                Additional methods to run on each job dir and return value to
+                populate data column with.
         """
         #| - __init__
         DFT_Jobs_Setup.__init__(self,
@@ -104,10 +108,13 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         # method = DFT_Methods().atom_type_num_dict
         # self.add_data_column(method, column_name="TEMP", allow_failure=False)
 
+        write_data_frame = False
         if load_dataframe is True:
             self.__load_dataframe__()
 
         else:
+
+            #| - job_type_class instance attached methods
             if job_type_class is not None:
                 job_type_inst = job_type_class
 
@@ -123,7 +130,24 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                         # allow_failure=False,
                         )
 
-                # TEMP
+                    write_data_frame = True
+            #__|
+
+            #| - methods_to_run
+            if methods_to_run is  not None:
+                for method in methods_to_run:
+
+                    self.add_data_column(
+                        method,
+                        column_name=method.func_name,
+                        allow_failure=True,
+                        # allow_failure=False,
+                        )
+
+                write_data_frame = True
+            #__|
+
+            if write_data_frame:
                 self.__write_dataframe__()
 
         self.add_all_columns_from_file()
@@ -328,45 +352,12 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         """
         #| - __add_data_coumn__
         new_data_col = []
-        job_rev_lst = []
         print("Adding " + str(column_name))
-        # for entry in self.data:
-
-        # TEMP
-        # import tqdm
-        # for entry in tqdm(self.data_frame["Job"]):
-
         for entry in self.data_frame["Job"]:
-
-            # path = self.var_lst_to_path(
-            #     entry,
-            #     relative_path=False,
-            #     job_rev="False",
-            #     )
 
             path = entry.full_path
 
-            #| - Picking Revision Number(s) To Query
-            # largest_rev = self.job_revision_number(entry)
-            #
-            # if revision == "auto":
-            #     rev = [largest_rev]
-            # elif revision == "previous":
-            #     if largest_rev == 1:
-            #         rev = [1]
-            #     else:
-            #         rev = [largest_rev - 1]
-            # elif revision == "all":
-            #     rev = range(self.job_revision_number(entry) + 1)
-            # else:
-            #     rev = [revision]
-            #__|
-
-            # for rev_num in rev:
-
             #| - Run Function
-            # path += "_" + str(rev_num)
-
             path = path + self.cluster.cluster.job_data_dir
 
             if allow_failure is True:
@@ -378,7 +369,6 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 out = function(path)
 
             new_data_col.append(out)
-            # job_rev_lst.append(rev_num)
             #__|
 
         data_type_list = [type(x) for x in new_data_col]
@@ -402,116 +392,6 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         else:
             self.data_frame[column_name] = new_data_col
         #__|
-
-
-    #| - __old__
-    # def add_data_column(self,
-    #     function,
-    #     column_name="new_column",
-    #     revision="auto",
-    #     allow_failure=True,
-    #     # allow_failure=False,
-    #     ):
-    #     """
-    #     Add data column to data frame by iterating thourgh job folders.
-    #
-    #     Args:
-    #         function: <type 'function'>
-    #             Set of operations that will be applied to indiviudal job
-    #           folders. Must return a scalar quantity that will be added to
-    #           data frame. The function should know "what to do" given only a
-    #           path that correpsonds to a unique job folder (including revision).
-    #
-    #             If the function returns a dict, then various columns will be
-    #           added with the column names corresponding to the key name.
-    #
-    #         column_name: <type 'str'>
-    #             Name of new data column
-    #
-    #         revision: <type 'str' or 'int'>
-    #             The job revision from which data is scraped
-    #             "auto" | Selects most recent revision folder
-    #             "all"  | Adds all revisions to data frame (NOT WORKING)
-    #             "previous | Second to last revision"
-    #         allow_failure: <True or False>
-    #             If True, a failed method call will result in NaN
-    #     """
-    #     #| - __add_data_coumn__
-    #     new_data_col = []
-    #     job_rev_lst = []
-    #
-    #     print("Adding " + str(column_name))
-    #
-    #     for entry in self.data_frame["variable_list"]:
-    #
-    #         path = self.var_lst_to_path(
-    #             entry,
-    #             relative_path=False,
-    #             job_rev="False",
-    #             )
-    #
-    #         #| - Picking Revision Number(s) To Query
-    #         largest_rev = self.job_revision_number(entry)
-    #
-    #         if revision == "auto":
-    #             rev = [largest_rev]
-    #         elif revision == "previous":
-    #             if largest_rev == 1:
-    #                 rev = [1]
-    #             else:
-    #                 rev = [largest_rev - 1]
-    #         elif revision == "all":
-    #             rev = range(self.job_revision_number(entry) + 1)
-    #         else:
-    #             rev = [revision]
-    #         #__|
-    #
-    #         for rev_num in rev:
-    #
-    #             #| - Run Function
-    #             path += "_" + str(rev_num)
-    #
-    #             path = path + self.cluster.cluster.job_data_dir
-    #
-    #             if allow_failure is True:
-    #                 try:
-    #                     out = function(path)
-    #                 except:
-    #                     out = np.nan
-    #             else:
-    #                 out = function(path)
-    #
-    #             new_data_col.append(out)
-    #             job_rev_lst.append(rev_num)
-    #             #__|
-    #
-    #     data_type_list = [type(x) for x in new_data_col]
-    #     dict_in_list = any(item == dict for item in data_type_list)
-    #
-    #     if dict_in_list:
-    #         new_col = []
-    #         for x in new_data_col:
-    #             if pd.isnull(x) is True:
-    #                 new_col.append({"NA": np.nan})
-    #             else:
-    #                 new_col.append(x)
-    #
-    #         new_columns_df = pd.DataFrame(new_col)
-    #
-    #         df1 = self.data_frame
-    #         df2 = new_columns_df
-    #
-    #         out_df = pd.concat([df1, df2], axis=1)
-    #         self.data_frame = out_df
-    #
-    #     else:
-    #         self.data_frame[column_name] = new_data_col
-    #     #__|
-    #
-
-    #__|
-
-
 
 
 
@@ -1260,6 +1140,134 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
 
 #| - __old__
+
+
+
+    #| - __old__
+
+                #| - Picking Revision Number(s) To Query
+                # largest_rev = self.job_revision_number(entry)
+                #
+                # if revision == "auto":
+                #     rev = [largest_rev]
+                # elif revision == "previous":
+                #     if largest_rev == 1:
+                #         rev = [1]
+                #     else:
+                #         rev = [largest_rev - 1]
+                # elif revision == "all":
+                #     rev = range(self.job_revision_number(entry) + 1)
+                # else:
+                #     rev = [revision]
+                #__|
+
+    # def add_data_column(self,
+    #     function,
+    #     column_name="new_column",
+    #     revision="auto",
+    #     allow_failure=True,
+    #     # allow_failure=False,
+    #     ):
+    #     """
+    #     Add data column to data frame by iterating thourgh job folders.
+    #
+    #     Args:
+    #         function: <type 'function'>
+    #             Set of operations that will be applied to indiviudal job
+    #           folders. Must return a scalar quantity that will be added to
+    #           data frame. The function should know "what to do" given only a
+    #           path that correpsonds to a unique job folder (including revision).
+    #
+    #             If the function returns a dict, then various columns will be
+    #           added with the column names corresponding to the key name.
+    #
+    #         column_name: <type 'str'>
+    #             Name of new data column
+    #
+    #         revision: <type 'str' or 'int'>
+    #             The job revision from which data is scraped
+    #             "auto" | Selects most recent revision folder
+    #             "all"  | Adds all revisions to data frame (NOT WORKING)
+    #             "previous | Second to last revision"
+    #         allow_failure: <True or False>
+    #             If True, a failed method call will result in NaN
+    #     """
+    #     #| - __add_data_coumn__
+    #     new_data_col = []
+    #     job_rev_lst = []
+    #
+    #     print("Adding " + str(column_name))
+    #
+    #     for entry in self.data_frame["variable_list"]:
+    #
+    #         path = self.var_lst_to_path(
+    #             entry,
+    #             relative_path=False,
+    #             job_rev="False",
+    #             )
+    #
+    #         #| - Picking Revision Number(s) To Query
+    #         largest_rev = self.job_revision_number(entry)
+    #
+    #         if revision == "auto":
+    #             rev = [largest_rev]
+    #         elif revision == "previous":
+    #             if largest_rev == 1:
+    #                 rev = [1]
+    #             else:
+    #                 rev = [largest_rev - 1]
+    #         elif revision == "all":
+    #             rev = range(self.job_revision_number(entry) + 1)
+    #         else:
+    #             rev = [revision]
+    #         #__|
+    #
+    #         for rev_num in rev:
+    #
+    #             #| - Run Function
+    #             path += "_" + str(rev_num)
+    #
+    #             path = path + self.cluster.cluster.job_data_dir
+    #
+    #             if allow_failure is True:
+    #                 try:
+    #                     out = function(path)
+    #                 except:
+    #                     out = np.nan
+    #             else:
+    #                 out = function(path)
+    #
+    #             new_data_col.append(out)
+    #             job_rev_lst.append(rev_num)
+    #             #__|
+    #
+    #     data_type_list = [type(x) for x in new_data_col]
+    #     dict_in_list = any(item == dict for item in data_type_list)
+    #
+    #     if dict_in_list:
+    #         new_col = []
+    #         for x in new_data_col:
+    #             if pd.isnull(x) is True:
+    #                 new_col.append({"NA": np.nan})
+    #             else:
+    #                 new_col.append(x)
+    #
+    #         new_columns_df = pd.DataFrame(new_col)
+    #
+    #         df1 = self.data_frame
+    #         df2 = new_columns_df
+    #
+    #         out_df = pd.concat([df1, df2], axis=1)
+    #         self.data_frame = out_df
+    #
+    #     else:
+    #         self.data_frame[column_name] = new_data_col
+    #     #__|
+    #
+
+    #__|
+
+
 
     # DEPR
     def view_atoms(self, ind):

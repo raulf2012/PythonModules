@@ -9,7 +9,7 @@ Author: Raul A. Flores
 import numpy as np
 import pandas as pd
 
-import plotly.plotly as py
+# import plotly.plotly as py
 import plotly.graph_objs as go
 
 pd.options.mode.chained_assignment = None
@@ -169,7 +169,7 @@ class ORR_Free_E_Plot:
             plot_mode="full_lines",  # ##########
             opt_name="Ideal ORR Catalyst",
             smart_format=False,
-
+            color=None,
             # state_title=self.state_title,
             # free_e_title=self.fe_title,
             # bias=self.bias,
@@ -192,6 +192,7 @@ class ORR_Free_E_Plot:
         smart_format=True,
         overpotential_type="ORR",
         system_properties=None,
+        color=None,
         ):
         """
         """
@@ -229,6 +230,7 @@ class ORR_Free_E_Plot:
 
             # properties=opt_name,
             color_list=self.color_list,
+            color=color,
             i_cnt=0,  # ##########
             hover_text_col=self.hover_text_col,
             plot_mode=plot_mode,  # ##########
@@ -289,8 +291,8 @@ class ORR_Free_E_Plot:
             # xax_labels = ["$H_{2}O$", "$*OH$", "$*O$", "$*OOH$", "$O_{2}$"]
             xax_labels = ["H2O", "*OH", "*O", "*OOH", "O2"]
 
-        print(axes_lab_size)
-        print(tick_lab_size)
+        # print(axes_lab_size)
+        # print(tick_lab_size)
 
         layout = {
             "title": plot_title,
@@ -361,7 +363,9 @@ class ORR_Free_E_Plot:
             #| - Legend -------------------------------------------------------
             "legend": {
                 "traceorder": "normal",
-                "font": dict(size=legend_size)
+                "font": dict(size=legend_size),
+                "x": -0.1,
+                "y": -1.2,
                 },
 
             "showlegend": self.show_legend,
@@ -585,7 +589,14 @@ class ORR_Free_E_Plot:
         y_ax_spec,
         x_ax_spec="oh",
         smart_format_dict=None,
-        x_range=[0, 1.5]
+
+        # x_range=[0, 2],
+        # y_range=[0, 3],
+
+        x_range_ooh_vs_oh=[0., 3.5],
+        y_range_ooh_vs_oh=[0., 5.],
+        x_range_o_vs_oh=[0., 3.5],
+        y_range_o_vs_oh=[0., 5.],
         ):
         """Return plotly data and layout objects for scaling relations.
 
@@ -642,6 +653,10 @@ class ORR_Free_E_Plot:
             """
             """
             #| - create_trace_i
+            # NOTE Looks like I need to put these in a list here
+            x_energy = [x_energy]
+            y_energy = [y_energy]
+
             trace_i = go.Scatter(
                 x=x_energy,
                 y=y_energy,
@@ -650,10 +665,12 @@ class ORR_Free_E_Plot:
                 mode='markers',
                 marker=dict(
                     size=14,
+                    symbol=smart_format_i.get("symbol", "circle"),
                     color=smart_format_i["color2"],
                     line=dict(
-                        color=smart_format_i["color1"],
-                        width=4,
+                        # color=smart_format_i["color1"],
+                        color=smart_format_i.get("color1", "black"),
+                        width=2,
                         )
                     )
                 )
@@ -670,31 +687,94 @@ class ORR_Free_E_Plot:
             """
             #| - create_layout
             if y_ax_spec == "ooh":
-                y_ax_title = "G_OOH"
+                y_ax_title = "G<sub>ads,*OOH</sub> (eV)"
             elif y_ax_spec == "o":
-                y_ax_title = "G_O"
-
+                y_ax_title = "G<sub>ads,*O</sub> (eV)"
             if x_ax_spec == "oh":
-                x_ax_title = "G_OH"
+                x_ax_title = "G<sub>ads,*OH</sub> (eV)"
 
-            layout_i = dict(
-                title=title,
-                xaxis=dict(
-                    title=x_ax_title,
-                    zeroline=False,
+            tick_lab_size = 12 * (4. / 3.)
+            axes_lab_size = 14 * (4. / 3.)
+            # legend_size = 18
+
+            #| - Common Axis Dict
+            common_axis_dict = {
+
+                # "range": y_axis_range,
+                "zeroline": False,
+                "showline": True,
+                "mirror": 'ticks',
+                "linecolor": 'black',
+                "showgrid": False,
+
+                "titlefont": dict(size=axes_lab_size),
+                "tickfont": dict(
+                    size=tick_lab_size,
                     ),
-                yaxis=dict(
-                    title=y_ax_title,
-                    zeroline=False,
+                "ticks": 'inside',
+                "tick0": 0,
+                "tickcolor": 'black',
+                # "dtick": 0.25,
+                "ticklen": 2,
+                "tickwidth": 1,
+                }
+            #__|
+
+            # x_range_ooh_vs_oh=[0., 3.5],
+            # y_range_ooh_vs_oh=[0., 5.],
+            # x_range_o_vs_oh=[0., 3.5],
+            # y_range_o_vs_oh=[0., 5.],
+
+            if y_ax_spec == "ooh":
+                x_range = x_range_ooh_vs_oh
+            elif y_ax_spec == "o":
+                x_range = x_range_o_vs_oh
+
+            if y_ax_spec == "ooh":
+                y_range = y_range_ooh_vs_oh
+            elif y_ax_spec == "o":
+                y_range = y_range_o_vs_oh
+
+
+            layout_i = {
+                "title": title,
+                "titlefont": go.layout.Titlefont(size=24),
+
+                "xaxis": dict(
+                    common_axis_dict,
+                    **{
+                        "title": x_ax_title,
+                        "range": x_range,
+                        },
                     ),
-                legend=dict(
-                    x=0.,
-                    y=1.8,
+
+                "yaxis": dict(
+                    common_axis_dict,
+                    **{
+                        "title": y_ax_title,
+                        "range": y_range,
+                        },
+                    ),
+
+                "font": dict(
+                    family='Arial',
+                    # size=18,
+                    color='black',
+                    ),
+
+                "width": 1.5 * 18.7 * 37.795275591,
+                "height": 18.7 * 37.795275591,
+
+                "showlegend": True,
+
+                "legend": dict(
+                    # x=0.,
+                    # y=1.8,
                     font=dict(
                         size=10,
                         ),
                     ),
-                )
+                }
 
             return(layout_i)
             #__|
@@ -727,21 +807,19 @@ class ORR_Free_E_Plot:
             e_ooh = series_i.energy_states_dict["ooh"]
             e_o = series_i.energy_states_dict["o"]
 
-
-            # print(series_i.properties)
-            # print(smart_format_dict)
-            # print("________________________")
-
-
             smart_format_i = create_smart_format_dict(
                 series_i.properties,
                 smart_format_dict,
                 )
 
-            print(smart_format_i)
-
-
             name_i = create_series_name(series_i)
+
+            if series_i.color is not None:
+                smart_format_i["color2"] = series_i.color
+
+
+            # color_i = series_i.color
+
 
             trace_i = create_trace_i(e_oh, e_ooh, smart_format_i)
             data_ooh_oh.append(trace_i)
@@ -752,9 +830,12 @@ class ORR_Free_E_Plot:
 
         #| - Ideal Scaling Lines
         scaling_trace = go.Scatter(
-            x=[x_range[0], x_range[1]],
-            y=[ooh_oh_scaling(x_range[0]), ooh_oh_scaling(x_range[1])],
-            name='OOH_OH Scaling',
+            x=[x_range_ooh_vs_oh[0], x_range_ooh_vs_oh[1]],
+            y=[
+                ooh_oh_scaling(x_range_ooh_vs_oh[0]),
+                ooh_oh_scaling(x_range_ooh_vs_oh[1]),
+                ],
+            name='*OOH vs *OH Scaling',
             mode='lines',
             line=dict(
                 color="black",
@@ -764,9 +845,12 @@ class ORR_Free_E_Plot:
         data_ooh_oh.append(scaling_trace)
 
         scaling_trace = go.Scatter(
-            x=[x_range[0], x_range[1]],
-            y=[o_oh_scaling(x_range[0]), o_oh_scaling(x_range[1])],
-            name='O_OH Scaling',
+            x=[x_range_o_vs_oh[0], x_range_o_vs_oh[1]],
+            y=[
+                o_oh_scaling(x_range_o_vs_oh[0]),
+                o_oh_scaling(x_range_o_vs_oh[1]),
+                ],
+            name='*O vs *OH Scaling',
             mode='lines',
             line=dict(
                 color="black",
@@ -777,6 +861,7 @@ class ORR_Free_E_Plot:
         #__|
 
         #| - Plot Layout Settings
+
         layout_ooh_oh = create_layout(
             y_ax_spec,
             x_ax_spec,

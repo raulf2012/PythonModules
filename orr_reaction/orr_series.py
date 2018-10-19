@@ -18,6 +18,10 @@ class ORR_Free_E_Series():
     """ORR free energy diagram series class.
 
     Still a work in progress
+
+    Take a 2nd look at how the bulk/bare state is being taken care of
+
+    # TODO | The color_list approach is not good
     """
 
     #| - ORR_Free_E_Series ****************************************************
@@ -33,6 +37,7 @@ class ORR_Free_E_Series():
         opt_name=None,
         properties=None,
         color_list=None,
+        color=None,
         i_cnt=0,
         hover_text_col=None,
         plot_mode="all",
@@ -75,6 +80,7 @@ class ORR_Free_E_Series():
         self.opt_name = opt_name
         self.properties = properties
         self.color_list = color_list
+        self.color = color
         self.i_cnt = i_cnt
         self.hover_text_col = hover_text_col
         self.plot_mode = plot_mode
@@ -95,8 +101,13 @@ class ORR_Free_E_Series():
             self.add_bulk_entry()
             self.fill_missing_data()
 
+            # TEMP | Active Development
             self.num_of_states = len(self.fe_df) + 1  # bulk, OOH, O, OH, bulk
+            self.num_of_states_new = self.__num_of_states__()
+
             self.energy_lst = self.rxn_energy_lst()
+            # self.energy_lst_new = self.rxn_energy_lst_new()
+
             self.num_of_elec = range(self.num_of_states)[::-1]
             self.overpotential = self.calc_overpotential()[0]
             self.limiting_step = self.calc_overpotential()[1]
@@ -106,7 +117,6 @@ class ORR_Free_E_Series():
             self.overpotential_OER = self.calc_overpotential_OER()[0]
 
             self.energy_states_dict = self.__energy_states_dict__()
-
 
             self.series_plot = self.plot_fed_series(
                 bias=self.bias,
@@ -120,19 +130,26 @@ class ORR_Free_E_Series():
                 overpotential_type=self.rxn_type,
                 )
 
-            #| - __old__
-                # bias=0.,
-                # opt_name=None,
-                # properties=None,
-                # color_list=None,
-                # i_cnt=0,
-                # hover_text_col=None,
-                # plot_mode="all",
-                # smart_format=None,
-            #__|
-
         #__|
 
+
+    def __num_of_states__(self):
+        """Return number of unique states.
+
+        Looks at the uniqe number of entries in the 'adsorbate' column of the
+        data frame. The correct number of states for the OER and/or ORR
+        reaction are 4, only 2 states are needed for the peroxide reaction.
+        """
+        #| - __num_of_states
+        df_i = self.fe_df
+
+        num_of_states = len(set(df_i["adsorbate"].tolist()))
+
+        err_mess = "There are not enough unique calcs (less than 4)"
+        assert num_of_states >= 4, err_mess
+
+        return(num_of_states)
+        #__|
 
     def __energy_states_dict__(self):
         """
@@ -183,9 +200,11 @@ class ORR_Free_E_Series():
             if row["adsorbate"] == "bulk" or row["adsorbate"] == "ooh":
                 free_energy_list.append(row["ads_e"])
 
+        # TODO | Make this parse the reaction array instead of reaction list
         # Checking length of energy list
         if len(free_energy_list) != 2:
-            raise ValueError("Not the correct # of steps for H2O2")
+            # raise ValueError("Not the correct # of steps for H2O2")
+            print("Not the correct # of steps for H2O2")
 
         free_energy_list[0] += 4.92
         free_energy_list.append(3.52)
@@ -246,8 +265,17 @@ class ORR_Free_E_Series():
         df = self.fe_df
         free_energy_list = []
         for state in self.rxn_mech_states:
-
             df_state = df.loc[df[self.state_title] == state]
+
+            if len(df_state) == 2:
+                state_energy_list = []
+                for j_cnt, row_j in df_state.iterrows():
+                    # print(row_j[self.fe_title])
+                    energy_j = row_j[self.fe_title]
+
+                    state_energy_list.append(energy_j)
+
+
 
             #| - If df is missing state fill in row with NaN for energy
             if df_state.empty:
@@ -264,6 +292,54 @@ class ORR_Free_E_Series():
             free_energy_list[0] += 4.92
         elif self.rxn_type == "OER":
             free_energy_list[-1] += 4.92
+        else:
+            free_energy_list[0] += 4.92
+
+        return(free_energy_list)
+        #__|
+
+    def rxn_energy_lst_new(self):
+        """
+        """
+        #| - rxn_energy_lst_new
+        df = self.fe_df
+        free_energy_list = []
+        for state in self.rxn_mech_states:
+            df_state = df.loc[df[self.state_title] == state]
+
+            #| - If df is missing state fill in row with NaN for energy
+            if df_state.empty:
+                df_state = pd.DataFrame([{
+                    self.state_title: state,
+                    self.fe_title: np.nan,
+                    }])
+            #__|
+
+            print(len(df_state))
+            state_energy_list = []
+            for j_cnt, row_j in df_state.iterrows():
+                energy_j = row_j[self.fe_title]
+                state_energy_list.append(energy_j)
+
+            print(state_energy_list)
+            print("___---_----___-__kdf")
+
+            free_energy_list.append(state_energy_list)
+
+            # tmp1 = df_state.iloc[0][self.fe_title]
+            # free_energy_list.append(tmp1)
+
+        if self.rxn_type == "ORR":
+            free_energy_list_0_new = [i + 4.92 for i in free_energy_list[0]]
+            free_energy_list[0] = free_energy_list_0_new
+
+            # free_energy_list[0] += 4.92
+
+        elif self.rxn_type == "OER":
+            # free_energy_list[-1] += 4.92
+            free_energy_list_new = [i + 4.92 for i in free_energy_list[-1]]
+            free_energy_list[-1] = free_energy_list_new
+
         else:
             free_energy_list[0] += 4.92
 
@@ -350,47 +426,6 @@ class ORR_Free_E_Series():
         #__|
 
 
-
-
-    #| - __old__
-    # def create_rxn_coord_array(self,
-    #     rxn_steps,
-    #     spacing=0,
-    #     step_size=1,
-    #     ):
-    #     """
-    #     Create a reaction coordinate array ([0, 1, 1, 2, 2, 3]) for plotting.
-    #
-    #     Args:
-    #         rxn_steps: <type 'int'>
-    #             Number of steps in reaction coordinate including initial
-    #             and final state.
-    #             Ex. A -> Intermediate -> C has 3 steps/states
-    #
-    #         spacing: <type 'float'>
-    #             Spacing inbetween the energy levels. The default of 0 creates
-    #             a free energy diagram that looks like steps
-    #     """
-    #     #| - create_rxn_coord_array
-    #     lst = []
-    #     for i in range(1, rxn_steps):
-    #         if i == 1:
-    #             lst.append(step_size)
-    #             lst.append(step_size + spacing)
-    #         if i != 1:
-    #             lst.append(lst[-1] + step_size)
-    #             lst.append(lst[-2] + step_size + spacing)
-    #
-    #     lst.insert(0, 0)
-    #     lst.append(lst[-1] + step_size)
-    #
-    #     return(lst)
-    #     #__|
-    #__|
-
-
-
-
     #| - Plotting @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     def __convert_to_plotting_list__(self,
         energy_lst,
@@ -468,7 +503,6 @@ class ORR_Free_E_Series():
         else:
             overpot_i = self.overpotential
 
-
         for n, i in enumerate(e_list):
             if np.isnan(i) is True:
                 e_list[n] = None
@@ -493,12 +527,10 @@ class ORR_Free_E_Series():
 
         #| - Hover Text
         if hover_text_col is not None:
-
             if type(hover_text_col) is not list:
                 hover_text_list = self.property_list(hover_text_col)
 
             else:
-
                 hover_text_lists = []
                 for col_i in hover_text_col:
 
@@ -522,12 +554,20 @@ class ORR_Free_E_Series():
             hover_text_list = [np.nan for j_cnt in list(range(5))]
         #__|
 
+        #| - TEMP Picking color from "color_list" or "color" variable
+        if self.color is not None:
+            color_i = self.color
+        else:
+            color_i = color_list[i_cnt - 1]
+        #__|
+
         dat_lst = self.__create_plotly_series__(
             e_list,
             group=name_i,
             name=name_i,
             hover_text=hover_text_list,
-            color=color_list[i_cnt - 1],
+            # color=color_list[i_cnt - 1],
+            color=color_i,
             plot_mode=plot_mode,
             smart_format=smart_format,
             )
@@ -755,5 +795,58 @@ class ORR_Free_E_Series():
 
     #__| @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-
     #__|
+
+
+
+
+#| - __old__
+
+    #| - __old__
+        # bias=0.,
+        # opt_name=None,
+        # properties=None,
+        # color_list=None,
+        # i_cnt=0,
+        # hover_text_col=None,
+        # plot_mode="all",
+        # smart_format=None,
+    #__|
+
+    #| - __old__
+    # def create_rxn_coord_array(self,
+    #     rxn_steps,
+    #     spacing=0,
+    #     step_size=1,
+    #     ):
+    #     """
+    #     Create a reaction coordinate array ([0, 1, 1, 2, 2, 3]) for plotting.
+    #
+    #     Args:
+    #         rxn_steps: <type 'int'>
+    #             Number of steps in reaction coordinate including initial
+    #             and final state.
+    #             Ex. A -> Intermediate -> C has 3 steps/states
+    #
+    #         spacing: <type 'float'>
+    #             Spacing inbetween the energy levels. The default of 0 creates
+    #             a free energy diagram that looks like steps
+    #     """
+    #     #| - create_rxn_coord_array
+    #     lst = []
+    #     for i in range(1, rxn_steps):
+    #         if i == 1:
+    #             lst.append(step_size)
+    #             lst.append(step_size + spacing)
+    #         if i != 1:
+    #             lst.append(lst[-1] + step_size)
+    #             lst.append(lst[-2] + step_size + spacing)
+    #
+    #     lst.insert(0, 0)
+    #     lst.append(lst[-1] + step_size)
+    #
+    #     return(lst)
+    #     #__|
+    #__|
+
+#__|

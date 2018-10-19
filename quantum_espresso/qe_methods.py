@@ -331,8 +331,13 @@ def scf_convergence(path_i=".", log="log"):
     #| - scf_convergence
     rydberg = 13.6057  # rydberg to eV conversion
 
-    filename = "scf_temp.txt"
+    filename = os.path.join(
+        os.environ["HOME"],
+        "scf_temp.txt",
+        )
+
     os.system("grep scf %s > %s" % (log, filename))
+
     file = open(filename)
     file.seek(0)  # just in case
 

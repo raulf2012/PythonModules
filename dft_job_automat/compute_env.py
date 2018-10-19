@@ -272,9 +272,12 @@ class ComputerCluster():
 ################################################################################
 
 
-
 class EdisonCluster(ComputerCluster):
-    """NERSC Edison computing cluster."""
+    """NERSC Edison computing cluster.
+
+
+    I'll try to get this to work with Cori as well
+    """
 
     #| - EdisonCluster ********************************************************
     def __init__(self, root_dir="."):
@@ -286,7 +289,14 @@ class EdisonCluster(ComputerCluster):
         #| - __init__
         # 24 cores (edison) 32 cpus (cori)
 
-        self.cores_per_node = 24
+        nersc_host = os.environ["NERSC_HOST"]
+        if nersc_host == "cori":
+            self.cores_per_node = 32  # <-- Cori Haswell
+            # self.cores_per_node = 58  # <-- Cori KNL  #TODO Switch to these
+
+        elif nersc_host == "edison":
+            self.cores_per_node = 24
+
 
         # self.job_queue_dir = "/u/if/flores12/usr/bin"
 
