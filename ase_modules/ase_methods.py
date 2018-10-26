@@ -376,12 +376,12 @@ def ionic_opt(
             "outdir": "calcdir_bader",
             }
 
-        calc_bands, espresso_params_bands = set_QE_calc_params(
+        calc_bader, espresso_params_bader = set_QE_calc_params(
             params=params_bader,
             )
 
-        calc_bands = espresso(**espresso_params_bands)
-        atoms.set_calculator(calc_bands)
+        calc_bader = espresso(**espresso_params_bader)
+        atoms.set_calculator(calc_bader)
 
         mess = "Running single-point calc with high io "
         print(mess); sys.stdout.flush()

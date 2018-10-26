@@ -9,6 +9,8 @@ Author(s): Colin Dickins wrote most of this; Raul A. Flores
 import sys
 import os
 
+import pickle as pickle
+
 import numpy as np
 from ase.io import write
 #__|
@@ -133,6 +135,16 @@ def bader_exec(atoms, spin=""):
         atoms.info.update({"bader_magmoms": magmom_list})
         atoms.info.update({"bader_charges": charge_list})
 
+        #| - Write data to file
+        with open("dir_bader/bader_charges_magmoms.pickle", "w") as fle:
+            pickle.dump(
+                {"charge_list": charge_list, "magmom_list": magmom_list},
+                fle,
+                )
+
+        #__|
+
+
         cleanup(suffix=spin)
     #__|
 
@@ -148,6 +160,15 @@ def bader_exec(atoms, spin=""):
             charge_list.append(atoms[i].charge)
 
         atoms.info.update({"bader_charges": charge_list})
+
+        #| - Write data to file
+        with open("dir_bader/bader_charges_magmoms.pickle", "w") as fle:
+            pickle.dump(
+                {"charge_list": charge_list, "magmom_list": None},
+                fle,
+                )
+        #__|
+
         cleanup()
     #__|
 
@@ -182,6 +203,9 @@ def bader(atoms, spinpol=False, outdir=None, run_exec=True):
     else:
         pass
     #__|
+
+    if not os.path.exists("dir_bader"):
+        os.makedirs("dir_bader")
 
     calc = atoms.calc
 

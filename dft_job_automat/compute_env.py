@@ -27,6 +27,8 @@ import time
 
 import pandas as pd
 
+import json
+
 # My Modules
 from misc_modules.misc_methods import merge_two_dicts
 #__|
@@ -255,6 +257,11 @@ class ComputerCluster():
             return(None)
         #__|
 
+        #| - Writing Job Submission Parameters
+        with open(".submission_params.json", "w") as fle:
+            json.dump(kwargs, fle, indent=2, skipkeys=True)
+        #__|
+
         self.cluster.submit_job_clust(**kwargs)
 
         #| - Writing Cluster System Info to File
@@ -262,7 +269,8 @@ class ComputerCluster():
             path_i = kwargs["path_i"]
 
             with open(".cluster_sys", "w") as fle:
-                fle.write(self.cluster_sys)
+                # fle.write(self.cluster_sys)
+                fle.write(self.cluster_sys + "\n")
         #__|
 
         #__|
@@ -495,8 +503,6 @@ class EdisonCluster(ComputerCluster):
         else:
             with open(".sub_out", "w") as fle:
                 fle.write(out_copy)
-
-
         #__|
 
         os.chdir(self.root_dir)

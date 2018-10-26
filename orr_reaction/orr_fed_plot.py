@@ -9,6 +9,8 @@ Author: Raul A. Flores
 import numpy as np
 import pandas as pd
 
+from sklearn.linear_model import LinearRegression
+
 # import plotly.plotly as py
 import plotly.graph_objs as go
 
@@ -21,8 +23,6 @@ class ORR_Free_E_Plot:
     """ORR free energy diagram class.
 
     ACTUALLY THIS IS GOING TO BE A GENERAL ORR/OER CLASS NOW!!!!!!!!!!!!!!!!!!!
-
-
 
     Development Notes:
         # TODO Should we consider the case where the bulk energy is not 0, and
@@ -139,7 +139,6 @@ class ORR_Free_E_Plot:
         """
         """
         #| - ideal_ORR_series
-
         # self.ideal_energy = [4.92, 3.69, 2.46, 1.23, 0]
 
         ideal_data_list = [
@@ -163,13 +162,16 @@ class ORR_Free_E_Plot:
 
         df_ideal = pd.DataFrame(ideal_data_list)
 
-
         self.add_series(
             df_ideal,
             plot_mode="full_lines",  # ##########
             opt_name="Ideal ORR Catalyst",
             smart_format=False,
             color=None,
+            )
+
+        #| - __old__
+
             # state_title=self.state_title,
             # free_e_title=self.fe_title,
             # bias=self.bias,
@@ -181,7 +183,8 @@ class ORR_Free_E_Plot:
             # hover_text_col=self.hover_text_col,
             #
             # # smart_format=self.smart_format,
-            )
+
+        #__|
 
         #__|
 
@@ -576,27 +579,17 @@ class ORR_Free_E_Plot:
 
 
 
-
-
-
-
-
-
-
-
-
     def create_scaling_relations_plot(self,
         y_ax_spec,
         x_ax_spec="oh",
         smart_format_dict=None,
 
-        # x_range=[0, 2],
-        # y_range=[0, 3],
-
-        x_range_ooh_vs_oh=[0., 3.5],
+        x_range_ooh_vs_oh=[-1., 3.5],
         y_range_ooh_vs_oh=[0., 5.],
-        x_range_o_vs_oh=[0., 3.5],
+        x_range_o_vs_oh=[-1., 3.5],
         y_range_o_vs_oh=[0., 5.],
+        x_range_oh_vs_oh=[-1., 4.],
+        y_range_oh_vs_oh=[-1., 4.],
         ):
         """Return plotly data and layout objects for scaling relations.
 
@@ -605,6 +598,11 @@ class ORR_Free_E_Plot:
             x_ax_spec:
         """
         #| - create_scaling_relations_plot
+
+        print("#########################################")
+        print("DEPRECATED!!!!!!!!!!!!!")
+        print("Use the new class Scaling_Relations_Plot")
+        print("#########################################")
 
         #| - Internal Methods
         # TODO Should put these in a more accesible place
@@ -640,10 +638,38 @@ class ORR_Free_E_Plot:
             #__|
 
         def ooh_oh_scaling(E_OH):
+            """Return the *OOH adsorption energy given DG_*OH by scaling.
+
+            Args:
+                E_OH:DG_*OH energy of adsorption
+            """
+            #| - ooh_oh_scaling
             return(E_OH + 3.2)
 
+            #__|
+
         def o_oh_scaling(E_OH):
+            """Return the *OOH adsorption energy given DG_*OH by scaling.
+
+            Args:
+                E_OH: DG_*OH energy of adsorption.
+            """
+            #| - o_oh_scaling
             return(2 * E_OH)
+            #__|
+
+        def oh_oh_scaling(E_OH):
+            """Return the *OH adsorption energy given DG_*OH by scaling.
+
+            NOTE: TRIVIAL QUANTITY!!!!!!!!!!!!!!!!!!!
+
+            Args:
+                E_OH: DG_*OH energy of adsorption.
+            """
+            #| - oh_oh_scaling
+            return(E_OH)
+            #__|
+
 
         def create_trace_i(
             x_energy,
@@ -666,7 +692,7 @@ class ORR_Free_E_Plot:
                 marker=dict(
                     size=14,
                     symbol=smart_format_i.get("symbol", "circle"),
-                    color=smart_format_i["color2"],
+                    color=smart_format_i.get("color2", "pink"),
                     line=dict(
                         # color=smart_format_i["color1"],
                         color=smart_format_i.get("color1", "black"),
@@ -690,8 +716,14 @@ class ORR_Free_E_Plot:
                 y_ax_title = "G<sub>ads,*OOH</sub> (eV)"
             elif y_ax_spec == "o":
                 y_ax_title = "G<sub>ads,*O</sub> (eV)"
+            elif y_ax_spec == "oh":
+                y_ax_title = "G<sub>ads,*OH</sub> (eV)"
+
+
             if x_ax_spec == "oh":
                 x_ax_title = "G<sub>ads,*OH</sub> (eV)"
+            else:
+                print("Only 'oh' is supported as the x-axis variable")
 
             tick_lab_size = 12 * (4. / 3.)
             axes_lab_size = 14 * (4. / 3.)
@@ -729,11 +761,19 @@ class ORR_Free_E_Plot:
                 x_range = x_range_ooh_vs_oh
             elif y_ax_spec == "o":
                 x_range = x_range_o_vs_oh
+            elif y_ax_spec == "oh":
+                x_range = x_range_oh_vs_oh
+            else:
+                print("Woops - create_layout")
 
             if y_ax_spec == "ooh":
                 y_range = y_range_ooh_vs_oh
             elif y_ax_spec == "o":
                 y_range = y_range_o_vs_oh
+            elif y_ax_spec == "oh":
+                y_range = y_range_oh_vs_oh
+            else:
+                print("Woops - create_layout")
 
 
             layout_i = {
@@ -802,6 +842,7 @@ class ORR_Free_E_Plot:
         #| - Processing Data Points
         data_ooh_oh = []
         data_o_oh = []
+        data_oh_oh = []
         for series_i in self.series_list:
             e_oh = series_i.energy_states_dict["oh"]
             e_ooh = series_i.energy_states_dict["ooh"]
@@ -817,15 +858,15 @@ class ORR_Free_E_Plot:
             if series_i.color is not None:
                 smart_format_i["color2"] = series_i.color
 
-
-            # color_i = series_i.color
-
-
             trace_i = create_trace_i(e_oh, e_ooh, smart_format_i)
             data_ooh_oh.append(trace_i)
 
             trace_i = create_trace_i(e_oh, e_o, smart_format_i)
             data_o_oh.append(trace_i)
+
+            trace_i = create_trace_i(e_oh, e_oh, smart_format_i)
+            data_oh_oh.append(trace_i)
+
         #__|
 
         #| - Ideal Scaling Lines
@@ -858,6 +899,22 @@ class ORR_Free_E_Plot:
                 ),
             )
         data_o_oh.append(scaling_trace)
+
+        scaling_trace = go.Scatter(
+            x=[x_range_oh_vs_oh[0], x_range_oh_vs_oh[1]],
+            y=[
+                oh_oh_scaling(x_range_oh_vs_oh[0]),
+                oh_oh_scaling(x_range_oh_vs_oh[1]),
+                ],
+            name='*OH vs *OH Scaling',
+            mode='lines',
+            line=dict(
+                color="black",
+                width=1,
+                ),
+            )
+        data_oh_oh.append(scaling_trace)
+
         #__|
 
         #| - Plot Layout Settings
@@ -865,13 +922,19 @@ class ORR_Free_E_Plot:
         layout_ooh_oh = create_layout(
             y_ax_spec,
             x_ax_spec,
-            title="OOH vs OH Scaling",
+            title="*OOH vs *OH Scaling",
             )
 
         layout_o_oh = create_layout(
             y_ax_spec,
             x_ax_spec,
-            title="O vs OH Scaling",
+            title="*O vs *OH Scaling",
+            )
+
+        layout_oh_oh = create_layout(
+            y_ax_spec,
+            x_ax_spec,
+            title="*OH vs *OH Scaling",
             )
         #__|
 
@@ -879,6 +942,691 @@ class ORR_Free_E_Plot:
             return(data_ooh_oh, layout_ooh_oh)
         elif y_ax_spec == "o":
             return(data_o_oh, layout_o_oh)
+        elif y_ax_spec == "oh":
+            return(data_oh_oh, layout_oh_oh)
         #__|
+
+    #__| **********************************************************************
+
+
+class Scaling_Relations_Plot():
+    """Plot scaling relations and some simple fitting schemes.
+
+    Development Notes:
+        TEMP
+    """
+
+    #| - Scaling_Relations_Plot ***********************************************
+
+    def __init__(self,
+        ORR_Free_E_Plot,
+        mode="all",
+
+        plot_range={
+            "y": [1., 5.],
+            "x": [-2., 4.],
+            },
+
+        x_ax_species="oh",
+        ):
+        """
+        Input variables to class instance.
+
+        Args:
+            ORR_Free_E_Plot:
+            mode:
+                "all", "ooh_vs_oh", "o_vs_oh"
+        """
+        #| - __init__
+        self.ORR_Free_E_Plot = ORR_Free_E_Plot
+
+        assert (x_ax_species == "oh"), "Only *OH as the x-axis is allowed now"
+
+
+        self.data_points = {
+            "ooh_vs_oh": [],
+            "o_vs_oh": [],
+            "oh_vs_oh": [],
+            }
+        self.data_lines = []
+
+        self.x_range = plot_range["x"]
+        self.y_range = plot_range["y"]
+
+        # self.layout = self.__create_layout__(
+        #     title="Scaling Relations",
+        #     showlegend=True,
+        #     )
+
+
+        #__|
+
+    def create_scaling_relations_plot(self,
+        smart_format_dict=None,
+        ):
+        """Return plotly data and layout objects for scaling relations.
+
+        Args:
+            y_ax_spec:
+            x_ax_spec:
+        """
+        #| - create_scaling_relations_plot
+
+        #| - Default Smart Format Dict
+        if smart_format_dict is None:
+            print("No smart format given!")
+            smart_format_dict = [
+                [{"bulk_system": "IrO3"}, {"color2": "green"}],
+                [{"bulk_system": "IrO2"}, {"color2": "yellow"}],
+
+                [{"coverage_type": "o_covered"}, {"symbol": "s"}],
+                [{"coverage_type": "h_covered"}, {"symbol": "^"}],
+
+                [{"facet": "110"}, {"color1": "red"}],
+                [{"facet": "211"}, {"color1": "green"}],
+                [{"facet": "100"}, {"color1": "black"}],
+                ]
+        #__|
+
+        #| - Processing Data Points
+        for series_i in self.ORR_Free_E_Plot.series_list:
+
+            e_oh = series_i.energy_states_dict["oh"]
+            e_ooh = series_i.energy_states_dict["ooh"]
+            e_o = series_i.energy_states_dict["o"]
+
+            smart_format_i = self.__create_smart_format_dict__(
+                series_i.properties,
+                smart_format_dict,
+                )
+
+            name_i = self.__create_series_name__(series_i)
+
+            if series_i.color is not None:
+                smart_format_i["color2"] = series_i.color
+
+            #| - ooh_vs_oh
+            trace_i = self.__create_trace_i__(
+                e_oh,
+                e_ooh,
+                smart_format_i,
+                name_i,
+                legendgroup="ooh_vs_oh",
+                )
+            # self.data_ooh_oh.append(trace_i)
+            self.data_points["ooh_vs_oh"].append(trace_i)
+            #__|
+
+            #| - o_vs_oh
+            trace_i = self.__create_trace_i__(
+                e_oh,
+                e_o,
+                smart_format_i,
+                name_i,
+                legendgroup="o_vs_oh",
+                )
+            # self.data_o_oh.append(trace_i)
+            self.data_points["o_vs_oh"].append(trace_i)
+            #__|
+
+            #| - oh_vs_oh
+            trace_i = self.__create_trace_i__(
+                e_oh,
+                e_oh,
+                smart_format_i,
+                name_i,
+                legendgroup="oh_vs_oh",
+                )
+            # self.data_oh_oh.append(trace_i)
+            self.data_points["oh_vs_oh"].append(trace_i)
+            #__|
+
+        #__|
+
+        #__|
+
+    def __create_smart_format_dict__(self, property_dict, smart_format_dict):
+        """Create smart format dictionary.
+
+        Args:
+            property_dict:
+            smart_format_dict:
+        """
+        #| - __create_smart_format_dict__
+        format_dict = {}
+        for key_i, value_i in property_dict.items():
+            for format_i in smart_format_dict:
+                if list(format_i[0])[0] == key_i:
+                    if list(format_i[0].values())[0] == value_i:
+                        format_dict.update(format_i[1])
+
+        return(format_dict)
+        #__|
+
+    def __create_series_name__(self, series_i):
+        """
+        """
+        #| - create_series_name
+        name_i = ""
+        for key, value in series_i.properties.items():
+            if key == "coverage":
+                continue
+
+            name_i += str(key) + ": " + str(value) + " | "
+
+        return(name_i)
+        #__|
+
+    def __create_trace_i__(self,
+        x_energy,
+        y_energy,
+        smart_format_i,
+        name_i,
+        legendgroup=None,
+        ):
+        """
+        """
+        #| - create_trace_i
+        # NOTE Looks like I need to put these in a list here
+        x_energy = [x_energy]
+        y_energy = [y_energy]
+
+        trace_i = go.Scatter(
+            x=x_energy,
+            y=y_energy,
+            text=name_i,
+            name=name_i,
+            mode="markers",
+            legendgroup=legendgroup,
+            marker=dict(
+                size=14,
+                symbol=smart_format_i.get("symbol", "circle"),
+                color=smart_format_i.get("color2", "pink"),
+                line=dict(
+                    # color=smart_format_i["color1"],
+                    color=smart_format_i.get("color1", "black"),
+                    width=2,
+                    )
+                )
+            )
+
+        return(trace_i)
+        #__|
+
+    def __create_layout__(self,
+        x_ax_spec="oh",
+        title="Scaling Relations",
+        showlegend=True,
+        ):
+        """Create plotly layout dict.
+
+        Args:
+            x_ax_spec:
+            title:
+            showlegend:
+        """
+        #| - create_layout
+        x_ax_title = "G<sub>ads,*OH</sub> (eV)"
+
+        y_ax_title = "G<sub>ads,*OH</sub>, " + \
+            "G<sub>ads,*O</sub>, " + \
+            "G<sub>ads,*OOH</sub> (eV)"
+
+        tick_lab_size = 12 * (4. / 3.)
+        axes_lab_size = 14 * (4. / 3.)
+        # legend_size = 18
+
+        #| - Common Axis Dict
+        common_axis_dict = {
+
+            # "range": y_axis_range,
+            "zeroline": False,
+            "showline": True,
+            "mirror": 'ticks',
+            "linecolor": 'black',
+            "showgrid": False,
+
+            "titlefont": dict(size=axes_lab_size),
+            "tickfont": dict(
+                size=tick_lab_size,
+                ),
+            "ticks": 'inside',
+            "tick0": 0,
+            "tickcolor": 'black',
+            # "dtick": 0.25,
+            "ticklen": 2,
+            "tickwidth": 1,
+            }
+        #__|
+
+        #| - __old__
+        # x_range_ooh_vs_oh=[0., 3.5],
+        # y_range_ooh_vs_oh=[0., 5.],
+        # x_range_o_vs_oh=[0., 3.5],
+        # y_range_o_vs_oh=[0., 5.],
+
+        # if y_ax_spec == "ooh":
+        #     x_range = self.x_range_ooh_vs_oh
+        # elif y_ax_spec == "o":
+        #     x_range = self.x_range_o_vs_oh
+        # elif y_ax_spec == "oh":
+        #     x_range = self.x_range_oh_vs_oh
+        # else:
+        #     print("Woops - create_layout")
+        #
+        # if y_ax_spec == "ooh":
+        #     y_range = self.y_range_ooh_vs_oh
+        # elif y_ax_spec == "o":
+        #     y_range = self._range_o_vs_oh
+        # elif y_ax_spec == "oh":
+        #     y_range = self.y_range_oh_vs_oh
+        # else:
+        #     print("Woops - create_layout")
+        #__|
+
+        x_range = self.x_range
+        y_range = self.y_range
+
+        layout_i = {
+            "title": title,
+            "titlefont": go.layout.Titlefont(size=24),
+
+            "xaxis": dict(
+                common_axis_dict,
+                **{
+                    "title": x_ax_title,
+                    "range": x_range,
+                    },
+                ),
+
+            "yaxis": dict(
+                common_axis_dict,
+                **{
+                    "title": y_ax_title,
+                    "range": y_range,
+                    },
+                ),
+
+            "font": dict(
+                family='Arial',
+                # size=18,
+                color='black',
+                ),
+
+            "width": 1.5 * 18.7 * 37.795275591,
+            "height": 18.7 * 37.795275591,
+
+            "showlegend": showlegend,
+
+            "legend": dict(
+                font=dict(
+                    size=10,
+                    ),
+                ),
+            }
+
+        return(layout_i)
+        #__|
+
+    def __series_excluded__(self,
+        properties_i,
+        exclude_dict,
+        ):
+        """Whether to exclude series_i from fitting.
+
+        Takes an 'exclude_dict' and the series properties_dict and compares
+        them key-by-key. If there is a match, then that series is excluded
+        (and the function evaluates to True)
+
+        Args:
+            properties_i:
+            exclude_dict:
+        """
+        #| - series_excluded
+        exclude_dict_keys = list(exclude_dict.keys())
+        properties_i_keys = list(properties_i.keys())
+
+        shared_keys = list(
+            set(exclude_dict_keys).intersection(set(properties_i_keys)),
+            )
+
+        # TEMP_PRINT
+        print(shared_keys)
+        print(exclude_dict_keys)
+        print("________")
+
+        if len(shared_keys) < len(exclude_dict_keys):
+            print("series_i doesn't have a specific key!")
+
+        value_match_list = []
+        for key_i in shared_keys:
+            value_match_i = exclude_dict[key_i] == properties_i[key_i]
+            value_match_list.append(value_match_i)
+
+
+        all_props_match = all(value_match_list)
+
+        # if all_props_match:
+        #     print("Ignoring this series for fitting")
+        #
+        # else:
+        #     print("Series not excluded, will include in fitting set")
+
+
+        return(all_props_match)
+
+        #__|
+
+    def fit_scaling_lines(self,
+        dependent_species,
+        exclude_dict=None,
+        ):
+        """Linear fit of either *O or *OOH to *OH
+
+        Args:
+            dependent_species:
+                y-axis species 'ooh' or 'o'
+        """
+        #| - fit_scaling_lines
+
+        #| - LOOP
+        oh_list = []
+        dependent_e_list = []
+        for series_i in self.ORR_Free_E_Plot.series_list:
+
+            #| - Excluding series from fitting
+            if exclude_dict is not None:
+                properties_i = series_i.properties
+                exclude_series = self.__series_excluded__(
+                    properties_i,
+                    exclude_dict,
+                    )
+                if exclude_series:
+                    continue
+            #__|
+
+            energy_i = series_i.energy_states_dict[dependent_species]
+            dependent_e_list.append(energy_i)
+            oh_list.append(series_i.energy_states_dict["oh"])
+
+        #__|
+
+
+        # print(len(dependent_e_list))
+        X = np.array([[i] for i in oh_list])
+        y = np.array(dependent_e_list)
+
+        reg = LinearRegression().fit(X, y)
+        # print(reg.score(X, y))
+
+        slope_i = reg.coef_[0]
+        intercept_i = reg.intercept_
+
+        # print(slope_i)
+        # print(intercept_i)
+
+        out = {"slope": slope_i, "intercept": intercept_i}
+
+        return(out)
+        #__|
+
+    def add_ideal_lines(self):
+        """Add ideal scaling lines to plot."""
+        #| - add_ideal_lines
+        self.add_line({"slope": 1, "intercept": 3.2},
+            name="*OOH vs *OH Scaling",
+            color="black",
+            width=1,
+            dash="dash",
+            )
+
+        self.add_line({"slope": 2, "intercept": 0.},
+            name="*O vs *OH Scaling",
+            color="black",
+            width=1,
+            dash="dash",
+            )
+
+        self.add_line({"slope": 1, "intercept": 0.},
+            name="*OH vs *OH Scaling",
+            color="black",
+            width=1,
+            dash="dash",
+            )
+        #__|
+
+    def add_line(self,
+        slope_intercept_dict,
+        name="add_lines - TEMP",
+        color="black",
+        width=1,
+        dash="dash",
+        ):
+        """Add line of form y=mx+b to plot.
+
+        Args:
+            slope_intercept_dict:
+            name:
+            color:
+            width:
+            dash:
+        """
+        #| - add_line
+        slope = slope_intercept_dict["slope"]
+        intercept = slope_intercept_dict["intercept"]
+
+        def scaling_meth(E_OH):
+            """
+            """
+            #| - scaling_meth
+            out = slope * E_OH + intercept
+
+            return(out)
+            #__|
+
+        LH_bound = self.x_range[0]
+        RH_bound = self.x_range[1]
+
+        scaling_trace = go.Scatter(
+            # x=[self.x_range_ooh_vs_oh[0], self.x_range_ooh_vs_oh[1]],
+            x=[LH_bound, RH_bound],
+            y=[
+                scaling_meth(LH_bound),
+                scaling_meth(RH_bound),
+                ],
+            # name='Fitted scaling',
+            name=name,
+            mode='lines',
+            line=dict(
+                dash=dash,
+                color=color,
+                width=width,
+                ),
+            )
+        # self.data_ooh_oh.append(scaling_trace)
+        self.data_lines.append(scaling_trace)
+        #__|
+
+
+
+
+
+    #| - __old__
+    # def __ideal_ooh_oh_scaling__(self, E_OH):
+    #     """Return the *OOH adsorption energy given DG_*OH by scaling.
+    #
+    #     Args:
+    #         E_OH:DG_*OH energy of adsorption
+    #     """
+    #     #| - __ideal_ooh_oh_scaling__
+    #     return(E_OH + 3.2)
+    #     #__|
+    #
+    # def __ideal_h_oh_scaling__(self, E_OH):
+    #     """Return the *OOH adsorption energy given DG_*OH by scaling.
+    #
+    #     Args:
+    #         E_OH: DG_*OH energy of adsorption.
+    #     """
+    #     #| - __ideal_h_oh_scaling__
+    #     return(2 * E_OH)
+    #     #__|
+    #
+    # def __ideal_oh_oh_scaling__(self, E_OH):
+    #     """Return the *OH adsorption energy given DG_*OH by scaling.
+    #
+    #     NOTE: TRIVIAL QUANTITY!!!!!!!!!!!!!!!!!!!
+    #
+    #     Args:
+    #         E_OH: DG_*OH energy of adsorption.
+    #     """
+    #     #| - __ideal_oh_oh_scaling__
+    #     return(E_OH)
+    #     #__|
+    #
+    #__|
+
+    #__| **********************************************************************
+
+
+class Volcano_Plot():
+    """
+    """
+
+    #| - Volcano_Plot *********************************************************
+
+    def __init__(self,
+        ORR_Free_E_Plot,
+
+        # mode="all",
+        # plot_range={
+        #     "y": [1., 5.],
+        #     "x": [-2., 4.],
+        #     },
+        # x_ax_species="oh",
+        ):
+        """
+        Input variables to class instance.
+
+        Args:
+            ORR_Free_E_Plot:
+            mode:
+                "all", "ooh_vs_oh", "o_vs_oh"
+        """
+        #| - __init__
+        self.ORR_Free_E_Plot = ORR_Free_E_Plot
+
+        tmp = 42
+
+        #| - __old__
+        # assert (x_ax_species == "oh"), "Only *OH as the x-axis is allowed now"
+        # self.data_points = {
+        #     "ooh_vs_oh": [],
+        #     "o_vs_oh": [],
+        #     "oh_vs_oh": [],
+        #     }
+        # self.data_lines = []
+        # self.x_range = plot_range["x"]
+        # self.y_range = plot_range["y"]
+        # # self.layout = self.__create_layout__(
+        # #     title="Scaling Relations",
+        # #     showlegend=True,
+        # #     )
+        #__|
+
+        #__|
+
+
+        def get_plotly_layout():
+            """
+            """
+            #| - get_plotly_layout
+            # plot_title="FED"
+            plot_title=None
+            plot_title_size=18
+            tick_lab_size=9 * (4. / 3.)
+            axes_lab_size=10.5 * (4. / 3.)
+            legend_size=18
+            # font_family="Computer Modern"  # "Courier New, monospace"
+            font_family="Arial"  # "Courier New, monospace"
+
+
+            layout = {
+                "title": plot_title,
+
+                "font": {
+
+                    "family": font_family,
+                    "color": "black",
+                    },
+
+                #| - Axes -----------------------------------------------------
+                "yaxis": {
+                    "title": "Limiting Potential (V)",
+            #         "title": "$\\Delta G (ev)$",
+
+                    "range": y_axis_range,
+                    "zeroline": False,
+                    "showline": True,
+                    "mirror": 'ticks',
+                    "linecolor": 'black',
+                    "showgrid": False,
+
+                    "titlefont": dict(size=axes_lab_size),
+
+                    "tickfont": dict(
+                        size=tick_lab_size,
+                        ),
+                    "ticks": 'inside',
+                    "tick0": 0,
+                    "tickcolor": 'black',
+                    "dtick": 0.25,
+                    "ticklen": 2,
+                    "tickwidth": 1,
+                    },
+
+                "xaxis": {
+            #         "title": "$\\Delta G_{OH} (ev)$",
+
+                    "range": x_axis_range,
+                    "zeroline": False,
+                    "showline": True,
+                    "mirror": True,
+                    "linecolor": 'black',
+                    "showgrid": False,
+                    "titlefont": dict(size=axes_lab_size),
+                    "showticklabels": True,
+                    "ticks": 'inside',
+                    "tick0": 0,
+                    "dtick": 0.5,
+                    "ticklen": 2,
+                    "tickwidth": 1,
+                    "tickcolor": 'black',
+                    "tickfont": dict(
+                        size=tick_lab_size,
+                        ),
+                    },
+                    #__|
+
+            #     "paper_bgcolor": 'rgba(0,0,0,0)',
+                "plot_bgcolor": 'rgba(0,0,0,0)',
+
+                #| - Legend ---------------------------------------------------
+                "legend": {
+                    "traceorder": "normal",
+                    "font": dict(size=legend_size)
+                    },
+
+                # Plot Size
+                "width": 9. * 37.795275591,
+                "height": 9 * 37.795275591,
+
+                "showlegend": False,
+                #__|
+
+                }
+
+            #__|
+
 
     #__| **********************************************************************

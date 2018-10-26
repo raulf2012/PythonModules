@@ -31,6 +31,33 @@ class DFT_Params:
         #| - __init__
         self.file_name = "dft-params"
         self.compute_env = os.environ.get("COMPENV")
+
+        self.submission_params = self.load_submission_params()
+        #__|
+
+    def load_submission_params(self, filename=".submission_params.json"):
+        """Attempt to load submission parameters from file.
+
+        Args:
+            filename:
+                Name of file containing submission parameters in a json
+                file format. The file is created automatically from my
+                comp_env module when used in conjuction witht he job
+                submission script.
+        """
+        #| - load_submission_params
+        # try:
+
+        with open(filename, "r") as fle:
+            submission_params = json.load(fle)
+
+        # except:
+        #     submission_params = None
+        #
+        #     print("Couldn't parse the submission_params file")
+        #     pass
+
+        return(submission_params)
         #__|
 
     def load_params(self, dir=".", update_params=True):
@@ -285,10 +312,6 @@ class Espresso_Params(DFT_Params):
         #| - default_params
         params = {}
 
-        # params["mode"] = "ase3"
-        # params["opt_algorithm"] = "bfgs"
-        # params["cell_dynamics"] = "bfgs"
-
         params["pw"] = 500  # plane-wave cutoff
         params["dw"] = 5000  # density cutoff
         params["dipole"] = {"status": True}  # Turn on only for slabs not bulk
@@ -308,13 +331,9 @@ class Espresso_Params(DFT_Params):
 
         params["sigma"] = 0.1  # Should be low for spin calculations
 
-        # pseudopotential path
-        # params["psppath"] = "/home/vossj/suncat/psp/gbrv1.5pbe/"
-
         params["beefensemble"] = True
 
         # Parallelization <----------------------------------------------------
-        # params["parflags"] = "-npool "
         params["parflags"] = None
 
         #| - Convergence Parameters
@@ -331,22 +350,7 @@ class Espresso_Params(DFT_Params):
         #__|
 
         #| - File Output <-----------------------------------------------------
-
-         # output = {'disk_io':'default',  # how often espresso writes wavefunctions to disk
-         #           'avoidio':False,  # will overwrite disk_io parameter if True
-         #           'removewf':True,
-         #           'removesave':False,
-         #           'wf_collect':False},
-
-
-        # params["output"] = {"removesave": True}  # Aayush, saves ~nothing
         params["output"] = {
-
-            # "avoidio": False,
-            # "removesave": False,
-            # "removewf": False,
-            # "wf_collect": False,
-
             "avoidio": True,
             "removesave": True,
             "removewf": True,
@@ -374,10 +378,10 @@ class Espresso_Params(DFT_Params):
         #__|
 
     def test_check(self):
-        """Automatically tries to set params based on other dependent parameters.
+        """Attempts to set params based on other dependent parameters.
 
         Ex.) If spinpol == True, then sigma should be smaller, 0.01ish
-        (Charlotte stold me)
+        (Charlotte told me)
 
         Only set this dependent param if the user has not explicitly done so,
         is what the condition for setting a parameter automatically is.
@@ -449,6 +453,101 @@ class Espresso_Params(DFT_Params):
 
         #__| ==================================================================
 
+        #| - Parallelization
+        if self.mod_dict["parflags"] is False:
+            if type(self.submission_params) == dict:
+                if "nodes" in self.submission_params:
+                    num_nodes = self.submission_params["nodes"]
+
+                    self.update_params(
+                        {"parflags": "-npool " + str(int(num_nodes))},
+                        user_update=False,
+                        )
+
+                    #  TEMP_PRINT
+                    print("098sddfkfs--s-s-__-_")
+                    print("-npool " + str(int(num_nodes)))
+        #__|
+
         #__|
 
     #__| **********************************************************************
+
+
+
+
+
+#| - __old__ | default_params with all the commented lines
+# params = {}
+#
+# # params["mode"] = "ase3"
+# # params["opt_algorithm"] = "bfgs"
+# # params["cell_dynamics"] = "bfgs"
+#
+# params["pw"] = 500  # plane-wave cutoff
+# params["dw"] = 5000  # density cutoff
+# params["dipole"] = {"status": True}  # Turn on only for slabs not bulk
+# params["xc"] = "BEEF-vdW"  # exchange-correlation functional
+# params["kpts"] = (3, 3, 1)  # k-points for hexagonal symm in 2-D mater
+#
+# # TODO Scale number of bands with system size
+# params["nbands"] = -50
+#
+# #| - Spin & Magnitism
+# # Spin-polarized calculation
+# params["spinpol"] = False
+#
+# # Non-collinear magnetism, magnetization in generic direction
+# params["noncollinear"] = False
+# #__|
+#
+# params["sigma"] = 0.1  # Should be low for spin calculations
+#
+# # pseudopotential path
+# # params["psppath"] = "/home/vossj/suncat/psp/gbrv1.5pbe/"
+#
+# params["beefensemble"] = True
+#
+# # Parallelization <----------------------------------------------------
+# # params["parflags"] = "-npool "
+# params["parflags"] = None
+#
+# #| - Convergence Parameters
+# params["convergence"] = {
+#     "energy": 1e-5,  # convergence parameters
+#
+#     # TF (Normal) or local-TF (Better for inhomogeneous systems)
+#     "mixing_mode": "local-TF",
+#     "mixing": 0.2,
+#     "nmix": 20,  # num of iter used in mixing scheme (Default 8)
+#     "maxsteps": 500,
+#     "diag": "david",
+#     }
+# #__|
+#
+# #| - File Output <-----------------------------------------------------
+#
+#  # output = {'disk_io':'default',  # how often espresso writes wavefunctions to disk
+#  #           'avoidio':False,  # will overwrite disk_io parameter if True
+#  #           'removewf':True,
+#  #           'removesave':False,
+#  #           'wf_collect':False},
+#
+#
+# # params["output"] = {"removesave": True}  # Aayush, saves ~nothing
+# params["output"] = {
+#
+#     # "avoidio": False,
+#     # "removesave": False,
+#     # "removewf": False,
+#     # "wf_collect": False,
+#
+#     "avoidio": True,
+#     "removesave": True,
+#     "removewf": True,
+#     "wf_collect": False,
+#     }
+#
+# params["outdir"] = "calcdir"
+# return(params)
+#__|
