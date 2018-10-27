@@ -109,32 +109,33 @@ class ComputerCluster():
         #| - __init__
         self.root_dir = os.getcwd()
         self.default_sub_params = self.default_submission_parameters()
+
+        # self.username = self.__parse_username__()
+
         self.__parse_cluster_type__()
-
-        self.username = self.__parse_username__()
         #__|
 
-    def __parse_username__(self):
-        """
-        """
-        #| - __parse_username__
-        username = os.environ.get("USER")
-
-        cond_1 = False
-        if type(username) == str:
-            cond_1 = True
-
-        cond_2 = False
-        if username is not None:
-            cond_2 = True
-
-        print(cond_1)
-        print(cond_2)
-
-        print(username)
-        print("*******")
-        return(username)
-        #__|
+    # def __parse_username__(self):
+    #     """
+    #     """
+    #     #| - __parse_username__
+    #     username = os.environ.get("USER")
+    #
+    #     cond_1 = False
+    #     if type(username) == str:
+    #         cond_1 = True
+    #
+    #     cond_2 = False
+    #     if username is not None:
+    #         cond_2 = True
+    #
+    #     print(cond_1)
+    #     print(cond_2)
+    #
+    #     print(username)
+    #     print("*******")
+    #     return(username)
+    #     #__|
 
     def __parse_cluster_type__(self):
         """Parse for the current cluster system."""
@@ -166,7 +167,6 @@ class ComputerCluster():
             self.cluster = DummyCluster(
                 root_dir=self.root_dir,
                 )
-
 
         home = os.environ.get("HOME")
         try:
@@ -1080,6 +1080,8 @@ class SherlockCluster(ComputerCluster):
         self.job_data_dir = ""
         self.root_dir = root_dir
 
+        self.username = self.__parse_username__()
+        print("LKSDJFLKSDJFKSDKjf")
         self.default_sub_params = self.default_submission_parameters()
 
         self.queues = self.__queue_types__()
@@ -1098,6 +1100,30 @@ class SherlockCluster(ComputerCluster):
 
         # self.job_queue_state_key = "job_status"
         #__|
+
+
+    def __parse_username__(self):
+        """
+        """
+        #| - __parse_username__
+        username = os.environ.get("USER")
+
+        cond_1 = False
+        if type(username) == str:
+            cond_1 = True
+
+        cond_2 = False
+        if username is not None:
+            cond_2 = True
+
+        print(cond_1)
+        print(cond_2)
+
+        print(username)
+        print("*******")
+        return(username)
+        #__|
+
 
     def default_submission_parameters(self):
         """Defaul SLURM parameters for Sherlock cluster."""
