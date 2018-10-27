@@ -5,6 +5,7 @@
 Author: Raul A. Flores
 """
 
+
 #| - IMPORT MODULES
 import numpy as np
 import pandas as pd
@@ -222,6 +223,8 @@ class ORR_Free_E_Plot:
         # overpotential_type="ORR",
         # rxn_type="ORR",
 
+        # print(system_properties)
+
         ORR_Series = ORR_Free_E_Series(
             free_energy_df=fe_df,
             properties=system_properties,
@@ -293,9 +296,6 @@ class ORR_Free_E_Plot:
         elif self.rxn_type == "OER":
             # xax_labels = ["$H_{2}O$", "$*OH$", "$*O$", "$*OOH$", "$O_{2}$"]
             xax_labels = ["H2O", "*OH", "*O", "*OOH", "O2"]
-
-        # print(axes_lab_size)
-        # print(tick_lab_size)
 
         layout = {
             "title": plot_title,
@@ -1290,11 +1290,6 @@ class Scaling_Relations_Plot():
             set(exclude_dict_keys).intersection(set(properties_i_keys)),
             )
 
-        # TEMP_PRINT
-        print(shared_keys)
-        print(exclude_dict_keys)
-        print("________")
-
         if len(shared_keys) < len(exclude_dict_keys):
             print("series_i doesn't have a specific key!")
 
@@ -1351,19 +1346,13 @@ class Scaling_Relations_Plot():
 
         #__|
 
-
-        # print(len(dependent_e_list))
         X = np.array([[i] for i in oh_list])
         y = np.array(dependent_e_list)
 
         reg = LinearRegression().fit(X, y)
-        # print(reg.score(X, y))
 
         slope_i = reg.coef_[0]
         intercept_i = reg.intercept_
-
-        # print(slope_i)
-        # print(intercept_i)
 
         out = {"slope": slope_i, "intercept": intercept_i}
 
@@ -1371,7 +1360,7 @@ class Scaling_Relations_Plot():
         #__|
 
     def add_ideal_lines(self):
-        """Add ideal scaling lines to plot."""
+        """Add ideal scaling liknes to plot."""
         #| - add_ideal_lines
         self.add_line({"slope": 1, "intercept": 3.2},
             name="*OOH vs *OH Scaling",

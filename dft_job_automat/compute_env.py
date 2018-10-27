@@ -110,6 +110,30 @@ class ComputerCluster():
         self.root_dir = os.getcwd()
         self.default_sub_params = self.default_submission_parameters()
         self.__parse_cluster_type__()
+
+        self.username = self.__parse_username__()
+        #__|
+
+    def __parse_username__(self):
+        """
+        """
+        #| - __parse_username__
+        username = os.environ.get("USER")
+
+        cond_1 = False
+        if type(username) == str:
+            cond_1 = True
+
+        cond_2 = False
+        if username is not None:
+            cond_2 = True
+
+        print(cond_1)
+        print(cond_2)
+
+        print(username)
+        print("*******")
+        return(username)
         #__|
 
     def __parse_cluster_type__(self):
@@ -815,7 +839,8 @@ class SLACCluster(ComputerCluster):
         #     return(None)
         #__|
 
-        #| - Submit Job
+        #| - Submit Job *******************************************************
+
         os.chdir(path)
 
         if params["job_name"] == "Default":
@@ -1077,6 +1102,11 @@ class SherlockCluster(ComputerCluster):
     def default_submission_parameters(self):
         """Defaul SLURM parameters for Sherlock cluster."""
         #| - default_submission_parameters
+
+        # TEMP_PRINT
+        print(self.username)
+        print("_______")
+
         def_params = {
             "queue": "owners,iric,normal",  # -p flag
             "nodes": "1",  # --nodes
@@ -1085,7 +1115,8 @@ class SherlockCluster(ComputerCluster):
             "wall_time": "720",  # --time (720min -> 12hrs)
             "job_name": "Default",  # --job-name
             "priority": "normal",  # --qos
-            "email": "flores12@stanford.edu",  # --mail-user
+            # "email": "flores12@stanford.edu",  # --mail-user
+            "email": self.username + "@stanford.edu",  # --mail-user
             "email_mess": "FAIL",  # --mail-type
             }
 

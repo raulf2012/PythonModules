@@ -78,7 +78,9 @@ class ORR_Free_E_Series():
         self.bias = bias
         self.rxn_x_coord_array = rxn_x_coord_array
         self.opt_name = opt_name
+
         self.properties = properties
+
         self.color_list = color_list
         self.color = color
         self.i_cnt = i_cnt
@@ -270,7 +272,6 @@ class ORR_Free_E_Series():
             if len(df_state) == 2:
                 state_energy_list = []
                 for j_cnt, row_j in df_state.iterrows():
-                    # print(row_j[self.fe_title])
                     energy_j = row_j[self.fe_title]
 
                     state_energy_list.append(energy_j)
@@ -315,14 +316,10 @@ class ORR_Free_E_Series():
                     }])
             #__|
 
-            print(len(df_state))
             state_energy_list = []
             for j_cnt, row_j in df_state.iterrows():
                 energy_j = row_j[self.fe_title]
                 state_energy_list.append(energy_j)
-
-            print(state_energy_list)
-            print("___---_----___-__kdf")
 
             free_energy_list.append(state_energy_list)
 
