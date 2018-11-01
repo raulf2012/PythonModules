@@ -768,6 +768,7 @@ def reduce_magmoms(atoms, ntypx=10):
                 atoms[index].magmom = magmom
     #__|
 
+
 def read_magmoms_from_file(file_name="magmom_init.in"):
     """Read inital magmoms from a file.
 

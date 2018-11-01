@@ -239,7 +239,18 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             File name must end with ".col" extension.
         """
         #| - add_all_columns_from_file
-        dir_list = glob.glob(self.root_dir + "/jobs_bin/data_columns/*.col*")
+        # print("lksajkfls0sd7fsdfsd98")
+        # print(self.root_dir + "/jobs_bin/data_columns")
+        # print(self.working_dir)
+
+        col_dir = os.path.join(
+            self.working_dir,
+            "jobs_bin/data_columns",
+            ) + "/*.col*"
+        # print(col_dir)
+
+        dir_list = glob.glob(col_dir)
+
         col_data_file_list = [dir.split("/")[-1] for dir in dir_list]
 
         for col_file in col_data_file_list:
@@ -262,7 +273,13 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         #__|
 
         #| - Reading Column Data File - NEW
-        column_file = self.root_dir + "/jobs_bin/data_columns/" + file_name
+        # column_file = self.root_dir + "/jobs_bin/data_columns/" + file_name
+        column_file = os.path.join(
+            self.working_dir,
+            "jobs_bin/data_columns",
+            file_name,
+            )
+
         with open(column_file, "r") as fle:
             content = fle.readlines()
 
@@ -1137,6 +1154,150 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
     #__| **********************************************************************
 
 #__| **************************************************************************
+
+
+
+def parse_job_dirs(dirs_to_parse):
+    """Parse directory structure for jobs.
+
+    Args:
+        dirs_to_parse
+    """
+    #| - parse_job_dirs
+
+    #| - Import Modules
+    # import os
+    # import sys
+    #
+    # import pickle as pickle
+    #__|
+
+    #| - Script Input
+    # dirs_to_parse = [
+    #     "01_surface_calcs",
+    #     "02_surface_coverage",
+    #     "03_OER_Calc",
+    #     "07_diff_coverages_term",
+    #     ]
+    #__|
+
+    #| - MASTER Loop
+    master_path_list = []
+    for dir_j in dirs_to_parse:
+        # path_j = os.path.join(os.getcwd(), dir_j)
+        path_j = dir_j
+        for root, dirs, files in os.walk(path_j, topdown=True):
+            for name in dirs:
+                name_i = os.path.join(root, name)
+
+                dir_root = os.path.join(*name_i.split("/")[0:-1])
+                dir_leaf = name_i.split("/")[-1]
+
+                #| - Test that terminal dir name has _1 format
+                condition_0 = False
+                if dir_leaf[0] == "_":
+                    condition_0 = True
+
+                condition_1 = False
+                if len(dir_leaf.split("_")) == 2:
+                    condition_1 = True
+
+                numeric_part = dir_leaf.split("_")[-1]
+                condition_2 = False
+                if numeric_part.isdigit():
+                    condition_2 = True
+                #__|
+
+                condition_3 = False
+                if "__old__" not in name_i:
+                    condition_3 = True
+
+                condition_4 = False
+                if "__temp__" not in name_i:
+                    condition_4 = True
+
+                if all([
+                    condition_0,
+                    condition_1,
+                    condition_2,
+                    condition_3,
+                    condition_4,
+                    ]):
+                    master_path_list.append("/" + dir_root)
+
+    #__|
+
+    master_path_list_unique = list(set(master_path_list))
+
+    # for i in master_path_list_unique: print(i)
+
+    #| - NEW | Check that paths contain job_params.json file
+    for path_i in master_path_list_unique:
+        if "job_params.json" not in os.listdir(path_i):
+            print("job_params not in: ", path_i)
+
+    for path_i in master_path_list_unique:
+
+        files_i = os.listdir(path_i)
+        for file_j in files_i:
+
+            #| - TEMP
+            condition_list = []
+
+            # Make sure that 'run' is in the dir name (ex. 3-run)
+            if "run" in file_j:
+                condition_list.append(True)
+                # print("run file here")
+            else:
+                condition_list.append(False)
+
+            # Make sure there is a '-' character
+            if "-" in file_j:
+                condition_list.append(True)
+
+                # Make sure the first set of characters are numeric
+                if file_j.split("-")[0].isdigit():
+                    condition_list.append(True)
+                else:
+                    condition_list.append(False)
+
+            else:
+                condition_list.append(False)
+
+            #__|
+
+            if all(condition_list):
+                print("Found a #-run folder: ", path_i)
+
+    #__|
+
+    return(master_path_list_unique)
+
+    #| - Saving List to Pickle
+    # with open("181016_jobs_dir_list.pickle", "w") as fle:
+    #     pickle.dump(master_path_list_unique ,fle)
+    #__|
+
+    #__|
+
+def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
+    """
+    """
+    #| - compare_parsed_and_user_job_dirs
+
+    print(" ")
+    print(" ")
+    print("User inputed dir_list len: ", str(len(user_dirs)))
+    print("Parsed dir_list len: ", str(len(parsed_dirs)))
+
+    print(20 * "_")
+
+    print(set(parsed_dirs).difference(set(user_dirs)))
+    print(20 * "*")
+    print(set(user_dirs).difference(set(parsed_dirs)))
+
+    #__|
+
 
 
 #| - __old__

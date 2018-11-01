@@ -120,6 +120,15 @@ class ORR_Free_E_Series():
 
             self.energy_states_dict = self.__energy_states_dict__()
 
+            self.series_name = self.__series_plot_name__(
+                opt_name=self.opt_name,
+                properties=self.properties,
+                overpotential_type=self.rxn_type,
+                )
+
+            # print("__-____*9dfs")
+            # print(self.series_name)
+
             self.series_plot = self.plot_fed_series(
                 bias=self.bias,
                 opt_name=self.opt_name,
@@ -453,6 +462,78 @@ class ORR_Free_E_Series():
         return(energy_dupl_lst)
         #__|
 
+    def __series_plot_name__(self,
+        # bias=0.,
+        opt_name=None,
+        properties=None,
+        # color_list=None,
+        # i_cnt=0,
+        # hover_text_col=None,
+        # plot_mode="all",
+        # smart_format=None,
+        overpotential_type="ORR",
+        ):
+        """Create name for series.
+
+        Args:
+            bias:
+            opt_name:
+            properties:
+            color_list:
+            i_cnt:
+            hover_text_col:
+            plot_mode:
+            smart_format:
+            overpotential_type:
+        """
+        #| - __series_plot_name__
+        key = properties
+        if type(key) == tuple:
+            pass
+
+        elif key is None:
+            key = None
+        else:
+            key = (key,)
+
+        # e_list = self.energy_lst
+        # e_list = self.apply_bias(bias, e_list)
+
+        if overpotential_type == "ORR":
+            overpot_i = self.overpotential
+        elif overpotential_type == "OER":
+            overpot_i = self.overpotential_OER
+        elif overpotential_type == "H2O2":
+            overpot_i = self.overpotential_h2o2
+        else:
+            overpot_i = self.overpotential
+
+        # for n, i in enumerate(e_list):
+        #     if np.isnan(i) is True:
+        #         e_list[n] = None
+
+        # if color_list is None:
+        #     color_list = ["red"]
+
+        #| - Data Series Name
+        if key is None:
+            prop_name = ""
+        else:
+            prop_name = "_".join([str(i) for i in key])
+
+        if opt_name is not None:
+            name_i = opt_name + ": " + prop_name + \
+                " (OP: " + str(round(overpot_i, 2)) + ")"
+
+        else:
+            name_i = prop_name + \
+                " (OP: " + str(round(overpot_i, 2)) + ")"
+        #__|
+
+        return(name_i)
+
+        #__|
+
     def plot_fed_series(self,
         bias=0.,
         opt_name=None,
@@ -479,6 +560,7 @@ class ORR_Free_E_Series():
         #FIXME | This is  fairly rough as of right now
         """
         #| - plot_fed_series
+
         key = properties
         if type(key) == tuple:
             pass
@@ -508,18 +590,20 @@ class ORR_Free_E_Series():
             color_list = ["red"]
 
         #| - Data Series Name
-        if key is None:
-            prop_name = ""
-        else:
-            prop_name = "_".join([str(i) for i in key])
+        # if key is None:
+        #     prop_name = ""
+        # else:
+        #     prop_name = "_".join([str(i) for i in key])
+        #
+        # if opt_name is not None:
+        #     name_i = opt_name + ": " + prop_name + \
+        #         " (OP: " + str(round(overpot_i, 2)) + ")"
+        #
+        # else:
+        #     name_i = prop_name + \
+        #         " (OP: " + str(round(overpot_i, 2)) + ")"
 
-        if opt_name is not None:
-            name_i = opt_name + ": " + prop_name + \
-                " (OP: " + str(round(overpot_i, 2)) + ")"
-
-        else:
-            name_i = prop_name + \
-                " (OP: " + str(round(overpot_i, 2)) + ")"
+        name_i = self.series_name
         #__|
 
         #| - Hover Text

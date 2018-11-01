@@ -14,7 +14,9 @@ from ase import io
 # from ase.io.trajectory import Trajectory
 
 # My Modules
-from ase_modules.ase_methods import number_of_atoms
+# from ase_modules.ase_methods import number_of_atoms
+from ase_modules.ase_methods import create_species_element_dict
+
 from quantum_espresso.qe_methods import magmom_charge_data
 #__|
 
@@ -319,12 +321,12 @@ class DFT_Methods():
         Args:
             path_i:
         """
-        #| - number_of_atoms
+        #| - atom_type_num_dict
         atoms = None
         atoms_file_names = ["out_opt.traj", "out.traj"]
         for file_name in atoms_file_names:
             try:
-                # print(path_i + "/" + file_name)
+                print(path_i + "/" + file_name)
                 atoms = io.read(path_i + "/" + file_name)
                 break
 
@@ -334,7 +336,16 @@ class DFT_Methods():
         # print(atoms)
         # atoms = io.read(path_i + "/out.traj")
 
-        out_dict = number_of_atoms(atoms)
+        # print("dft_methods")
+        out_dict = create_species_element_dict(
+            atoms,
+            include_all_elems=False,
+            elems_to_always_include=None,
+            )
+
+        print("dft_methods - atom_type_num_dict")
+        print(out_dict)
+        # out_dict = number_of_atoms(atoms)
 
         return([out_dict])
         #__|

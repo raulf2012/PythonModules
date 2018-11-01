@@ -114,8 +114,15 @@ def calc_ads_e(
 
     #| - Oxygen & Hydrogen Atom Count
 
+    # print(type(row))
+    # print(row)
+    # print(list(row))
+    # print(row)
+    # print(")()(D__D_FSDD_)")
+    # list(row.index)
+
     atoms_col = "atom_type_num_dict"
-    if atoms_col in list(row):
+    if atoms_col in list(row.index):
         try:
             num_O = row[atoms_col][0]["O"]
         except:

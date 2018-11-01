@@ -73,12 +73,10 @@ class Job:
             job_params_from_file.update(job_params_dict)
 
         return(job_params_from_file)
-
         #__|
 
     def __read_job_params_file__(self):
         """Read "job_parameters.json" file from job direcory.
-
 
         Development Notes:
             Search in the job root dir (one level up from "_" dirs)
@@ -128,6 +126,8 @@ class Job:
         """
         """
         #| - __revision_number__
+        print(self.full_path)
+
         revision_i = int(self.full_path.split("/")[-1].split("_")[-1])
         return(revision_i)
         #__|
@@ -238,7 +238,13 @@ class DFT_Jobs_Setup:
                 for rev_i in rev_dirs:
                     path_i = os.path.join(job_i_dir, rev_i)
                     path_i = os.path.normpath(path_i)
-                    Job_i = Job(path_i=path_i, max_revision=max_rev)
+
+                    Job_i = Job(
+                        path_i=path_i,
+                        job_params_dict=None,
+                        max_revision=max_rev,
+                        root_dir=None,
+                        )
 
                     self.Job_list.append(Job_i)
         #__|
@@ -254,22 +260,50 @@ class DFT_Jobs_Setup:
                         job_rev="Auto",
                         relative_path=False,
                         )
-                else:
-                    path_i = os.path.join(self.var_lst_to_path(job_i), "_1")
+
+                #| - __old__
+                # else:
+                #     print("else *s8fs*sdf")
+                #     path_i = os.path.join(
+                #
+                #         self.var_lst_to_path(
+                #             job_i,
+                #             job_rev="Auto",
+                #             relative_path=False,
+                #             ),
+                #
+                #         # self.var_lst_to_path(
+                #         #     job_i,
+                #         #     ),
+                #
+                #         "_1",
+                #         )
+                #__|
+
+                rev_dirs, max_rev = self.__revision_list_and_max__(
+                    # path_i
+                    self.var_lst_to_path(
+                        job_i,
+                        job_rev="None",
+                        relative_path=False,
+                        )
+                    )
 
                 Job_i = Job(
                     path_i=path_i,
                     job_params_dict=job_var_dict,
+                    max_revision=max_rev,
                     root_dir=self.root_dir,
                     )
 
                 self.Job_list.append(Job_i)
         #__|
 
+        #| - TEMP | I don't remember why this is here
         indiv_job = self.indiv_job_lst is not None
         level_labels = self.tree_level_labels is not None
         if indiv_job and level_labels:
-
+            print("LSKDJFKLDS_-09sdfsdfs9dfas")
             for job_params_i in self.indiv_job_lst:
 
                 job_var_lst_i = self.__job_i_param_dict_to_job_var_lst__(
@@ -289,6 +323,8 @@ class DFT_Jobs_Setup:
                     )
 
                 self.Job_list.append(Job_i)
+        #__|
+
         #__|
 
 
@@ -549,18 +585,30 @@ class DFT_Jobs_Setup:
 
             dir_name += index + self.sep + prop_value + "/"
 
+        # Removing the trailing '/' character
+        dir_name = dir_name[:-1]
+
         if job_rev == "Auto":
             # __revision_list_and_max__
             # def __revision_list_and_max__(self, path_i):
 
             revision_dirs, highest_rev = self.__revision_list_and_max__(
-                self.var_lst_to_path(variable_lst),
+                self.var_lst_to_path(
+                    variable_lst,
+                    job_rev="False",
+                    relative_path=False,
+                    ),
                 )
 
-            dir_name += "_" + str(highest_rev)
+            # dir_name += "_" + str(highest_rev)
+            dir_name += "/_" + str(highest_rev)
 
         if relative_path is False:
-            dir_name = self.root_dir + "/" + dir_name
+            dir_name = os.path.join(
+                self.root_dir,
+                self.working_dir,
+                dir_name,
+                )
 
         return(dir_name)
         #__|
@@ -1109,7 +1157,9 @@ class DFT_Jobs_Setup:
         """
         #| - __revision_list_and_max__
         if self.folders_exist:
-            dirs = os.listdir(os.path.join(self.root_dir, path_i))
+
+            # dirs = os.listdir(os.path.join(self.working_dir, path_i))
+            dirs = os.listdir(path_i)
 
             revision_dirs = [dir for dir in dirs if dir[0] == "_" and
                 dir[-1].isdigit() and " " not in dir]

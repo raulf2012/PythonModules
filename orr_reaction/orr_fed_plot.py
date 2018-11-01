@@ -10,6 +10,8 @@ Author: Raul A. Flores
 import numpy as np
 import pandas as pd
 
+# import itertools
+
 from sklearn.linear_model import LinearRegression
 
 # import plotly.plotly as py
@@ -18,6 +20,7 @@ import plotly.graph_objs as go
 pd.options.mode.chained_assignment = None
 
 from orr_reaction.orr_series import ORR_Free_E_Series
+from orr_reaction.adsorbate_scaling import lim_U_i
 #__|
 
 class ORR_Free_E_Plot:
@@ -189,6 +192,48 @@ class ORR_Free_E_Plot:
 
         #__|
 
+    def __create_series_name__(self, series_i):
+        """
+        """
+        #| - create_series_name
+
+        if series_i.properties is not None:
+            name_i = ""
+            for key, value in series_i.properties.items():
+
+                # TODO | This is an old feature, get rid of it
+                if key == "coverage":
+                    continue
+
+                name_i += str(key) + ": " + str(value) + " | "
+
+        else:
+            name_i = ""
+
+        return(name_i)
+        #__|
+
+    def __create_smart_format_dict__(self, property_dict, smart_format_dict):
+        """Create smart format dictionary.
+
+        Args:
+            property_dict:
+            smart_format_dict:
+        """
+        #| - __create_smart_format_dict__
+        if property_dict is None:
+            return({})
+
+        format_dict = {}
+        for key_i, value_i in property_dict.items():
+            for format_i in smart_format_dict:
+                if list(format_i[0])[0] == key_i:
+                    if list(format_i[0].values())[0] == value_i:
+                        format_dict.update(format_i[1])
+
+        return(format_dict)
+        #__|
+
     def add_series(self,
         fe_df,
         plot_mode="all",
@@ -206,6 +251,7 @@ class ORR_Free_E_Plot:
         else:
             smart_format_i = None
 
+        #| - __old__
         # free_energy_df=None,
         # # system_properties=None,
         # state_title="adsorbate",
@@ -224,6 +270,7 @@ class ORR_Free_E_Plot:
         # rxn_type="ORR",
 
         # print(system_properties)
+        #__|
 
         ORR_Series = ORR_Free_E_Series(
             free_energy_df=fe_df,
@@ -1035,12 +1082,24 @@ class Scaling_Relations_Plot():
             e_ooh = series_i.energy_states_dict["ooh"]
             e_o = series_i.energy_states_dict["o"]
 
-            smart_format_i = self.__create_smart_format_dict__(
+
+            # Change self.__create_smart_format_dict__ to,
+            # self.ORR_Free_E_Plot.__create_smart_format_dict__
+            # TODO
+
+            smart_format_i = self.ORR_Free_E_Plot.__create_smart_format_dict__(
                 series_i.properties,
                 smart_format_dict,
                 )
 
-            name_i = self.__create_series_name__(series_i)
+            name_i = self.ORR_Free_E_Plot.__create_series_name__(series_i)
+
+            # smart_format_i = self.__create_smart_format_dict__(
+            #     series_i.properties,
+            #     smart_format_dict,
+            #     )
+            #
+            # name_i = self.__create_series_name__(series_i)
 
             if series_i.color is not None:
                 smart_format_i["color2"] = series_i.color
@@ -1479,20 +1538,26 @@ class Scaling_Relations_Plot():
 
 
 class Volcano_Plot():
-    """
+    """Class to plot OER/ORR volcano plots.
+
+    Development Notes:
+        TEMP
     """
 
     #| - Volcano_Plot *********************************************************
 
     def __init__(self,
         ORR_Free_E_Plot,
+        # x_ax_species="oh",
+        x_ax_species="o-oh",  # 'o-oh' or 'oh'
+        smart_format_dict=None,
 
         # mode="all",
+        plot_range=None,
         # plot_range={
         #     "y": [1., 5.],
         #     "x": [-2., 4.],
         #     },
-        # x_ax_species="oh",
         ):
         """
         Input variables to class instance.
@@ -1504,118 +1569,430 @@ class Volcano_Plot():
         """
         #| - __init__
         self.ORR_Free_E_Plot = ORR_Free_E_Plot
+        self.x_ax_species = x_ax_species
+        self.plot_range = plot_range
+        self.smart_format_dict = smart_format_dict
 
-        tmp = 42
-
-        #| - __old__
-        # assert (x_ax_species == "oh"), "Only *OH as the x-axis is allowed now"
-        # self.data_points = {
-        #     "ooh_vs_oh": [],
-        #     "o_vs_oh": [],
-        #     "oh_vs_oh": [],
-        #     }
-        # self.data_lines = []
-        # self.x_range = plot_range["x"]
-        # self.y_range = plot_range["y"]
-        # # self.layout = self.__create_layout__(
-        # #     title="Scaling Relations",
-        # #     showlegend=True,
-        # #     )
+        self.data_points = []
+        self.data_lines = []
         #__|
 
+    # NOTE | Rename this create_volcano_plot
+    def create_volcano_relations_plot(self,
+        smart_format_dict=None,
+        ):
+        """Create ORR/OER volcano plot.
+
+        Args:
+            smart_format_dict:
+                Optional dictionary that will format data points
+        """
+        #| - create_volcano_relations_plot
+
+        #| - Default Smart Format Dict
+        smart_format_dict = self.smart_format_dict
+
+        if smart_format_dict is None:
+            print("No smart format given!")
+            smart_format_dict = [
+                [{"bulk_system": "IrO3"}, {"color2": "green"}],
+                [{"bulk_system": "IrO2"}, {"color2": "yellow"}],
+
+                [{"coverage_type": "o_covered"}, {"symbol": "s"}],
+                [{"coverage_type": "h_covered"}, {"symbol": "^"}],
+
+                [{"facet": "110"}, {"color1": "red"}],
+                [{"facet": "211"}, {"color1": "green"}],
+                [{"facet": "100"}, {"color1": "black"}],
+                ]
         #__|
 
+        #| - Processing Data Points
+        x_data_list = []
+        y_data_list = []
 
-        def get_plotly_layout():
-            """
-            """
-            #| - get_plotly_layout
-            # plot_title="FED"
-            plot_title=None
-            plot_title_size=18
-            tick_lab_size=9 * (4. / 3.)
-            axes_lab_size=10.5 * (4. / 3.)
-            legend_size=18
-            # font_family="Computer Modern"  # "Courier New, monospace"
-            font_family="Arial"  # "Courier New, monospace"
+        for series_i in self.ORR_Free_E_Plot.series_list:
 
+            #| - x-axis energy
+            x_spec = self.x_ax_species
+            if x_spec == "o-oh":
+                e_o = series_i.energy_states_dict["o"]
+                e_oh = series_i.energy_states_dict["oh"]
+                x_ax_energy = e_o - e_oh
+            else:
+                x_ax_energy = series_i.energy_states_dict[x_spec]
+            #__|
 
-            layout = {
-                "title": plot_title,
+            #| - y-axis limiting potential
+            if self.ORR_Free_E_Plot.rxn_type == "ORR":
+                lim_pot_i = 1.23 - series_i.overpotential
 
-                "font": {
+            elif self.ORR_Free_E_Plot.rxn_type == "OER":
+                lim_pot_i = 1.23 + series_i.overpotential_OER
+            else:
+                print("LSDJFlksdj")
+            #__|
 
-                    "family": font_family,
-                    "color": "black",
-                    },
+            #| - Process series_i
+            x_data_list.append(x_ax_energy)
+            y_data_list.append(lim_pot_i)
 
-                #| - Axes -----------------------------------------------------
-                "yaxis": {
-                    "title": "Limiting Potential (V)",
-            #         "title": "$\\Delta G (ev)$",
+            smart_format_i = self.ORR_Free_E_Plot.__create_smart_format_dict__(
+                series_i.properties,
+                smart_format_dict,
+                )
 
-                    "range": y_axis_range,
-                    "zeroline": False,
-                    "showline": True,
-                    "mirror": 'ticks',
-                    "linecolor": 'black',
-                    "showgrid": False,
+            # name_i = self.ORR_Free_E_Plot.__create_series_name__(series_i)
+            name_i = series_i.series_name
+            # print(name_i)
+            # print("-------_-_-_-")
 
-                    "titlefont": dict(size=axes_lab_size),
+            if series_i.color is not None:
+                smart_format_i["color2"] = series_i.color
 
-                    "tickfont": dict(
-                        size=tick_lab_size,
-                        ),
-                    "ticks": 'inside',
-                    "tick0": 0,
-                    "tickcolor": 'black',
-                    "dtick": 0.25,
-                    "ticklen": 2,
-                    "tickwidth": 1,
-                    },
+            trace_i = self.__create_trace_i__(
+                x_ax_energy,
+                lim_pot_i,
+                smart_format_i,
+                name_i,
+                )
 
-                "xaxis": {
-            #         "title": "$\\Delta G_{OH} (ev)$",
+            self.data_points.append(trace_i)
+            #__|
 
-                    "range": x_axis_range,
-                    "zeroline": False,
-                    "showline": True,
-                    "mirror": True,
-                    "linecolor": 'black',
-                    "showgrid": False,
-                    "titlefont": dict(size=axes_lab_size),
-                    "showticklabels": True,
-                    "ticks": 'inside',
-                    "tick0": 0,
-                    "dtick": 0.5,
-                    "ticklen": 2,
-                    "tickwidth": 1,
-                    "tickcolor": 'black',
-                    "tickfont": dict(
-                        size=tick_lab_size,
-                        ),
-                    },
-                    #__|
+        #__|
 
-            #     "paper_bgcolor": 'rgba(0,0,0,0)',
-                "plot_bgcolor": 'rgba(0,0,0,0)',
+        #| - Finding plot axis limits
+        if self.plot_range is None:
+            y_axis_range = [min(y_data_list) - 0.2, max(y_data_list) + 0.2]
+            if self.ORR_Free_E_Plot.rxn_type == "OER":
+                y_axis_range.reverse()
+            else:
+                pass
 
-                #| - Legend ---------------------------------------------------
-                "legend": {
-                    "traceorder": "normal",
-                    "font": dict(size=legend_size)
-                    },
-
-                # Plot Size
-                "width": 9. * 37.795275591,
-                "height": 9 * 37.795275591,
-
-                "showlegend": False,
-                #__|
-
+            plot_range = {
+                "y": y_axis_range,
+                "x": [min(x_data_list) - 0.2, max(x_data_list) + 0.2],
                 }
+
+            self.plot_range = plot_range
+        #__|
+
+        #__|
+
+    def create_volcano_lines(self,
+        gas_molec_dict=None,
+        scaling_dict=None,
+        plot_all_legs=True,
+        plot_min_max_legs=False,
+        ):
+        """
+        """
+        #| - create_volcano_lines
+        out_data = []
+
+        # x_range = self.plot_range["x"]
+        x_range = [-5., 5.]
+
+        #| - Volcano Legs
+        volc_legs = [
+            'o2_to_ooh',
+            'ooh_to_o',
+            'o_to_oh',
+            'oh_to_h2o',
+            ]
+
+        energy_dict = {
+            'o2_to_ooh': [],
+            'ooh_to_o': [],
+            'o_to_oh': [],
+            'oh_to_h2o': [],
+            }
+
+        x_axis = np.linspace(x_range[0], x_range[1], num=200)
+        for leg_i in volc_legs:
+            for x_energy_i in x_axis:
+
+                if self.x_ax_species == "oh":
+                    g_oh = x_energy_i
+                    g_o_minus_g_oh = None
+
+                elif self.x_ax_species == "o-oh":
+                    g_oh = None
+                    g_o_minus_g_oh = x_energy_i
+
+                energy_dict[leg_i].append(
+                    lim_U_i(
+                        g_oh=g_oh,
+                        g_o_minus_g_oh=g_o_minus_g_oh,
+                        # 'o2_to_ooh', 'ooh_to_o', 'o_to_oh', 'oh_to_h2o'
+                        mech_step=leg_i,
+                        gas_molec_dict=gas_molec_dict,
+                        scaling_dict=scaling_dict,
+                        rxn_direction="forward",
+                        ),
+                    )
+
+        if plot_all_legs:
+            trace_o2_to_ooh = go.Scatter(
+                x=x_axis,
+                y=energy_dict["o2_to_ooh"],
+                name="O2->*OOH",
+                )
+            trace_ooh_to_o = go.Scatter(
+                x=x_axis,
+                y=energy_dict["ooh_to_o"],
+                name="*OOH->*O",
+                )
+            trace_o_to_oh = go.Scatter(
+                x=x_axis,
+                y=energy_dict["o_to_oh"],
+                name="*O->*OH",
+                )
+            trace_oh_to_h2o = go.Scatter(
+                x=x_axis,
+                y=energy_dict["oh_to_h2o"],
+                name="*OH->H2O",
+                )
+
+            out_data.append(trace_o2_to_ooh)
+            out_data.append(trace_ooh_to_o)
+            out_data.append(trace_o_to_oh)
+            out_data.append(trace_oh_to_h2o)
+        #__|
+
+        #| - Minimum Energy Legs
+        energy_lists = [
+            energy_dict["o2_to_ooh"],
+            energy_dict["ooh_to_o"],
+            energy_dict["o_to_oh"],
+            energy_dict["oh_to_h2o"],
+            ]
+
+        min_e_list = []
+        for leg1, leg2, leg3, leg4 in zip(*energy_lists):
+            if self.ORR_Free_E_Plot.rxn_type == "ORR":
+                energy_i = min(leg1, leg2, leg3, leg4)
+
+            elif self.ORR_Free_E_Plot.rxn_type == "OER":
+                energy_i = max(leg1, leg2, leg3, leg4)
+
+            min_e_list.append(energy_i)
+
+        trace_volcano = go.Scatter(
+            x=x_axis,
+            y=min_e_list,
+            name="activity volcano",
+            line=dict(
+                color=("black"),
+                width=0.5,
+                )
+            )
+
+        if plot_min_max_legs:
+            out_data.append(trace_volcano)
+
+        #__|
+
+        return(out_data)
+        #__|
+
+    def __create_trace_i__(self,
+        x_energy,
+        y_energy,
+        smart_format_i,
+        name_i,
+        # legendgroup=None,
+        ):
+        """
+        """
+        #| - __create_trace_i__
+
+        trace_i = go.Scatter(
+            x=[x_energy],
+            y=[y_energy],
+            # mode="markers+text",
+            mode="markers",
+            name=name_i,
+            text=name_i,
+
+            # textposition='top right',
+            textposition='middle left',
+            textfont={
+                # "family": "Courier New, monospace",
+                # "family": font_family,
+                "size": 10,
+                "color": "black",
+                },
+
+            marker=dict(
+                size=smart_format_i.get("marker_size", 12),
+                color=smart_format_i.get("color2", "red"),
+                symbol=smart_format_i.get("symbol", "circle"),
+                line=dict(
+                    width=smart_format_i.get("marker_border_width", 1.),
+                    color=smart_format_i.get("color1", "black"),
+                    ),
+                ),
+            )
+
+        return(trace_i)
+        #__|
+
+    def get_plotly_layout(self,
+        showlegend=False,
+        ):
+        """
+        """
+        #| - get_plotly_layout
+
+        #| - Properties
+        # plot_title="FED"
+        plot_title = None
+        # plot_title_size = 18
+        tick_lab_size = 9 * (4. / 3.)
+        axes_lab_size = 10.5 * (4. / 3.)
+        legend_size = 18
+        # font_family="Computer Modern"  # "Courier New, monospace"
+        font_family = "Arial"  # "Courier New, monospace"
+        #__|
+
+        # self.x_ax_spec
+
+        if self.x_ax_species == "oh":
+            xaxis_title = "dG_*OH (eV)"
+        elif self.x_ax_species == "o-oh":
+            xaxis_title = "dG_*OH - dG_*O (eV)"
+
+        layout = {
+            "title": plot_title,
+
+            "font": {
+                "family": font_family,
+                "color": "black",
+                },
+
+            #| - Axes -----------------------------------------------------
+
+            #| - yaxis
+            "yaxis": {
+                "title": "Limiting Potential (V)",
+                # "title": "$\\Delta G (ev)$",
+
+                "range": self.plot_range["y"],
+                "zeroline": False,
+                "showline": True,
+                "mirror": 'ticks',
+                "linecolor": 'black',
+                "showgrid": False,
+
+                "titlefont": dict(size=axes_lab_size),
+
+                "tickfont": dict(
+                    size=tick_lab_size,
+                    ),
+                "ticks": 'inside',
+                "tick0": 0,
+                "tickcolor": 'black',
+                "dtick": 0.25,
+                "ticklen": 2,
+                "tickwidth": 1,
+                },
+            #__|
+
+            #| - xaxis
+            "xaxis": {
+                # "title": "$\\Delta G_{OH} (ev)$",
+                "title": xaxis_title,
+                "range": self.plot_range["x"],
+                "zeroline": False,
+                "showline": True,
+                "mirror": True,
+                "linecolor": 'black',
+                "showgrid": False,
+                "titlefont": dict(size=axes_lab_size),
+                "showticklabels": True,
+                "ticks": 'inside',
+                "tick0": 0,
+                "dtick": 0.5,
+                "ticklen": 2,
+                "tickwidth": 1,
+                "tickcolor": 'black',
+                "tickfont": dict(
+                    size=tick_lab_size,
+                    ),
+                },
+            #__|
 
             #__|
 
+            # "paper_bgcolor": 'rgba(0,0,0,0)',
+            "plot_bgcolor": 'rgba(0,0,0,0)',
+
+            #| - Legend ---------------------------------------------------
+            "legend": {
+                "traceorder": "normal",
+                "font": dict(size=legend_size),
+                "x": 0.,
+                "y": -1.,
+                },
+
+            # Plot Size
+            # "width": 9. * 37.795275591,
+            # "height": 9 * 37.795275591,
+
+            # "width": 2.2 * 9. * 37.795275591,
+            # "height": 1.5 * 9. * 37.795275591,
+
+            "width": 4. * 9. * 37.795275591,
+            "height": 5 * 9. * 37.795275591,
+
+
+            # "showlegend": False,
+            "showlegend": showlegend,
+            # "legend": {
+            #     "x": 0.,
+            #     "y": -0.1,
+            #     },
+            #__|
+
+            }
+
+        return(layout)
+
+        #__|
+
+
+    #__| **********************************************************************
+
+
+class Free_Energy_Plot():
+    """
+    Development Notes:
+        Take the FED methods out of the ORR_Free_E_Plot class and into this one
+    """
+    #| - Free_Energy_Plot *****************************************************
+
+    def __init__(self,
+        ORR_Free_E_Plot,
+        ):
+        """
+        Input variables to class instance.
+
+        Args:
+            ORR_Free_E_Plot:
+            mode:
+                "all", "ooh_vs_oh", "o_vs_oh"
+        """
+        #| - __init__
+        tmp = 42
+
+        self.ORR_Free_E_Plot = ORR_Free_E_Plot
+
+        # self.x_ax_species = x_ax_species
+        # self.smart_format_dict = smart_format_dict
+        # self.data_points = []
+        # self.data_lines = []
+        #__|
 
     #__| **********************************************************************
