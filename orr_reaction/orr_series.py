@@ -34,8 +34,13 @@ class ORR_Free_E_Series():
 
         bias=0.,
         rxn_x_coord_array=None,
+
+        group=None,
+
+        name_i=None,
         opt_name=None,
         properties=None,
+        property_key_list=None,
         color_list=None,
         color=None,
         i_cnt=0,
@@ -72,11 +77,14 @@ class ORR_Free_E_Series():
         #| - Setting Instance Attributes
         self.fe_df = free_energy_df
         # self.sys_props = system_properties
+
+        self.group = group
         self.state_title = state_title
         self.fe_title = free_e_title
 
         self.bias = bias
         self.rxn_x_coord_array = rxn_x_coord_array
+        self.name_i = name_i
         self.opt_name = opt_name
 
         self.properties = properties
@@ -99,6 +107,13 @@ class ORR_Free_E_Series():
             self.rxn_mech_states = ["bulk", "oh", "o", "ooh", "bulk"]
             self.ideal_energy = [0, 1.23, 2.46, 3.69, 4.92]
 
+
+        self.property_key_list = property_key_list
+
+        # Doing this with a class method instead of in the analysis script
+        if properties is None:
+            self.properties = self.__create_property_dict__()
+
         if free_energy_df is not None:
             self.add_bulk_entry()
             self.fill_missing_data()
@@ -120,6 +135,7 @@ class ORR_Free_E_Series():
 
             self.energy_states_dict = self.__energy_states_dict__()
 
+            # Put this outside of the if-statement
             self.series_name = self.__series_plot_name__(
                 opt_name=self.opt_name,
                 properties=self.properties,
@@ -174,6 +190,30 @@ class ORR_Free_E_Series():
 
         return(energy_states_dict)
         # energy_states_dict
+        #__|
+
+    def __create_property_dict__(self):
+        """
+        """
+        #| - __create_property_dict__
+        df_i = self.fe_df
+
+        if self.property_key_list is not None:
+            prop_dict_i = {}
+            for prop_i in self.property_key_list:
+                val_1 = df_i[prop_i].tolist()[0]
+                all_same_value = all(
+                    [True if i == val_1 else False for i in df_i[prop_i].tolist()],
+                    )
+
+                if all_same_value:
+                    prop_dict_i[prop_i] = str(val_1)
+                else:
+                    prop_dict_i[prop_i] = str(None)
+
+            return(prop_dict_i)
+        else:
+            return({})
         #__|
 
     def add_bulk_entry(self,
@@ -463,15 +503,10 @@ class ORR_Free_E_Series():
         #__|
 
     def __series_plot_name__(self,
-        # bias=0.,
         opt_name=None,
         properties=None,
-        # color_list=None,
-        # i_cnt=0,
-        # hover_text_col=None,
-        # plot_mode="all",
-        # smart_format=None,
         overpotential_type="ORR",
+        add_overpot=True,
         ):
         """Create name for series.
 
@@ -487,51 +522,52 @@ class ORR_Free_E_Series():
             overpotential_type:
         """
         #| - __series_plot_name__
-        key = properties
-        if type(key) == tuple:
-            pass
 
-        elif key is None:
-            key = None
+        #| - Getting appropriate Overpotential
+        if add_overpot:
+            if overpotential_type == "ORR":
+                overpot_i = self.overpotential
+            elif overpotential_type == "OER":
+                overpot_i = self.overpotential_OER
+            elif overpotential_type == "H2O2":
+                overpot_i = self.overpotential_h2o2
+            else:
+                overpot_i = self.overpotential
         else:
-            key = (key,)
+            overpot_i = ""
+        #__|
 
-        # e_list = self.energy_lst
-        # e_list = self.apply_bias(bias, e_list)
+        #| - Connecting properties key: values into string
+        if properties is not None:
+            properties_string_name = ""
+            for key_i, value_i in properties.items():
 
-        if overpotential_type == "ORR":
-            overpot_i = self.overpotential
-        elif overpotential_type == "OER":
-            overpot_i = self.overpotential_OER
-        elif overpotential_type == "H2O2":
-            overpot_i = self.overpotential_h2o2
+                properties_string_name += str(key_i)
+                properties_string_name += "_"
+                properties_string_name += str(value_i)
+
+                properties_string_name += " | "
+
+            properties_string_name = properties_string_name[0:-3]
         else:
-            overpot_i = self.overpotential
-
-        # for n, i in enumerate(e_list):
-        #     if np.isnan(i) is True:
-        #         e_list[n] = None
-
-        # if color_list is None:
-        #     color_list = ["red"]
+            properties_string_name = ""
+        #__|
 
         #| - Data Series Name
-        if key is None:
-            prop_name = ""
-        else:
-            prop_name = "_".join([str(i) for i in key])
-
         if opt_name is not None:
-            name_i = opt_name + ": " + prop_name + \
+            name_i = opt_name + ": " + properties_string_name + \
                 " (OP: " + str(round(overpot_i, 2)) + ")"
 
         else:
-            name_i = prop_name + \
+            name_i = properties_string_name + \
                 " (OP: " + str(round(overpot_i, 2)) + ")"
         #__|
 
-        return(name_i)
+        # NEW | If name_i given, then just use that
+        if self.name_i is not None:
+            return(self.name_i)
 
+        return(name_i)
         #__|
 
     def plot_fed_series(self,
@@ -561,26 +597,10 @@ class ORR_Free_E_Series():
         """
         #| - plot_fed_series
 
-        key = properties
-        if type(key) == tuple:
-            pass
-
-        elif key is None:
-            key = None
-        else:
-            key = (key,)
 
         e_list = self.energy_lst
         e_list = self.apply_bias(bias, e_list)
 
-        if overpotential_type == "ORR":
-            overpot_i = self.overpotential
-        elif overpotential_type == "OER":
-            overpot_i = self.overpotential_OER
-        elif overpotential_type == "H2O2":
-            overpot_i = self.overpotential_h2o2
-        else:
-            overpot_i = self.overpotential
 
         for n, i in enumerate(e_list):
             if np.isnan(i) is True:
@@ -589,22 +609,7 @@ class ORR_Free_E_Series():
         if color_list is None:
             color_list = ["red"]
 
-        #| - Data Series Name
-        # if key is None:
-        #     prop_name = ""
-        # else:
-        #     prop_name = "_".join([str(i) for i in key])
-        #
-        # if opt_name is not None:
-        #     name_i = opt_name + ": " + prop_name + \
-        #         " (OP: " + str(round(overpot_i, 2)) + ")"
-        #
-        # else:
-        #     name_i = prop_name + \
-        #         " (OP: " + str(round(overpot_i, 2)) + ")"
-
         name_i = self.series_name
-        #__|
 
         #| - Hover Text
         if hover_text_col is not None:
@@ -654,6 +659,42 @@ class ORR_Free_E_Series():
             )
 
         return(dat_lst)
+
+        #| - Delete this
+
+        # 181101 Delete this
+        # key = properties
+        # if type(key) == tuple:
+        #     pass
+        #
+        # elif key is None:
+        #     key = None
+        # else:
+        #     key = (key,)
+        # 181101 Delete this
+        # if overpotential_type == "ORR":
+        #     overpot_i = self.overpotential
+        # elif overpotential_type == "OER":
+        #     overpot_i = self.overpotential_OER
+        # elif overpotential_type == "H2O2":
+        #     overpot_i = self.overpotential_h2o2
+        # else:
+        #     overpot_i = self.overpotential
+
+        # if key is None:
+        #     prop_name = ""
+        # else:
+        #     prop_name = "_".join([str(i) for i in key])
+        #
+        # if opt_name is not None:
+        #     name_i = opt_name + ": " + prop_name + \
+        #         " (OP: " + str(round(overpot_i, 2)) + ")"
+        #
+        # else:
+        #     name_i = prop_name + \
+        #         " (OP: " + str(round(overpot_i, 2)) + ")"
+        #__|
+
         #__|
 
     def __create_plotly_series__(self,
@@ -783,7 +824,9 @@ class ORR_Free_E_Series():
                     df_wo_bulk = df[df["adsorbate"] != "bulk"]
 
                     if all(df_wo_bulk[df_col_name] == value_i):
-                        plot_parameter_dict.update({setting_name: setting_value})
+                        plot_parameter_dict.update(
+                            {setting_name: setting_value},
+                            )
 
                 else:
                     print("Dataframe column " + df_col_name + " not present")

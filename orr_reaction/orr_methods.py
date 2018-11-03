@@ -171,7 +171,7 @@ def df_calc_adsorption_e(
     bare_slab_e,
     bare_slab_var=None,
 
-    corrections_mode="df_column",  # corr_dict
+    corrections_mode="df_column",  # 'corr_dict', 'df_column', None
     corrections_column="gibbs_correction",
 
     corrections_dict=None,

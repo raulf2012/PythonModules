@@ -10,10 +10,104 @@ import sys
 import os
 
 import pickle as pickle
+import copy
 
 import numpy as np
-from ase.io import write
+# from ase.io import write
+from ase import io
 #__|
+
+
+def bader(atoms, spinpol=False, outdir=None, run_exec=True):
+    """Perform bader charge analysis on atoms.
+
+    Calculate charge density using atoms.calc, calculate bader charges on each
+    atom in atoms, and assign to atom.data["bader_charge"].
+
+    If spinpol: also assign atom.data["bader_magmom"].
+
+    Args:
+        atoms: ASE atoms object
+        spinpol: Spin polarized calculation
+        outdir: Output directory location
+        run_exec: Whether to run bader executable or just create preliminary
+        file (some clusters don't/can't have the bader fortran code)
+    """
+    #| - bader
+    mess = "Executing Bader Analysis "
+    mess += "*****************************************************"
+    print(mess); sys.stdout.flush()
+
+    #| - Don't Run Bader Executable on AWS
+    if "COMPENV" not in os.environ:
+        print("COMPENV env. var. doesn't exits, probably in AWS?")
+        print("Bader executable turned off")
+
+        run_exec = False
+    else:
+        pass
+    #__|
+
+    if not os.path.exists("dir_bader"):
+        os.makedirs("dir_bader")
+
+    calc = atoms.calc
+
+    #| - Using Spin Polarization
+    if spinpol:
+
+        #| - Spin up
+        cd2cube(atoms, spin="up")
+        if run_exec:
+            bader_exec(atoms, spin="up")
+        #__|
+
+        #| - Spin down
+        cd2cube(atoms, spin="down")
+        if run_exec:
+            bader_exec(atoms, spin="down")
+        #__|
+
+        print("BADER MAGMOMS: " + str(atoms.get_initial_magnetic_moments()))
+
+    #__|
+
+    #| - Not Spin Polarized
+    else:
+        cd2cube(atoms)
+
+        if run_exec:
+            bader_exec(atoms)
+    #__|
+
+    print("BADER CHARGES: " + str(atoms.get_initial_charges()))
+
+    # if run_exec:
+    #     io.write("dir_bader/bader.traj", atoms)
+
+    if outdir:
+        os.system("rm %s/charge.log" % outdir)
+
+    #| - Writing 2 Atoms Objects with mogmoms and charges written
+
+    if run_exec:
+        # Charges written to init_charges
+        atoms_cpy1 = copy.deepcopy(atoms)
+        bader_charges = atoms_cpy1.info["bader_charges"]
+        atoms_cpy1.set_initial_charges(bader_charges)
+        atoms_cpy1.write("dir_bader/bader_charges.traj")
+
+        atoms_cpy2 = copy.deepcopy(atoms)
+        bader_magmoms = atoms_cpy2.info["bader_magmoms"]
+        atoms_cpy2.set_initial_charges(bader_magmoms)
+        atoms_cpy2.write("dir_bader/bader_magmoms.traj")
+
+        # atoms.set_calculator(calc=calc)
+        atoms.write("dir_bader/out.traj")
+    #__|
+
+    #__|
+
 
 def cd2cube(atoms, spin=""):
     """Convert ASE charge density file to cube format.
@@ -45,7 +139,7 @@ def cd2cube(atoms, spin=""):
         for j in range(v):
             cd2[i][j][:] = cd[i][j][:w]
 
-    write(file_name, atoms, data=cd2)
+    io.write(file_name, atoms, data=cd2)
 
     # edit density.cube grid size if odd number of grid points to
     # correct for old versions of ASE
@@ -141,7 +235,6 @@ def bader_exec(atoms, spin=""):
                 {"charge_list": charge_list, "magmom_list": magmom_list},
                 fle,
                 )
-
         #__|
 
 
@@ -172,78 +265,4 @@ def bader_exec(atoms, spin=""):
         cleanup()
     #__|
 
-    #__|
-
-def bader(atoms, spinpol=False, outdir=None, run_exec=True):
-    """Perform bader charge analysis on atoms.
-
-    Calculate charge density using atoms.calc, calculate bader charges on each
-    atom in atoms, and assign to atom.data["bader_charge"].
-
-    If spinpol: also assign atom.data["bader_magmom"].
-
-    Args:
-        atoms: ASE atoms object
-        spinpol: Spin polarized calculation
-        outdir: Output directory location
-        run_exec: Whether to run bader executable or just create preliminary
-        file (some clusters don't/can't have the bader fortran code)
-    """
-    #| - bader
-    mess = "Executing Bader Analysis "
-    mess += "*****************************************************"
-    print(mess); sys.stdout.flush()
-
-    #| - Don't Run Bader Executable on AWS
-    if "COMPENV" not in os.environ:
-        print("COMPENV env. var. doesn't exits, probably in AWS?")
-        print("Bader executable turned off")
-
-        run_exec = False
-    else:
-        pass
-    #__|
-
-    if not os.path.exists("dir_bader"):
-        os.makedirs("dir_bader")
-
-    calc = atoms.calc
-
-    #| - Using Spin Polarization
-    if spinpol:
-
-        #| - Spin up
-        cd2cube(atoms, spin="up")
-        if run_exec:
-            bader_exec(atoms, spin="up")
-        #__|
-
-        #| - Spin down
-        cd2cube(atoms, spin="down")
-        if run_exec:
-            bader_exec(atoms, spin="down")
-        #__|
-
-        print("BADER MAGMOMS: " + str(atoms.get_initial_magnetic_moments()))
-
-    #__|
-
-    #| - Not Spin Polarized
-    else:
-        cd2cube(atoms)
-
-        if run_exec:
-            bader_exec(atoms)
-    #__|
-
-    print("BADER CHARGES: " + str(atoms.get_initial_charges()))
-
-    # if run_exec:
-    #     write("dir_bader/bader.traj", atoms)
-
-    if outdir:
-        os.system("rm %s/charge.log" % outdir)
-
-    # atoms.set_calculator(calc=calc)
-    atoms.write("out.traj")
     #__|

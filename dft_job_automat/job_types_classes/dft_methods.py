@@ -10,6 +10,8 @@ Development Notes:
 #| - Import Modules
 import os
 import pickle as pickle
+import json
+
 from ase import io
 # from ase.io.trajectory import Trajectory
 
@@ -348,6 +350,41 @@ class DFT_Methods():
         # out_dict = number_of_atoms(atoms)
 
         return([out_dict])
+        #__|
+
+
+    # def dft_params(path_i):
+    def dft_params(self, path_i):
+        """Attempt to read dft_params.json file.
+
+        Note: Current workflow moved dft_params file to dir_dft_params folder
+        when the job completes. Must check job folder and this one.
+
+        Note: Should revisions to the dft_params.json file be read? Only the
+        most recent? Only the original one?
+
+        Args:
+            path_i
+        """
+        #| - TMP
+        file_path_1 = os.path.join(
+            path_i,
+            path_i,
+            "dft-params.json",
+            )
+
+        file_path_2 = os.path.join(
+            path_i,
+            "dir_dft_params",
+            "dft-params.json",
+            )
+
+        if os.path.isfile(file_path_1):
+            dft_params_dict = json.load(open(file_path_1, "r"))
+        elif os.path.isfile(file_path_2):
+            dft_params_dict = json.load(open(file_path_2, "r"))
+
+        return(dft_params_dict)
         #__|
 
     #__| **********************************************************************

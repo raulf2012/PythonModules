@@ -895,7 +895,7 @@ def an_pdos(
         "output": {
             "avoidio": False,
             "removesave": True,
-            "removewf": False,
+            "removewf": True,  # Changed this 181102
             "wf_collect": True,
             },
 
@@ -1063,6 +1063,30 @@ def spin_pdos(
 
         pickle.dump(magmom_list, open("%s/magmom_list.pickle" % outdir, "w"))
         pickle.dump(charge_list, open("%s/charge_list.pickle" % outdir, "w"))
+
+
+        #| - Writing atom objects with magmom and charges written to them
+        # Charges written to init_charges
+        atoms_cpy1 = copy.deepcopy(atoms)
+        atoms_cpy1.set_initial_charges(charge_list)
+        atoms_cpy1.write(
+            os.path.join(
+                outdir,
+                "pdos_charges.traj",
+                ),
+            )
+
+        # Magmoms written to init_charges
+        atoms_cpy2 = copy.deepcopy(atoms)
+        atoms_cpy2.set_initial_charges(magmom_list)
+        atoms_cpy2.write(
+            os.path.join(
+                outdir,
+                "pdos_magmoms.traj",
+                ),
+            )
+        #__|
+
         #__|
 
     else:
@@ -1094,6 +1118,19 @@ def spin_pdos(
                     "w",
                     )
                 )
+
+        #| - Writing atom objects with magmom and charges written to them
+        # Charges written to init_charges
+        atoms_cpy1 = copy.deepcopy(atoms)
+        atoms_cpy1.set_initial_charges(charge_list)
+        atoms_cpy1.write(
+            os.path.join(
+                outdir,
+                "pdos_charges.traj",
+                ),
+            )
+        #__|
+
         #__|
 
     print("PDOS CHARGES: " + str(atoms.get_initial_charges()))
@@ -1166,8 +1203,8 @@ def an_bands(atoms, bands_kpts, espresso_params):
     params_bands = {
         "output": {
             "avoidio": False,
-            "removesave": False,
             "removewf": True,
+            "removesave": True,  # Changed this to true so it wouldn't make big files anymore
             "wf_collect": False,
             },
 
@@ -1176,6 +1213,11 @@ def an_bands(atoms, bands_kpts, espresso_params):
 
         "outdir": "calcdir_bands",
         }
+
+        # "avoidio": false,
+        # "removesave": true,
+        # "removewf": true,
+        # "wf_collect": false,
 
     calc_bands, espresso_params_bands = set_QE_calc_params(
         params=params_bands,

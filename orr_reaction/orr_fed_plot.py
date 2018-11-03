@@ -195,7 +195,7 @@ class ORR_Free_E_Plot:
     def __create_series_name__(self, series_i):
         """
         """
-        #| - create_series_name
+        #| - __create_series_name__
 
         if series_i.properties is not None:
             name_i = ""
@@ -237,13 +237,22 @@ class ORR_Free_E_Plot:
     def add_series(self,
         fe_df,
         plot_mode="all",
+        name_i=None,
+        group=None,
         opt_name=None,
         smart_format=True,
         overpotential_type="ORR",
         system_properties=None,
+        property_key_list=None,
         color=None,
         ):
-        """
+        """Add ORR_Free_E_Series instance to ORR_Free_E_Plot.series_list.
+
+        Note: It would be much better to simply take all of the
+        ORR_Free_E_Series arguments as a **kwargs term.
+
+        Args:
+            TEMP
         """
         #| - add_series
         if smart_format:
@@ -275,10 +284,13 @@ class ORR_Free_E_Plot:
         ORR_Series = ORR_Free_E_Series(
             free_energy_df=fe_df,
             properties=system_properties,
+            property_key_list=property_key_list,
             state_title=self.state_title,
             free_e_title=self.fe_title,
+            group=group,
             bias=self.bias,
             rxn_x_coord_array=self.rxn_x_coord_array,
+            name_i=name_i,
             opt_name=opt_name,  # #######
 
             # properties=opt_name,
@@ -623,9 +635,7 @@ class ORR_Free_E_Plot:
         #__|
 
 
-
-
-
+    # Deprecated **************************************************************
     def create_scaling_relations_plot(self,
         y_ax_spec,
         x_ax_spec="oh",
@@ -1092,14 +1102,10 @@ class Scaling_Relations_Plot():
                 smart_format_dict,
                 )
 
-            name_i = self.ORR_Free_E_Plot.__create_series_name__(series_i)
+            # This is the old way of getting the name
+            # name_i = self.ORR_Free_E_Plot.__create_series_name__(series_i)
 
-            # smart_format_i = self.__create_smart_format_dict__(
-            #     series_i.properties,
-            #     smart_format_dict,
-            #     )
-            #
-            # name_i = self.__create_series_name__(series_i)
+            name_i = series_i.series_name
 
             if series_i.color is not None:
                 smart_format_i["color2"] = series_i.color
@@ -1144,6 +1150,7 @@ class Scaling_Relations_Plot():
 
         #__|
 
+    # Deprecated, delete this later
     def __create_smart_format_dict__(self, property_dict, smart_format_dict):
         """Create smart format dictionary.
 
@@ -1655,6 +1662,7 @@ class Volcano_Plot():
                 lim_pot_i,
                 smart_format_i,
                 name_i,
+                group=series_i.group,
                 )
 
             self.data_points.append(trace_i)
@@ -1803,6 +1811,7 @@ class Volcano_Plot():
         smart_format_i,
         name_i,
         # legendgroup=None,
+        group=None,
         ):
         """
         """
@@ -1815,6 +1824,8 @@ class Volcano_Plot():
             mode="markers",
             name=name_i,
             text=name_i,
+
+            legendgroup=group,
 
             # textposition='top right',
             textposition='middle left',
@@ -1841,6 +1852,8 @@ class Volcano_Plot():
 
     def get_plotly_layout(self,
         showlegend=False,
+        width=9. * 37.795275591,
+        height=9. * 37.795275591,
         ):
         """
         """
@@ -1934,29 +1947,41 @@ class Volcano_Plot():
                 "traceorder": "normal",
                 "font": dict(size=legend_size),
                 "x": 0.,
-                "y": -1.,
+                "y": -0.1,
+                # "xanchor": "left",
+                "yanchor": "top",
                 },
-
-            # Plot Size
-            # "width": 9. * 37.795275591,
-            # "height": 9 * 37.795275591,
-
-            # "width": 2.2 * 9. * 37.795275591,
-            # "height": 1.5 * 9. * 37.795275591,
-
-            "width": 4. * 9. * 37.795275591,
-            "height": 5 * 9. * 37.795275591,
-
 
             # "showlegend": False,
             "showlegend": showlegend,
-            # "legend": {
-            #     "x": 0.,
-            #     "y": -0.1,
-            #     },
+
             #__|
 
             }
+
+        #| - Plot Size Settings
+        # bottom_margin_size = 2.5 * 9. * 37.795275591
+        plot_size_settings = {
+            "width": width,
+            "height": height,
+
+            # "width": 9. * 37.795275591,
+            # "height": 9 * 37.795275591,
+
+            # "margin": go.layout.Margin({
+            #     "l": 50,
+            #     "r": 50,
+            #     # "b": bottom_margin_size,
+            #     # "b": 100,
+            #     "b": 1200,
+            #     "t": 10,
+            #     "pad": 4,
+            #     }),
+            }
+
+        #__|
+
+        layout = {**layout, **plot_size_settings}
 
         return(layout)
 
