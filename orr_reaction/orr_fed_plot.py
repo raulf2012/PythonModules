@@ -1220,6 +1220,7 @@ class Scaling_Relations_Plot():
         return(trace_i)
         #__|
 
+    # NOTE | This shouldn't be an internal method
     def __create_layout__(self,
         x_ax_spec="oh",
         title="Scaling Relations",

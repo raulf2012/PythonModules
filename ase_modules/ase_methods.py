@@ -529,9 +529,9 @@ def set_init_mag_moms(
     #__|
 
     if inc_val_magmoms:
-        magmoms_i_new = increase_abs_val_magmoms(atoms, magmoms_i)
+        magmoms_i = increase_abs_val_magmoms(atoms, magmoms_i)
 
-    atoms.set_initial_magnetic_moments(magmoms_i_new)
+    atoms.set_initial_magnetic_moments(magmoms_i)
 
     #| - Printing Magnetic Moments
     print("set_init_mag_moms | Initial Magnetic Moments:")
