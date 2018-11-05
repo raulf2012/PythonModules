@@ -76,7 +76,6 @@ def get_g_oh(m_oh, b_oh, g_oh):
     return(g_oh)
     #__|
 
-
 def lim_U_i(
     g_oh=None,
     g_o_minus_g_oh=None,

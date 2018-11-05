@@ -115,6 +115,7 @@ class ComputerCluster():
         self.__parse_cluster_type__()
         #__|
 
+    #| - __old__
     # def __parse_username__(self):
     #     """
     #     """
@@ -136,6 +137,7 @@ class ComputerCluster():
     #     print("*******")
     #     return(username)
     #     #__|
+    #__|
 
     def __parse_cluster_type__(self):
         """Parse for the current cluster system."""
@@ -741,10 +743,6 @@ class EdisonCluster(ComputerCluster):
     #__| **********************************************************************
 
 
-
-
-
-
 class SLACCluster(ComputerCluster):
     """SLAC computing cluster."""
 
@@ -1064,6 +1062,7 @@ class SLACCluster(ComputerCluster):
 
     #__| **********************************************************************
 
+
 class SherlockCluster(ComputerCluster):
     """Sherlock computing cluster."""
 
@@ -1261,6 +1260,12 @@ class SherlockCluster(ComputerCluster):
 
         with open(".sub_out", "w") as fle:
             fle.write(out_copy)
+
+        #| - Writing Job Submission Parameters
+        with open(".submission_params_2.json", "w") as fle:
+            json.dump(params, fle, indent=2, skipkeys=True)
+        #__|
+
         #__|
 
         os.chdir(self.root_dir)
@@ -1439,6 +1444,7 @@ class SherlockCluster(ComputerCluster):
         #__|
 
     #__| **********************************************************************
+
 
 class AWSCluster(ComputerCluster):
     """AWS EC2 computing resource."""
@@ -1790,6 +1796,7 @@ class AWSCluster(ComputerCluster):
         #__|
 
     #__| **********************************************************************
+
 
 class DummyCluster(ComputerCluster):
     """Placeholder class for when current cluster isn't supported."""

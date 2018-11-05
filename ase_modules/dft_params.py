@@ -35,7 +35,8 @@ class DFT_Params:
         self.submission_params = self.load_submission_params()
         #__|
 
-    def load_submission_params(self, filename=".submission_params.json"):
+    # def load_submission_params(self, filename=".submission_params.json"):
+    def load_submission_params(self, filename=".submission_params_2.json"):
         """Attempt to load submission parameters from file.
 
         Args:

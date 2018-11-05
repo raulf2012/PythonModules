@@ -97,10 +97,11 @@ def bader(atoms, spinpol=False, outdir=None, run_exec=True):
         atoms_cpy1.set_initial_charges(bader_charges)
         atoms_cpy1.write("dir_bader/bader_charges.traj")
 
-        atoms_cpy2 = copy.deepcopy(atoms)
-        bader_magmoms = atoms_cpy2.info["bader_magmoms"]
-        atoms_cpy2.set_initial_charges(bader_magmoms)
-        atoms_cpy2.write("dir_bader/bader_magmoms.traj")
+        if spinpol:
+            atoms_cpy2 = copy.deepcopy(atoms)
+            bader_magmoms = atoms_cpy2.info["bader_magmoms"]
+            atoms_cpy2.set_initial_charges(bader_magmoms)
+            atoms_cpy2.write("dir_bader/bader_magmoms.traj")
 
         # atoms.set_calculator(calc=calc)
         atoms.write("dir_bader/out.traj")

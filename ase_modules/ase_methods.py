@@ -405,6 +405,7 @@ def set_init_mag_moms(
     espresso_params=None,
     magmoms=None,
     read_from_file=False,
+    inc_val_magmoms=True,
     ):
     """Set initial magnetic moments to atoms object using several methods.
 
@@ -426,6 +427,10 @@ def set_init_mag_moms(
             If specified as a list, set the atom's initial magnetic
             moments to list. If a element: magmom_i dict is given the magmoms
             will be initilized from this dict.
+        inc_val_magmoms: <boolean>
+            Will marginally increase the magnetic moments to hopefully aid
+            convergence. This is best used when starting from previously
+            converged magmoms.
     """
     #| - set_init_mag_moms
     mess = "Setting Inital Magnetic Moments "
@@ -523,8 +528,8 @@ def set_init_mag_moms(
         magmoms_i = simple_mag_moms(atoms)
     #__|
 
-
-    magmoms_i_new = increase_abs_val_magmoms(atoms, magmoms_i)
+    if inc_val_magmoms:
+        magmoms_i_new = increase_abs_val_magmoms(atoms, magmoms_i)
 
     atoms.set_initial_magnetic_moments(magmoms_i_new)
 
@@ -665,7 +670,7 @@ def simple_mag_moms(atoms):
     #| - Cation Magnetic Moments Dictionary
     cation_magmom_dict = {}
     for cation in cations:
-        cation_magmom_dict[cation] = master_dict_high_spin[cation] * 1.2 + 0.5
+        cation_magmom_dict[cation] = master_dict_high_spin[cation] * 1.1 + 0.3
     #__|
 
     #| - Setting Magnetic Moments of Atoms
@@ -1046,7 +1051,13 @@ def spin_pdos(
             atom.magmom = magmom_i
 
             ##Update charge
-            charge_i = nvalence_dict[atom.symbol] - (spin_up + spin_down)
+            if atom.symbol not in nvalence_dict.keys():
+                print("Atom ", str(atom.symbol), " not is the nvalance dict")
+
+
+
+            # charge_i = nvalence_dict[atom.symbol] - (spin_up + spin_down)
+            charge_i = nvalence_dict.get(atom.symbol, 0.) - (spin_up + spin_down)
             if write_charges:
                 # atom.charge = nvalence_dict[atom.symbol]-(spin_up+spin_down)
                 atom.charge = charge_i
@@ -1102,7 +1113,7 @@ def spin_pdos(
 
             #| - Update Atoms Charges
             # Update charge
-            charge_i = nvalence_dict[atom.symbol] - (charge)
+            charge_i = nvalence_dict.get(atom.symbol, 0.) - (charge)
             if write_charges:
                 # atom.charge = nvalence_dict[atom.symbol] - (charge)
                 atom.charge = charge_i

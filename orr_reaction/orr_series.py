@@ -31,22 +31,22 @@ class ORR_Free_E_Series():
         # system_properties=None,
         state_title="adsorbate",
         free_e_title="ads_e",
-
         bias=0.,
         rxn_x_coord_array=None,
-
         group=None,
-
         name_i=None,
         opt_name=None,
+
         properties=None,
         property_key_list=None,
+
         color_list=None,
         color=None,
         i_cnt=0,
         hover_text_col=None,
         plot_mode="all",
         smart_format=None,
+        add_overpot=True,
         # overpotential_type="ORR",
         rxn_type="ORR",
         ):
@@ -97,6 +97,8 @@ class ORR_Free_E_Series():
         self.smart_format = smart_format
         # self.overpotential_type = overpotential_type
         self.rxn_type = rxn_type
+
+        self.add_overpot = add_overpot
         #__|
 
         if self.rxn_type == "ORR":
@@ -140,6 +142,7 @@ class ORR_Free_E_Series():
                 opt_name=self.opt_name,
                 properties=self.properties,
                 overpotential_type=self.rxn_type,
+                add_overpot=self.add_overpot,
                 )
 
             # print("__-____*9dfs")
@@ -198,13 +201,34 @@ class ORR_Free_E_Series():
         #| - __create_property_dict__
         df_i = self.fe_df
 
+        def all_same_val(df_i, prop_i, val_1):
+            """
+            """
+            #| - all_same_val
+            out_list = []
+            for i in df_i[prop_i].tolist():
+                if i == val_1:
+                    out_list.append(True)
+                else:
+                    out_list.append(False)
+
+            out_i = all(out_list)
+            return(out_i)
+
+            # [True if i == val_1 else False for i in
+            # df_i[prop_i].tolist()],
+            #__|
+
         if self.property_key_list is not None:
             prop_dict_i = {}
             for prop_i in self.property_key_list:
                 val_1 = df_i[prop_i].tolist()[0]
-                all_same_value = all(
-                    [True if i == val_1 else False for i in df_i[prop_i].tolist()],
-                    )
+
+                all_same_value = all_same_val(df_i, prop_i, val_1)
+                # all_same_value = all(
+                #     [True if i == val_1 else False for i in
+                # df_i[prop_i].tolist()],
+                #     )
 
                 if all_same_value:
                     prop_dict_i[prop_i] = str(val_1)
@@ -555,12 +579,20 @@ class ORR_Free_E_Series():
 
         #| - Data Series Name
         if opt_name is not None:
-            name_i = opt_name + ": " + properties_string_name + \
-                " (OP: " + str(round(overpot_i, 2)) + ")"
+            # name_i = opt_name + ": " + properties_string_name + \
+            #     " (OP: " + str(round(overpot_i, 2)) + ")"
+
+            name_i = opt_name + ": " + properties_string_name
 
         else:
-            name_i = properties_string_name + \
-                " (OP: " + str(round(overpot_i, 2)) + ")"
+            # name_i = properties_string_name + \
+            #     " (OP: " + str(round(overpot_i, 2)) + ")"
+
+            name_i = properties_string_name
+
+        if add_overpot:
+            name_i += " (OP: " + str(round(overpot_i, 2)) + ")"
+
         #__|
 
         # NEW | If name_i given, then just use that

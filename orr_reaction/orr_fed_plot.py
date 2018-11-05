@@ -244,6 +244,7 @@ class ORR_Free_E_Plot:
         overpotential_type="ORR",
         system_properties=None,
         property_key_list=None,
+        add_overpot=True,
         color=None,
         ):
         """Add ORR_Free_E_Series instance to ORR_Free_E_Plot.series_list.
@@ -300,7 +301,7 @@ class ORR_Free_E_Plot:
             hover_text_col=self.hover_text_col,
             plot_mode=plot_mode,  # ##########
             smart_format=smart_format_i,
-
+            add_overpot=add_overpot,
             # overpotential_type=self.rxn_type,
             rxn_type=self.rxn_type,
             )
@@ -1555,12 +1556,12 @@ class Volcano_Plot():
 
     def __init__(self,
         ORR_Free_E_Plot,
-        # x_ax_species="oh",
         x_ax_species="o-oh",  # 'o-oh' or 'oh'
         smart_format_dict=None,
-
-        # mode="all",
         plot_range=None,
+
+        # x_ax_species="oh",
+        # mode="all",
         # plot_range={
         #     "y": [1., 5.],
         #     "x": [-2., 4.],
@@ -1586,7 +1587,7 @@ class Volcano_Plot():
 
     # NOTE | Rename this create_volcano_plot
     def create_volcano_relations_plot(self,
-        smart_format_dict=None,
+        # smart_format_dict=None,
         ):
         """Create ORR/OER volcano plot.
 
@@ -1649,10 +1650,7 @@ class Volcano_Plot():
                 smart_format_dict,
                 )
 
-            # name_i = self.ORR_Free_E_Plot.__create_series_name__(series_i)
             name_i = series_i.series_name
-            # print(name_i)
-            # print("-------_-_-_-")
 
             if series_i.color is not None:
                 smart_format_i["color2"] = series_i.color
@@ -1693,14 +1691,26 @@ class Volcano_Plot():
         scaling_dict=None,
         plot_all_legs=True,
         plot_min_max_legs=False,
+        trace_priority="top",  # 'top' or 'bottom'
         ):
-        """
+        """Create volcano data traces.
+
+        Args:
+            gas_molec_dict:
+            scaling_dict:
+            plot_all_legs:
+            plot_min_max_legs:
+            trace_priority:
+                if 'top', the volcano lines will be placed on the top of the
+                plot, if 'bottom' then the data points will by on top of the
+                volcano
         """
         #| - create_volcano_lines
         out_data = []
 
         # x_range = self.plot_range["x"]
-        x_range = [-5., 5.]
+        # x_range = [-5., 5.]
+        x_range = self.plot_range["x"]
 
         #| - Volcano Legs
         volc_legs = [
@@ -1717,7 +1727,7 @@ class Volcano_Plot():
             'oh_to_h2o': [],
             }
 
-        x_axis = np.linspace(x_range[0], x_range[1], num=200)
+        x_axis = np.linspace(x_range[0], x_range[1], num=500)
         for leg_i in volc_legs:
             for x_energy_i in x_axis:
 
@@ -1746,27 +1756,66 @@ class Volcano_Plot():
                 x=x_axis,
                 y=energy_dict["o2_to_ooh"],
                 name="O2->*OOH",
+
+                line=dict(
+                    color="#e7b8bc",
+                    width=2,
+                    dash="solid",
+                    )
+
+
                 )
             trace_ooh_to_o = go.Scatter(
                 x=x_axis,
                 y=energy_dict["ooh_to_o"],
                 name="*OOH->*O",
+
+                line=dict(
+                    color="#afd7c3",
+                    width=2,
+                    dash="solid",
+                    )
+
+
                 )
             trace_o_to_oh = go.Scatter(
                 x=x_axis,
                 y=energy_dict["o_to_oh"],
                 name="*O->*OH",
+
+                line=dict(
+                    color="#b5c4e2",
+                    width=2,
+                    dash="solid",
+                    )
+
+
                 )
             trace_oh_to_h2o = go.Scatter(
                 x=x_axis,
                 y=energy_dict["oh_to_h2o"],
                 name="*OH->H2O",
+
+                line=dict(
+                    color="#dbcdab",
+                    width=2,
+                    dash="solid",
+                    )
+
+
                 )
 
-            out_data.append(trace_o2_to_ooh)
-            out_data.append(trace_ooh_to_o)
-            out_data.append(trace_o_to_oh)
-            out_data.append(trace_oh_to_h2o)
+            if trace_priority == "top":
+                out_data.append(trace_o2_to_ooh)
+                out_data.append(trace_ooh_to_o)
+                out_data.append(trace_o_to_oh)
+                out_data.append(trace_oh_to_h2o)
+
+            elif trace_priority == "bottom":
+                out_data.insert(0, trace_o2_to_ooh)
+                out_data.insert(0, trace_ooh_to_o)
+                out_data.insert(0, trace_o_to_oh)
+                out_data.insert(0, trace_oh_to_h2o)
         #__|
 
         #| - Minimum Energy Legs
@@ -1791,14 +1840,26 @@ class Volcano_Plot():
             x=x_axis,
             y=min_e_list,
             name="activity volcano",
+
             line=dict(
-                color=("black"),
-                width=0.5,
+                color="black",
+                width=2,
+                # dash="dash",
+                dash="5px,2px,5px,2px",
                 )
+
+            # line=dict(
+            #     color=("black"),
+            #     width=1.,
+            #     )
             )
 
         if plot_min_max_legs:
-            out_data.append(trace_volcano)
+            if trace_priority == "top":
+                out_data.append(trace_volcano)
+
+            elif trace_priority == "bottom":
+                out_data.insert(0, trace_volcano)
 
         #__|
 
@@ -1827,6 +1888,15 @@ class Volcano_Plot():
 
             legendgroup=group,
 
+            hoverinfo="text",
+
+            # hoverinfo=None,
+            # hoverinfosrc=None,
+            # hoverlabel=None,
+            # hoveron=None,
+            # hovertext=None,
+            # hovertextsrc=None,
+
             # textposition='top right',
             textposition='middle left',
             textfont={
@@ -1837,7 +1907,7 @@ class Volcano_Plot():
                 },
 
             marker=dict(
-                size=smart_format_i.get("marker_size", 12),
+                size=smart_format_i.get("marker_size", 9),
                 color=smart_format_i.get("color2", "red"),
                 symbol=smart_format_i.get("symbol", "circle"),
                 line=dict(
@@ -1863,8 +1933,9 @@ class Volcano_Plot():
         # plot_title="FED"
         plot_title = None
         # plot_title_size = 18
-        tick_lab_size = 9 * (4. / 3.)
-        axes_lab_size = 10.5 * (4. / 3.)
+        # tick_lab_size = 9 * (4. / 3.)
+        tick_lab_size = 8 * (4. / 3.)
+        axes_lab_size = 9 * (4. / 3.)
         legend_size = 18
         # font_family="Computer Modern"  # "Courier New, monospace"
         font_family = "Arial"  # "Courier New, monospace"
@@ -1873,9 +1944,11 @@ class Volcano_Plot():
         # self.x_ax_spec
 
         if self.x_ax_species == "oh":
-            xaxis_title = "dG_*OH (eV)"
+            # xaxis_title = "dG_*OH (eV)"
+            xaxis_title = "dG<sub>OH</sub> (eV)"
         elif self.x_ax_species == "o-oh":
-            xaxis_title = "dG_*OH - dG_*O (eV)"
+            # xaxis_title = "dG_*OH - dG_*O (eV)"
+            xaxis_title = "dG<sub>O</sub> - dG<sub>OH</sub> (eV)"
 
         layout = {
             "title": plot_title,
@@ -1896,6 +1969,7 @@ class Volcano_Plot():
                 "zeroline": False,
                 "showline": True,
                 "mirror": 'ticks',
+                # "linecolor": 'red',
                 "linecolor": 'black',
                 "showgrid": False,
 
@@ -1907,7 +1981,7 @@ class Volcano_Plot():
                 "ticks": 'inside',
                 "tick0": 0,
                 "tickcolor": 'black',
-                "dtick": 0.25,
+                "dtick": 0.1,
                 "ticklen": 2,
                 "tickwidth": 1,
                 },
@@ -1921,13 +1995,14 @@ class Volcano_Plot():
                 "zeroline": False,
                 "showline": True,
                 "mirror": True,
+                # "linecolor": 'red',
                 "linecolor": 'black',
                 "showgrid": False,
                 "titlefont": dict(size=axes_lab_size),
                 "showticklabels": True,
                 "ticks": 'inside',
                 "tick0": 0,
-                "dtick": 0.5,
+                "dtick": 0.2,
                 "ticklen": 2,
                 "tickwidth": 1,
                 "tickcolor": 'black',
