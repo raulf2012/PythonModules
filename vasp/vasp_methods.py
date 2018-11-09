@@ -189,7 +189,8 @@ def parse_incar(incar_list):
     incar_dict = {}
     for line in incar_1:
         line_i = line.split("=")
-        mess = "Each incar row should have 1 equals sign which will be parsed into the LHS (key) and RHS (value)"
+        mess = "Each incar row should have 1 equals sign which "
+        mess += "will be parsed into the LHS (key) and RHS (value)"
         assert len(line_i) == 2, mess
         incar_dict.update({line_i[0].strip(): line_i[1].strip()})
 

@@ -1163,11 +1163,20 @@ class DFT_Jobs_Setup:
 
             revision_dirs = [dir for dir in dirs if dir[0] == "_" and
                 dir[-1].isdigit() and " " not in dir]
-                # dir[1].isdigit() and " " not in dir]
+
+            # dir[1].isdigit() and " " not in dir]
 
             revision_dirs.sort()
 
-            highest_rev = max([int(i.split("_")[-1]) for i in revision_dirs])
+            print(path_i)
+            print("__----___--_____--_kdsfjs")
+
+            if len(revision_dirs) == 0:
+                highest_rev = None
+            else:
+                highest_rev = max(
+                    [int(i.split("_")[-1]) for i in revision_dirs],
+                    )
 
             return(revision_dirs, highest_rev)
         else:

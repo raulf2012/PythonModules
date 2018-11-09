@@ -47,16 +47,16 @@ class DFT_Params:
                 submission script.
         """
         #| - load_submission_params
-        # try:
+        submission_params = None
+        if os.path.isfile(filename):
+            with open(filename, "r") as fle:
+                submission_params = json.load(fle)
 
-        with open(filename, "r") as fle:
-            submission_params = json.load(fle)
-
-        # except:
-        #     submission_params = None
-        #
-        #     print("Couldn't parse the submission_params file")
-        #     pass
+        elif os.path.isfile(".submission_params.json"):
+            with open(filename, "r") as fle:
+                submission_params = json.load(fle)
+        else:
+            print("Couldn't read submission_params file")
 
         return(submission_params)
         #__|
@@ -308,7 +308,7 @@ class Espresso_Params(DFT_Params):
         self.mod_dict = self.create_mod_dict()
         #__|
 
-    def default_params(self):  # ***********************************************
+    def default_params(self):  # **********************************************
         """User-defined default DFT parameters."""
         #| - default_params
         params = {}

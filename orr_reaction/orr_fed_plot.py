@@ -1038,8 +1038,9 @@ class Scaling_Relations_Plot():
         #| - __init__
         self.ORR_Free_E_Plot = ORR_Free_E_Plot
 
-        assert (x_ax_species == "oh"), "Only *OH as the x-axis is allowed now"
 
+        assert (x_ax_species == "oh"), "Only *OH as the x-axis is allowed now"
+        self.x_ax_species = x_ax_species
 
         self.data_points = {
             "ooh_vs_oh": [],
@@ -1056,6 +1057,25 @@ class Scaling_Relations_Plot():
         #     showlegend=True,
         #     )
 
+        self.scaling_dict = {
+            "ooh": {
+                "m": None,
+                "b": None,
+                },
+
+            "o": {
+                "m": None,
+                "b": None,
+                },
+
+            "oh": {
+                "m": 1.,
+                "b": 0.,
+                },
+
+            }
+
+        self.annotations_list = []
 
         #__|
 
@@ -1206,7 +1226,7 @@ class Scaling_Relations_Plot():
             mode="markers",
             legendgroup=legendgroup,
             marker=dict(
-                size=14,
+                size=9,
                 symbol=smart_format_i.get("symbol", "circle"),
                 color=smart_format_i.get("color2", "pink"),
                 line=dict(
@@ -1222,9 +1242,10 @@ class Scaling_Relations_Plot():
 
     # NOTE | This shouldn't be an internal method
     def __create_layout__(self,
-        x_ax_spec="oh",
+        # x_ax_spec="oh",
         title="Scaling Relations",
         showlegend=True,
+        layout_dict=None,
         ):
         """Create plotly layout dict.
 
@@ -1234,7 +1255,12 @@ class Scaling_Relations_Plot():
             showlegend:
         """
         #| - create_layout
-        x_ax_title = "G<sub>ads,*OH</sub> (eV)"
+
+        # if x_ax_spec == ""
+        if self.x_ax_species == "oh":
+            x_ax_title = "G<sub>ads,*OH</sub> (eV)"
+        else:
+            x_ax_title = "TEMP"
 
         y_ax_title = "G<sub>ads,*OH</sub>, " + \
             "G<sub>ads,*O</sub>, " + \
@@ -1333,6 +1359,11 @@ class Scaling_Relations_Plot():
                 ),
             }
 
+        if layout_dict is not None:
+            from misc_modules.misc_methods import dict_merge
+            dict_merge(layout_i, layout_dict)
+            # layout_i = {**layout_i, **layout_dict}
+
         return(layout_i)
         #__|
 
@@ -1381,7 +1412,7 @@ class Scaling_Relations_Plot():
         #__|
 
     def fit_scaling_lines(self,
-        dependent_species,
+        dependent_species,  # 'ooh', 'o', 'oh'
         exclude_dict=None,
         ):
         """Linear fit of either *O or *OOH to *OH
@@ -1422,7 +1453,58 @@ class Scaling_Relations_Plot():
         slope_i = reg.coef_[0]
         intercept_i = reg.intercept_
 
+        print("Scaling fit for ", dependent_species)
+        print("intercept_i: ", str(intercept_i))
+        print("slope_i: ", str(slope_i))
+        print("")
+
         out = {"slope": slope_i, "intercept": intercept_i}
+
+        self.scaling_dict[dependent_species] = {
+            "m": slope_i,
+            "b": intercept_i,
+            }
+        # print("_------__)_Z(*XF(8))")
+
+        #| - Equation Annotations
+        if dependent_species == "ooh":
+            eqn_str_i = ("" +
+                "G<sub>OOH</sub>=" +
+                str(round(slope_i, 4)) +
+                " G<sub>OH</sub>+" +
+                str(round(intercept_i, 4)) +
+                ""
+                )
+
+        elif dependent_species == "o":
+            eqn_str_i = ("" +
+                "G<sub>O</sub> = " +
+                str(round(slope_i, 4)) +
+                " G<sub>OH</sub>+" +
+                str(round(intercept_i, 4)) +
+                ""
+                )
+
+        annotation_i = dict(
+            x=0.,
+            y=1.,
+            xref="paper",
+            yref="paper",
+            text=eqn_str_i,
+            font=dict(
+                color="red",
+                family="Droid Sans Mono,Overpass",
+                size=9. * (4. / 3.),
+                ),
+            showarrow=False,
+            xanchor="left",
+            yshift=-11. * (4. / 3.) * len(self.annotations_list),
+            xshift=5.,
+            )
+
+        self.annotations_list.append(annotation_i)
+        #__|
+
 
         return(out)
         #__|
@@ -1502,6 +1584,25 @@ class Scaling_Relations_Plot():
             )
         # self.data_ooh_oh.append(scaling_trace)
         self.data_lines.append(scaling_trace)
+
+        #
+        # # Annotation
+        # ooh_vs_oh_eqn = ("" +
+        #     "G_*OOH = " +
+        #     str(round(SC_PLT.scaling_dict["ooh"]["m"], 5)) +
+        #     " G_*OH + " +
+        #     str(round(SC_PLT.scaling_dict["ooh"]["b"], 5)) +
+        #     ""
+        #     )
+        #
+        # o_vs_oh_eqn = ("" +
+        #     "G_*O  =  " +
+        #     str(round(SC_PLT.scaling_dict["o"]["m"], 5)) +
+        #     " G_*OH + " +
+        #     str(round(SC_PLT.scaling_dict["o"]["b"], 5)) +
+        #     ""
+        #     )
+
         #__|
 
 

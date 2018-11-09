@@ -455,7 +455,8 @@ def set_init_mag_moms(
     if magmoms is not None:
 
         if type(magmoms) == list:
-            print("set_init_mag_moms | Using given magmoms"); sys.stdout.flush()
+            print("set_init_mag_moms | Using given magmoms")
+            sys.stdout.flush()
             magmoms_i = magmoms
 
         # TODO Implement this featrure in simple_mag_moms, providing dict will
@@ -554,7 +555,7 @@ def increase_abs_val_magmoms(atoms, magmoms_list, increase_amount=0.8):
     Will not modify magmoms == 0.
 
     Select light atoms will have their |magmom| raised by a set small amount to
-    not oversaturate the atomic magnetic moment (init_magmom > # valence e)
+    not oversaturate the atomic maignetic moment (init_magmom > # valence e)
 
     Args:
         magmoms_list:
@@ -787,6 +788,13 @@ def read_magmoms_from_file(file_name="magmom_init.in"):
         try:
             with open(file_name, "r") as fle:
                 magmoms = [float(i.strip()) for i in fle.readlines()]
+
+            if magmoms is not None:
+                print(
+                    "magmoms succesfully read from file!",
+                    " | ",
+                    "ase_methods.read_magmoms_from_file"
+                    )
         except:
             print("Couldn't read init magmom file")
 
@@ -807,66 +815,66 @@ def compare_magmoms():
     Author: Colin Dickens
     """
     #| - compare_magmoms
-    # def nearest_atom(atoms, position):
-    #     """Returns atom nearest to position."""
-    #     #| - nearest_atom
-    #     position = np.array(position)
-    #     dist_list = []
-    #     for atom in atoms:
-    #         dist = np.linalg.norm(position - atom.position)
-    #         dist_list.append(dist)
-    #
-    #     return atoms[np.argmin(dist_list)]
-    #     #__|
-    #
-    # if len(self.ads_atoms) >= len(self.slab_atoms):
-    #     ads = self.ads_atoms
-    #     slab = self.slab_atoms
-    #     indexed_by = self.slab
-    #     not_indexed_by = self.ads
-    # else:
-    #     slab = self.ads_atoms
-    #     ads = self.slab_atoms
-    #     indexed_by = self.ads
-    #     not_indexed_by = self.slab
-    #
-    # delta_magmoms = []
-    # ads_indices_used = []
-    # for atom in slab:
-    #     ads_atom = nearest_atom(ads, atom.position)
-    #     if not self.quiet:
-    #         if ads_atom.symbol != atom.symbol:
-    #             print("WARNING! MAGMOM COMPARISON FAILURE")
-    #     ads_indices_used.append(ads_atom.index)
-    #     delta_magmoms.append(atom.magmom - ads_atom.magmom)
-    #
-    # ads_indices_not_used = []
-    # for i in range(len(ads)):
-    #     if i not in ads_indices_used:
-    #         ads_indices_not_used.append(i)
-    #
-    # self.delta_magmoms = zip(range(len(slab)), delta_magmoms)
-    # self.delta_magmoms.sort(key=lambda x: abs(x[1]), reverse=True)
-    #
-    # common = ""
-    # uncommon = ""
-    # for i in range(8):
-    #     atom = slab[self.delta_magmoms[i][0]]
-    #     common += "%s%d: %.2f\t" % (atom.symbol,
-    #         atom.index,
-    #         self.delta_magmoms[i][1],
-    #         )
-    #
-    # for i in ads_indices_not_used:
-    #     uncommon += "%s%d: %.2f\t"%(ads[i].symbol,ads[i].index,ads[i].magmom)
-    #
-    # if self.quiet:
-    #     return
-    # print("~" * 6 + "MAGNETIC MOMENT COMPARISON" + "~" * 6)
-    # print("Largest magmom discrepancies (indexed by %s)" % indexed_by)
-    # print(common)
-    # print("Magnetic moments only present in %s" % not_indexed_by)
-    # print(uncommon + "\n")
+    def nearest_atom(atoms, position):
+        """Returns atom nearest to position."""
+        #| - nearest_atom
+        position = np.array(position)
+        dist_list = []
+        for atom in atoms:
+            dist = np.linalg.norm(position - atom.position)
+            dist_list.append(dist)
+
+        return atoms[np.argmin(dist_list)]
+        #__|
+
+    if len(self.ads_atoms) >= len(self.slab_atoms):
+        ads = self.ads_atoms
+        slab = self.slab_atoms
+        indexed_by = self.slab
+        not_indexed_by = self.ads
+    else:
+        slab = self.ads_atoms
+        ads = self.slab_atoms
+        indexed_by = self.ads
+        not_indexed_by = self.slab
+
+    delta_magmoms = []
+    ads_indices_used = []
+    for atom in slab:
+        ads_atom = nearest_atom(ads, atom.position)
+        if not self.quiet:
+            if ads_atom.symbol != atom.symbol:
+                print("WARNING! MAGMOM COMPARISON FAILURE")
+        ads_indices_used.append(ads_atom.index)
+        delta_magmoms.append(atom.magmom - ads_atom.magmom)
+
+    ads_indices_not_used = []
+    for i in range(len(ads)):
+        if i not in ads_indices_used:
+            ads_indices_not_used.append(i)
+
+    self.delta_magmoms = zip(range(len(slab)), delta_magmoms)
+    self.delta_magmoms.sort(key=lambda x: abs(x[1]), reverse=True)
+
+    common = ""
+    uncommon = ""
+    for i in range(8):
+        atom = slab[self.delta_magmoms[i][0]]
+        common += "%s%d: %.2f\t" % (atom.symbol,
+            atom.index,
+            self.delta_magmoms[i][1],
+            )
+
+    for i in ads_indices_not_used:
+        uncommon += "%s%d: %.2f\t"%(ads[i].symbol,ads[i].index,ads[i].magmom)
+
+    if self.quiet:
+        return
+    print("~" * 6 + "MAGNETIC MOMENT COMPARISON" + "~" * 6)
+    print("Largest magmom discrepancies (indexed by %s)" % indexed_by)
+    print(common)
+    print("Magnetic moments only present in %s" % not_indexed_by)
+    print(uncommon + "\n")
     #__|
 
 #__| **************************************************************************

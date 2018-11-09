@@ -342,14 +342,12 @@ class ORR_Free_E_Series():
         for state in self.rxn_mech_states:
             df_state = df.loc[df[self.state_title] == state]
 
-            if len(df_state) == 2:
-                state_energy_list = []
-                for j_cnt, row_j in df_state.iterrows():
-                    energy_j = row_j[self.fe_title]
-
-                    state_energy_list.append(energy_j)
-
-
+            # Not sure what this was trying to accomplish
+            # if len(df_state) == 2:
+            #     state_energy_list = []
+            #     for j_cnt, row_j in df_state.iterrows():
+            #         energy_j = row_j[self.fe_title]
+            #         state_energy_list.append(energy_j)
 
             #| - If df is missing state fill in row with NaN for energy
             if df_state.empty:
@@ -359,6 +357,10 @@ class ORR_Free_E_Series():
                     }])
             #__|
 
+
+            # This just takes the first species
+            # If you feed a df with more than one entry per species, then
+            # this will stupidly choose the first one
             tmp1 = df_state.iloc[0][self.fe_title]
             free_energy_list.append(tmp1)
 
