@@ -338,9 +338,7 @@ class Element_Refs():
         hyd_ref = self.En_H2 / 2.
 
         if self.oxygen_ref == "H2O":
-            # print("KJFKDSJKFJDSLJFLISDJFIJSDKFJKDS -------------------------")
             oxy_ref = self.En_H2O - self.En_H2
-            # print("KJFKDSJKFJDSLJFLISDJFIJSDKFJKDS -------------------------")
 
         return(oxy_ref, hyd_ref)
         #__|

@@ -47,6 +47,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         skip_dirs_lst=None,
         indiv_dir_lst=None,  # <-----------------------------------------------
         indiv_job_lst=None,
+        indiv_job_dict_lst=None,
         root_dir=".",
         working_dir=".",
         update_job_state=False,
@@ -55,6 +56,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         job_type_class=None,
         methods_to_run=None,
         folders_exist=None,
+        parse_all_revisions=True,
         ):
         """Initialize DFT_Jobs_Analysis Instance.
 
@@ -72,7 +74,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             job_type_class:
                 Job type specific class instance which constains methods
                 specific to the jobs being run that parse job folders.
-            methods_to_run:
+            methods_to_run <list>:
                 Additional methods to run on each job dir and return value to
                 populate data column with.
         """
@@ -82,10 +84,13 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             level_entries=level_entries,
             indiv_dir_lst=indiv_dir_lst,
             indiv_job_lst=indiv_job_lst,
+            indiv_job_dict_lst=indiv_job_dict_lst,
+
             skip_dirs_lst=skip_dirs_lst,
             root_dir=root_dir,
             working_dir=working_dir,
             folders_exist=folders_exist,
+            parse_all_revisions=parse_all_revisions,
             )
 
         self.dataframe_dir = dataframe_dir
@@ -108,6 +113,8 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         # method = DFT_Methods().atom_type_num_dict
         # self.add_data_column(method, column_name="TEMP", allow_failure=False)
 
+        # TODO | Why is this only write the data frame if the there are job
+        # methods to run
         write_data_frame = False
         if load_dataframe is True:
             self.__load_dataframe__()
@@ -134,12 +141,16 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             #__|
 
             #| - methods_to_run
-            if methods_to_run is  not None:
+            if methods_to_run is not None:
                 for method in methods_to_run:
 
                     self.add_data_column(
                         method,
-                        column_name=method.func_name,
+
+                        # Not sure where this func_name attr. came from
+                        # column_name=method.func_name,
+                        column_name=method.__name__,
+
                         allow_failure=True,
                         # allow_failure=False,
                         )
@@ -368,10 +379,11 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 If True, a failed method call will result in NaN
         """
         #| - __add_data_coumn__
+
+
         new_data_col = []
         print("Adding " + str(column_name))
         for entry in self.data_frame["Job"]:
-
             path = entry.full_path
 
             #| - Run Function
@@ -382,6 +394,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                     out = function(path)
                 except:
                     out = np.nan
+
             else:
                 out = function(path)
 
@@ -418,7 +431,6 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         # ██ ██  ██ █████   ██  █  ██
         # ██  ██ ██ ██      ██ ███ ██
         # ██   ████ ███████  ███ ███
-
 
 
 
@@ -1154,7 +1166,6 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
     #__| **********************************************************************
 
 #__| **************************************************************************
-
 
 
 def parse_job_dirs(dirs_to_parse):

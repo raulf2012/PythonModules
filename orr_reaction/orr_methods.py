@@ -113,14 +113,6 @@ def calc_ads_e(
     hyd_ref = hyd_ref_e
 
     #| - Oxygen & Hydrogen Atom Count
-
-    # print(type(row))
-    # print(row)
-    # print(list(row))
-    # print(row)
-    # print(")()(D__D_FSDD_)")
-    # list(row.index)
-
     atoms_col = "atom_type_num_dict"
     if atoms_col in list(row.index):
         try:

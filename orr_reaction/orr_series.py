@@ -7,6 +7,7 @@ Author: Raul A. Flores
 
 #| - IMPORT MODULES
 import copy
+
 import numpy as np
 import pandas as pd
 
@@ -49,6 +50,7 @@ class ORR_Free_E_Series():
         add_overpot=True,
         # overpotential_type="ORR",
         rxn_type="ORR",
+        fill_missing_data_w_scaling=True,
         ):
         """
         Input variables to class instance.
@@ -137,7 +139,10 @@ class ORR_Free_E_Series():
 
             self.energy_states_dict = self.__energy_states_dict__()
 
-            # Put this outside of the if-statement
+            if fill_missing_data_w_scaling:
+                self.__fill_nan_values__()
+
+            # TODO | Put this outside of the if-statement
             self.series_name = self.__series_plot_name__(
                 opt_name=self.opt_name,
                 properties=self.properties,
@@ -162,6 +167,33 @@ class ORR_Free_E_Series():
 
         #__|
 
+    def __fill_nan_values__(self):
+        """Fill nan adsorption energy values from scaling relations."""
+        #| - tmp
+        energy_dict = self.energy_states_dict
+        if True in list(np.isnan(list(energy_dict.values()))):
+            print("There is a nan in the energy dict!!!")
+
+            if np.isnan(energy_dict["ooh"]):
+                if not np.isnan(energy_dict["oh"]):
+                    print("*OOH energy set by *OH and standard scaling")
+                    ooh_new = 1 * energy_dict["oh"] + 3.2
+                    energy_dict["ooh"] = ooh_new
+
+            if np.isnan(energy_dict["o"]):
+                if not np.isnan(energy_dict["oh"]):
+                    print("*O energy set by *OH and standard scaling")
+                    o_new = 2 * energy_dict["oh"] + 0.
+                    energy_dict["o"] = o_new
+
+            if np.isnan(energy_dict["oh"]):
+                if not np.isnan(energy_dict["ooh"]):
+                    print("*OH energy set by *OOH and standard scaling")
+                    oh_new = energy_dict["ooh"] - 3.2
+                    energy_dict["oh"] = oh_new
+
+        self.energy_states_dict = energy_dict
+        #__|
 
     def __num_of_states__(self):
         """Return number of unique states.
@@ -342,12 +374,14 @@ class ORR_Free_E_Series():
         for state in self.rxn_mech_states:
             df_state = df.loc[df[self.state_title] == state]
 
+            #| - __old__
             # Not sure what this was trying to accomplish
             # if len(df_state) == 2:
             #     state_energy_list = []
             #     for j_cnt, row_j in df_state.iterrows():
             #         energy_j = row_j[self.fe_title]
             #         state_energy_list.append(energy_j)
+            #__|
 
             #| - If df is missing state fill in row with NaN for energy
             if df_state.empty:
@@ -357,12 +391,34 @@ class ORR_Free_E_Series():
                     }])
             #__|
 
-
             # This just takes the first species
             # If you feed a df with more than one entry per species, then
             # this will stupidly choose the first one
-            tmp1 = df_state.iloc[0][self.fe_title]
-            free_energy_list.append(tmp1)
+            state_energy_1 = df_state.iloc[0][self.fe_title]
+
+            #| - __old__
+            # if type(state_energy_1) != float:
+            #     print(type(state_energy_1))
+            #     print("DSKFJKLSDJFSjk_d--_d-d-_D_D_d-d-d-d-d___D_D_D_")
+            # print(
+            #     "state_energy_1: ",
+            #     str(state_energy_1),
+            #     )
+            #
+            # print(
+            #     "type: ",
+            #     str(type(state_energy_1))
+            #     )
+            #
+            # print(isinstance(state_energy_1, np.float))
+            # print(float(state_energy_1))
+            # print(type(float(state_energy_1)))
+            # print(np.isnan(state_energy_1))
+            # if isinstance(state_energy_1, np.float) is False:
+            #     print("lkjfksjd")
+            #__|
+
+            free_energy_list.append(state_energy_1)
 
         if self.rxn_type == "ORR":
             free_energy_list[0] += 4.92

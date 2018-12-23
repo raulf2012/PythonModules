@@ -1341,6 +1341,14 @@ class Scaling_Relations_Plot():
                     },
                 ),
 
+            # Margin
+            "margin": go.layout.Margin(
+                b=50.,
+                l=50.,
+                r=50.,
+                t=50.,
+                ),
+
             "font": dict(
                 family='Arial',
                 # size=18,
@@ -1661,13 +1669,6 @@ class Volcano_Plot():
         x_ax_species="o-oh",  # 'o-oh' or 'oh'
         smart_format_dict=None,
         plot_range=None,
-
-        # x_ax_species="oh",
-        # mode="all",
-        # plot_range={
-        #     "y": [1., 5.],
-        #     "x": [-2., 4.],
-        #     },
         ):
         """
         Input variables to class instance.
@@ -1676,6 +1677,13 @@ class Volcano_Plot():
             ORR_Free_E_Plot:
             mode:
                 "all", "ooh_vs_oh", "o_vs_oh"
+            plot_range:
+                Ex.)
+                plot_range={
+                    "y": [1., 5.],
+                    "x": [-2., 4.],
+                    }
+
         """
         #| - __init__
         self.ORR_Free_E_Plot = ORR_Free_E_Plot
@@ -1794,6 +1802,13 @@ class Volcano_Plot():
         plot_all_legs=True,
         plot_min_max_legs=False,
         trace_priority="top",  # 'top' or 'bottom'
+        legs_to_plot=[
+            "o2_to_ooh",
+            "ooh_to_o",
+            "o_to_oh",
+            "oh_to_h2o",
+            ],
+        line_color="black",
         ):
         """Create volcano data traces.
 
@@ -1809,9 +1824,6 @@ class Volcano_Plot():
         """
         #| - create_volcano_lines
         out_data = []
-
-        # x_range = self.plot_range["x"]
-        # x_range = [-5., 5.]
         x_range = self.plot_range["x"]
 
         #| - Volcano Legs
@@ -1829,6 +1841,7 @@ class Volcano_Plot():
             'oh_to_h2o': [],
             }
 
+        #| - Create Volcano Legs (LOOP)
         x_axis = np.linspace(x_range[0], x_range[1], num=500)
         for leg_i in volc_legs:
             for x_energy_i in x_axis:
@@ -1852,59 +1865,53 @@ class Volcano_Plot():
                         rxn_direction="forward",
                         ),
                     )
+        #__|
 
         if plot_all_legs:
+
+            #| - plot_all_legs
             trace_o2_to_ooh = go.Scatter(
                 x=x_axis,
                 y=energy_dict["o2_to_ooh"],
                 name="O2->*OOH",
-
                 line=dict(
                     color="#e7b8bc",
                     width=2,
                     dash="solid",
                     )
-
-
                 )
+
             trace_ooh_to_o = go.Scatter(
                 x=x_axis,
                 y=energy_dict["ooh_to_o"],
                 name="*OOH->*O",
-
                 line=dict(
                     color="#afd7c3",
                     width=2,
                     dash="solid",
                     )
-
-
                 )
+
             trace_o_to_oh = go.Scatter(
                 x=x_axis,
                 y=energy_dict["o_to_oh"],
                 name="*O->*OH",
-
                 line=dict(
                     color="#b5c4e2",
                     width=2,
                     dash="solid",
                     )
-
-
                 )
+
             trace_oh_to_h2o = go.Scatter(
                 x=x_axis,
                 y=energy_dict["oh_to_h2o"],
                 name="*OH->H2O",
-
                 line=dict(
                     color="#dbcdab",
                     width=2,
                     dash="solid",
                     )
-
-
                 )
 
             if trace_priority == "top":
@@ -1918,42 +1925,36 @@ class Volcano_Plot():
                 out_data.insert(0, trace_ooh_to_o)
                 out_data.insert(0, trace_o_to_oh)
                 out_data.insert(0, trace_oh_to_h2o)
+            #__|
+
         #__|
 
         #| - Minimum Energy Legs
-        energy_lists = [
-            energy_dict["o2_to_ooh"],
-            energy_dict["ooh_to_o"],
-            energy_dict["o_to_oh"],
-            energy_dict["oh_to_h2o"],
-            ]
+        energy_lists= []
+        for leg_i in legs_to_plot:
+            energy_lists.append(energy_dict[leg_i])
 
-        min_e_list = []
-        for leg1, leg2, leg3, leg4 in zip(*energy_lists):
+        min_max_e_list = []
+        for legs in zip(*energy_lists):
             if self.ORR_Free_E_Plot.rxn_type == "ORR":
-                energy_i = min(leg1, leg2, leg3, leg4)
+                energy_i = min(*legs)
 
             elif self.ORR_Free_E_Plot.rxn_type == "OER":
-                energy_i = max(leg1, leg2, leg3, leg4)
+                energy_i = max(*legs)
 
-            min_e_list.append(energy_i)
+            min_max_e_list.append(energy_i)
 
         trace_volcano = go.Scatter(
             x=x_axis,
-            y=min_e_list,
+            y=min_max_e_list,
             name="activity volcano",
 
             line=dict(
-                color="black",
+                color=line_color,
                 width=2,
                 # dash="dash",
                 dash="5px,2px,5px,2px",
                 )
-
-            # line=dict(
-            #     color=("black"),
-            #     width=1.,
-            #     )
             )
 
         if plot_min_max_legs:
@@ -1962,7 +1963,6 @@ class Volcano_Plot():
 
             elif trace_priority == "bottom":
                 out_data.insert(0, trace_volcano)
-
         #__|
 
         return(out_data)
@@ -1979,6 +1979,9 @@ class Volcano_Plot():
         """
         """
         #| - __create_trace_i__
+
+        # print(":LKJSDF_-d__D-d-d_D-D__D")
+        # print(list(smart_format_i.keys()))
 
         trace_i = go.Scatter(
             x=[x_energy],
@@ -2026,6 +2029,7 @@ class Volcano_Plot():
         showlegend=False,
         width=9. * 37.795275591,
         height=9. * 37.795275591,
+        layout_dict=None,
         ):
         """
         """
@@ -2052,6 +2056,14 @@ class Volcano_Plot():
             # xaxis_title = "dG_*OH - dG_*O (eV)"
             xaxis_title = "dG<sub>O</sub> - dG<sub>OH</sub> (eV)"
 
+# layout["margin"] = go.layout.Margin(
+#     b=50.,
+#     l=50.,
+#     r=50.,
+#     t=50.,
+# #     pad=20.,
+#     )
+#
         layout = {
             "title": plot_title,
 
@@ -2116,6 +2128,13 @@ class Volcano_Plot():
 
             #__|
 
+            "margin": go.layout.Margin(
+                b=50.,
+                l=50.,
+                r=50.,
+                t=50.,
+                ),
+
             # "paper_bgcolor": 'rgba(0,0,0,0)',
             "plot_bgcolor": 'rgba(0,0,0,0)',
 
@@ -2159,6 +2178,15 @@ class Volcano_Plot():
         #__|
 
         layout = {**layout, **plot_size_settings}
+
+        #| - Applying Layout override dict
+        if layout_dict is not None:
+            from misc_modules.misc_methods import dict_merge
+            dict_merge(layout, layout_dict)
+
+            # layout_i = {**layout_i, **layout_dict}
+
+        #__|
 
         return(layout)
 

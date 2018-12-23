@@ -137,16 +137,20 @@ class DFT_Methods():
             atoms_file:
         """
         #| - elec_energy
-        try:
-            with open(path_i + "/dir_opt/elec_e.out", "r") as fle:
-                energy = float(fle.read().strip())
+        energy = None
 
+        try:
+            file_dir = os.path.join(
+                path_i,
+                "dir_opt/elec_e.out",
+                )
+            with open(file_dir, "r") as fle:
+                energy = float(fle.read().strip())
         except:
             pass
 
-        # with open(path_i + "/dir_opt/elec_e.out", "r") as fle:
-        #     energy = float(fle.read().strip())
 
+        #| - Non-favored methods
         try:
             atoms = self.atoms_object(path_i)[-1]
             energy = atoms.get_potential_energy()
@@ -154,12 +158,11 @@ class DFT_Methods():
             pass
 
         try:
-
             atoms = io.read(path_i + "/" + "out_opt.traj")
             energy = atoms.get_potential_energy()
         except:
             pass
-
+        #__|
 
         return(energy)
         #__|
@@ -366,7 +369,7 @@ class DFT_Methods():
         Args:
             path_i
         """
-        #| - TMP
+        #| - dft_params
         file_path_1 = os.path.join(
             path_i,
             path_i,

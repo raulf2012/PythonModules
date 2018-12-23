@@ -272,6 +272,9 @@ class ComputerCluster():
     def submit_job(self, **kwargs):
         """Call cluster specific job submission method.
 
+        Notes:
+            make sure to add 'path_i' key
+
         Args:
             **kwargs:
         """
@@ -279,7 +282,12 @@ class ComputerCluster():
         kwargs = merge_two_dicts(self.default_sub_params, kwargs)
 
         #| - Checking if job has already been submitted
-        if self.is_job_submitted():
+        if "path_i" in kwargs:
+            path_i = kwargs["path_i"]
+        else:
+            path_i = "."
+
+        if self.is_job_submitted(path_i=path_i):
             return(None)
         #__|
 
@@ -1080,7 +1088,6 @@ class SherlockCluster(ComputerCluster):
         self.root_dir = root_dir
 
         self.username = self.__parse_username__()
-        print("LKSDJFLKSDJFKSDKjf")
         self.default_sub_params = self.default_submission_parameters()
 
         self.queues = self.__queue_types__()
@@ -1115,11 +1122,6 @@ class SherlockCluster(ComputerCluster):
         if username is not None:
             cond_2 = True
 
-        print(cond_1)
-        print(cond_2)
-
-        print(username)
-        print("*******")
         return(username)
         #__|
 
@@ -1127,10 +1129,6 @@ class SherlockCluster(ComputerCluster):
     def default_submission_parameters(self):
         """Defaul SLURM parameters for Sherlock cluster."""
         #| - default_submission_parameters
-
-        # TEMP_PRINT
-        print(self.username)
-        print("_______")
 
         def_params = {
             "queue": "owners,iric,normal",  # -p flag
@@ -1825,6 +1823,18 @@ class DummyCluster(ComputerCluster):
         # self.job_queue_dir = self.aws_dir + "/jobs_bin"
 
         # self.job_queue_state_key = "job_status"
+        #__|
+
+
+    def submit_job_clust(self, **kwargs):
+        """just a placeholder function.
+
+        Args:
+            **kwargs:
+        """
+        #| - submit_job
+        print("submit_job_clust | DummyCluster")
+        print("Nothing happens!!")
         #__|
 
 

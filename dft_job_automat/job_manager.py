@@ -39,6 +39,12 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         working_dir=".",
         update_job_state=False,
         load_dataframe=True,
+
+        dataframe_dir=None,
+        job_type_class=None,
+        methods_to_run=None,
+        folders_exist=None,
+        parse_all_revisions=True,
         ):
         """Initialize Jobs_Manager instance.
 
@@ -54,17 +60,24 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         """
         #| - __init__
 
-
-
+        #| - __old__
+        # tree_level=None,
+        # level_entries=None,
+        # skip_dirs_lst=None,
+        # indiv_dir_lst=None,  # <-----------------------------------------------
+        # indiv_job_lst=None,
+        # root_dir=".",
+        # working_dir=".",
+        # update_job_state=False,
+        # load_dataframe=True,
+        # dataframe_dir=dataframe_dir,
+        # job_type_class=job_type_class,
+        # methods_to_run=methods_to_run,
+        # folders_exist=folders_exist,
+        # parse_all_revisions=parse_all_revisions,
+        #__|
 
         DFT_Jobs_Analysis.__init__(self,
-            # # system=system,
-            # tree_level=tree_level,
-            # level_entries=level_entries,
-            # working_dir=working_dir,
-            # update_job_state=update_job_state,
-            # load_dataframe=load_dataframe,
-
             tree_level=tree_level,
             level_entries=level_entries,
             skip_dirs_lst=skip_dirs_lst,
@@ -75,11 +88,25 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             update_job_state=update_job_state,
             load_dataframe=load_dataframe,
 
+            dataframe_dir=dataframe_dir,
+            job_type_class=job_type_class,
+            methods_to_run=methods_to_run,
+            folders_exist=folders_exist,
+            parse_all_revisions=parse_all_revisions,
+            )
+
+            #| - __old__
+            # # system=system,
+            # tree_level=tree_level,
+            # level_entries=level_entries,
+            # working_dir=working_dir,
+            # update_job_state=update_job_state,
+            # load_dataframe=load_dataframe,
             # dataframe_dir=None,
             # job_type_class=None,
             # folders_exist=None,
+            #__|
 
-            )
         #__|
 
     def restart_job(self,
@@ -407,7 +434,6 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         2. Goes through
         """
         #| - submit_jobs
-
 
         #| - OLD
         # def submit_folder_job(folder_dir, bash_command):

@@ -9,6 +9,7 @@ Author: Raul A. Flores
 #| - Import Modules
 import os
 import shutil
+import copy
 
 import itertools
 import pickle
@@ -49,14 +50,83 @@ class Job:
                 Max revisions for unique job, defined by the set of job params
         """
         #| - __init__
+
+        #| - Setting class attributes
         self.full_path = path_i
         self.job_params_dict = job_params_dict
         self.max_revision = max_revision
         self.root_dir = root_dir
+        #__|
 
-        # Class Methods
+        # if job_params_dict is None:
+
         self.job_params = self.__set_job_parameters__(job_params_dict)
+
+        # print(self.job_params)
+        # print("____-d-sfs")
+        # print("")
+
+        # else:
+        #     self.__write_job_parameters__()
+
         self.revision_number = self.__revision_number__()
+        #__|
+
+    def write_job_parameters(self):
+        """
+        """
+        #| - __write_job_parameters__
+        leaf_dir = self.full_path.split("/")[-1]
+
+        if "_" in leaf_dir:
+            # if leaf_dir[1:].isnumeric():
+            if leaf_dir[1:].isdigit():
+                leaf_dir = self.full_path.split("/")[-1]
+                ind_i = self.full_path.rfind(leaf_dir)
+                path_i = self.full_path[:ind_i - 1]
+
+
+        #| - NEW | Trying to remove keys which aren't JSON serializable
+        def is_jsonable(x):
+            """
+            """
+            #| - is_jsonable
+            try:
+                json.dumps(x)
+                return True
+            except:
+                return False
+            #__|
+
+        job_params_dict_cpy = copy.deepcopy(self.job_params_dict)
+
+        keys_to_delete = []
+        for key, value in job_params_dict_cpy.items():
+            if not is_jsonable(value):
+                keys_to_delete.append(key)
+
+        if len(keys_to_delete) > 0:
+            print(
+                "The following job properties couldn't be JSON serialized",
+                ", and will be ignored"
+                )
+            print(keys_to_delete)
+
+        for k in keys_to_delete:
+            job_params_dict_cpy.pop(k, None)
+
+        print(job_params_dict_cpy)
+        #__|
+
+
+        file_path_i = os.path.join(path_i, "job_params.json")
+        with open(file_path_i, 'w') as outfile:
+            json.dump(
+                job_params_dict_cpy,
+                # self.job_params_dict,
+                outfile,
+                indent=2,
+                )
         #__|
 
     def __set_job_parameters__(self, job_params_dict):
@@ -98,9 +168,15 @@ class Job:
             with open(file_path, "r") as fle:
                 job_params = json.load(fle)
 
+
+        ind_i = self.full_path.rfind(self.full_path.split("/")[-1])
+        path_i_rt = self.full_path[:ind_i - 1]
+
         file_path = os.path.join(
-            self.full_path[0:-2],
-            "job_parameters.json")
+            # self.full_path[0:-2],
+            path_i_rt,
+            "job_parameters.json",
+            )
         if os.path.exists(file_path):
             file_exists = True
             with open(file_path, "r") as fle:
@@ -108,8 +184,10 @@ class Job:
 
 
         file_path = os.path.join(
-            self.full_path[0:-2],
-            "job_params.json")
+            # self.full_path[0:-2],
+            path_i_rt,
+            "job_params.json",
+            )
         if os.path.exists(file_path):
             file_exists = True
             with open(file_path, "r") as fle:
@@ -126,9 +204,9 @@ class Job:
         """
         """
         #| - __revision_number__
-        print(self.full_path)
-
+        # print(self.full_path)
         revision_i = int(self.full_path.split("/")[-1].split("_")[-1])
+
         return(revision_i)
         #__|
 
@@ -148,11 +226,12 @@ class DFT_Jobs_Setup:
         level_entries=None,
         indiv_dir_lst=None,
         indiv_job_lst=None,
+        indiv_job_dict_lst=None,
         skip_dirs_lst=None,
         root_dir=".",
         working_dir=".",
-        # root_dir=".",
         folders_exist=None,
+        parse_all_revisions=True,
         ):
         """Initialize DFT_Jobs_Setup Instance.
 
@@ -179,6 +258,9 @@ class DFT_Jobs_Setup:
         self.skip_dirs_lst = skip_dirs_lst
         self.indiv_dir_lst = indiv_dir_lst
         self.indiv_job_lst = indiv_job_lst
+
+        self.indiv_job_dict_lst = indiv_job_dict_lst
+        self.parse_all_revisions = parse_all_revisions
         #__|
 
         self.root_dir = self.__set_root_dir__(root_dir)
@@ -194,6 +276,7 @@ class DFT_Jobs_Setup:
         self.__create_dir_structure_file__()
         self.num_jobs = self.__number_of_jobs__()
         self.__Job_list__()
+
         self.data_frame = self.__gen_datatable__()
 
         # if self.folders_exist:
@@ -225,6 +308,50 @@ class DFT_Jobs_Setup:
         return(job_var_lst_i)
         #__|
 
+
+    def write_job_params_json_file(self):
+        """
+        """
+        #| - write_job_params_json_file
+        for Job in self.Job_list:
+            Job.write_job_parameters()
+
+        #__|
+
+    def create_Jobs_from_dicts_and_paths(self,
+        jobs_list,
+        ):
+        """Populate Job_list attribute manually.
+
+        Args:
+            jobs_list
+                List of dictionaries with 'properties' and 'path' keys
+
+        """
+        #| - create_Jobs_from_dicts_and_paths
+        for job_i in jobs_list:
+
+            path_i = job_i["path"]
+            job_params_dict = job_i["properties"]
+
+            rev_dirs, max_rev = self.__revision_list_and_max__(
+                path_i,
+                )
+
+            for rev_i in rev_dirs:
+                path_i = os.path.join(path_i, rev_i)
+                path_i = os.path.normpath(path_i)
+
+                Job_i = Job(
+                    path_i=path_i,
+                    job_params_dict=job_params_dict,
+                    max_revision=max_rev,
+                    root_dir=None,
+                    )
+
+                self.Job_list.append(Job_i)
+        #__|
+
     def __Job_list__(self):
         """Create Job list from various input sources."""
         #| - __Job_list__
@@ -234,6 +361,17 @@ class DFT_Jobs_Setup:
             for job_i_dir in self.indiv_dir_lst:
 
                 rev_dirs, max_rev = self.__revision_list_and_max__(job_i_dir)
+
+                # print(rev_dirs)
+                # print(max_rev)
+                # print("LKSJDlkfsd-as-fsadfsafkj")
+                # print("")
+
+                if self.parse_all_revisions is False:
+                    print("")
+                    print("laskjfsd-_asdf1832897")
+                    rev_dirs = [rev_dirs[-1]]
+                    print(rev_dirs)
 
                 for rev_i in rev_dirs:
                     path_i = os.path.join(job_i_dir, rev_i)
@@ -325,6 +463,10 @@ class DFT_Jobs_Setup:
                 self.Job_list.append(Job_i)
         #__|
 
+        if self.indiv_job_dict_lst is not None:
+            self.create_Jobs_from_dicts_and_paths(
+                self.indiv_job_dict_lst,
+                )
         #__|
 
 
@@ -518,8 +660,6 @@ class DFT_Jobs_Setup:
             dir_name += beggining + prop_value + "/"
 
         if job_rev == "Auto":
-            # __revision_list_and_max__
-            # def __revision_list_and_max__(self, path_i):
 
             revision_dirs, highest_rev = self.__revision_list_and_max__(
                 self.var_lst_to_path(variable_lst),
@@ -589,8 +729,6 @@ class DFT_Jobs_Setup:
         dir_name = dir_name[:-1]
 
         if job_rev == "Auto":
-            # __revision_list_and_max__
-            # def __revision_list_and_max__(self, path_i):
 
             revision_dirs, highest_rev = self.__revision_list_and_max__(
                 self.var_lst_to_path(
@@ -1167,9 +1305,6 @@ class DFT_Jobs_Setup:
             # dir[1].isdigit() and " " not in dir]
 
             revision_dirs.sort()
-
-            print(path_i)
-            print("__----___--_____--_kdsfjs")
 
             if len(revision_dirs) == 0:
                 highest_rev = None

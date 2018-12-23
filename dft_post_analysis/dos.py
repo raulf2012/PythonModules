@@ -291,7 +291,6 @@ def plot_pdos_dos(
     #__|
 
     df = pd.DataFrame(pdos_master_data)
-
     #__|
 
     #| - Data Analysis
@@ -307,12 +306,12 @@ def plot_pdos_dos(
 
     for key, value in filter_dict.items():
         df = df[df[key].isin(value)]
+
     #__|
 
     #| - Plotly Scatter Plot Creation
     data = []
     for index, row in df.iterrows():
-        # print(row)
         if group is not None:
             group_col = row[group]
         else:
@@ -326,7 +325,11 @@ def plot_pdos_dos(
             )
 
         data.append(data_i)
+
+    pdos_data_out = data
     #__|
+
+
 
     #| - Plotting
 
@@ -389,87 +392,7 @@ def plot_pdos_dos(
         }
     #__|
 
-    pdos_data = data
     #__|
 
-    return(dos_data, pdos_data, layout)
+    return(dos_data, pdos_data_out, layout)
     #__|
-
-
-
-
-
-
-
-#| - __old__
-
-# def plot_pdos_dos(
-#     pdos_data,
-#     filter_dict,
-#     atoms,
-#     ):
-#     """
-#
-#     Args:
-#         pdos_data:
-#         filter_dict:
-#         atoms:
-#     """
-#     #| - plot_pdos_dos
-#     tmp = 42
-#     # #| - Import Modules
-#     # import sys
-#     # import pickle as pickle
-#     # import numpy as np
-#     # import pandas as pd
-#     # from ase import io
-#     #
-#     # import plotly
-#     # import plotly.graph_objs as go
-#     # #__|
-#     #
-#     # #| - Script Inputs
-#     # # filter_dict = {
-#     # #     "type": ["sum-up", "sum-down"],
-#     # #     "atom_ind": [6, 7, 8, 9, 10, 11, 12, 13, 14],
-#     # #     "band": ["d", "p"],
-#     # #     # "element": ["N"],
-#     # #     }
-#     #
-#     # # pdos_file = "dir_pdos/dos.pickle"
-#     # pdos_file = "./__test__/dos.pickle"
-#     # atoms_file = "./out_opt.traj"
-#     # #__|
-#     #
-#     # #| - Methods
-#     # def plot_dos_series(
-#     #     x_data,
-#     #     y_data,
-#     #     name,
-#     #     group=None,
-#     #     ):
-#     #     """Plot DOS data series.
-#     #
-#     #     Args:
-#     #
-#     #     """
-#     #     #| - plot_dos_series
-#     #
-#     #     # trace = go.Scatter(
-#     #     trace = go.Scattergl(
-#     #         x=x_data,
-#     #         y=y_data,
-#     #         name=name,
-#     #         text=name,
-#     #         fill="tozerox",
-#     #         hoverinfo="y+text",
-#     #         legendgroup=group,
-#     #         )
-#     #
-#     #     return(trace)
-#     #     #__|
-#     #
-#     # #__|
-#     #__|
-
-#__|
