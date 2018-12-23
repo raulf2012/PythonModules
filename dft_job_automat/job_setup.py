@@ -367,24 +367,30 @@ class DFT_Jobs_Setup:
                 # print("LKSJDlkfsd-as-fsadfsafkj")
                 # print("")
 
-                if self.parse_all_revisions is False:
-                    print("")
-                    print("laskjfsd-_asdf1832897")
-                    rev_dirs = [rev_dirs[-1]]
-                    print(rev_dirs)
+                print(job_i_dir)
+                if rev_dirs:
+                    if self.parse_all_revisions is False:
+                        print("")
+                        print("laskjfsd-_asdf1832897")
+                        rev_dirs = [rev_dirs[-1]]
+                        print(rev_dirs)
 
-                for rev_i in rev_dirs:
-                    path_i = os.path.join(job_i_dir, rev_i)
-                    path_i = os.path.normpath(path_i)
+                    for rev_i in rev_dirs:
+                        path_i = os.path.join(job_i_dir, rev_i)
+                        path_i = os.path.normpath(path_i)
 
-                    Job_i = Job(
-                        path_i=path_i,
-                        job_params_dict=None,
-                        max_revision=max_rev,
-                        root_dir=None,
-                        )
+                        Job_i = Job(
+                            path_i=path_i,
+                            job_params_dict=None,
+                            max_revision=max_rev,
+                            root_dir=None,
+                            )
 
-                    self.Job_list.append(Job_i)
+                        self.Job_list.append(Job_i)
+                else:
+                    print("Didn't find any job dirs here:")
+                    print(job_i_dir)
+                    pass
         #__|
 
         #| - Adding Jobs From Enumerated Job Properties Tree

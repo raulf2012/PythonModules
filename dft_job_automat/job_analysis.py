@@ -379,14 +379,14 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 If True, a failed method call will result in NaN
         """
         #| - __add_data_coumn__
+        from joblib import Parallel, delayed
+        import multiprocessing
 
-
-        new_data_col = []
-        print("Adding " + str(column_name))
-        for entry in self.data_frame["Job"]:
+        def process_entry(entry):
+            """
+            """
+            #| - process_entry
             path = entry.full_path
-
-            #| - Run Function
             path = path + self.cluster.cluster.job_data_dir
 
             if allow_failure is True:
@@ -398,8 +398,39 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             else:
                 out = function(path)
 
-            new_data_col.append(out)
+            # new_data_col.append(out)
+
+            return(out)
             #__|
+
+        num_cores = multiprocessing.cpu_count()
+        print(num_cores)
+        new_data_col = Parallel(n_jobs=num_cores)(
+            delayed(process_entry)(i) for i in self.data_frame["Job"]
+            )
+
+        #| - __old__
+        # new_data_col = []
+        # print("Adding " + str(column_name))
+        # for entry in self.data_frame["Job"]:
+        #     path = entry.full_path
+        #     path = path + self.cluster.cluster.job_data_dir
+        #
+        #     #| - Run Function
+        #
+        #     if allow_failure is True:
+        #         try:
+        #             out = function(path)
+        #         except:
+        #             out = np.nan
+        #
+        #     else:
+        #         out = function(path)
+        #
+        #     new_data_col.append(out)
+        #     #__|
+
+        #__|
 
         data_type_list = [type(x) for x in new_data_col]
         dict_in_list = any(item == dict for item in data_type_list)
