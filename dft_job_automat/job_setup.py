@@ -366,7 +366,8 @@ class DFT_Jobs_Setup:
                 # print(max_rev)
                 # print("LKSJDlkfsd-as-fsadfsafkj")
                 # print("")
-
+                # TMP
+                
                 print(job_i_dir)
                 if rev_dirs:
                     if self.parse_all_revisions is False:
