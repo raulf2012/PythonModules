@@ -136,6 +136,7 @@ def ionic_opt(
     maxsteps=100000000,
     run_beef_an=True,
     run_bader_an=True,
+    save_wf=True,
     ):
     """Run ionic dft relaxation on atoms object.
 
@@ -184,16 +185,15 @@ def ionic_opt(
     #__|
 
     #| - Setting Optimization Specific Espresso Parameters
-
     # espresso_params_copy = copy.deepcopy(espresso_params)
 
     params_opt = {
-        "output": {
-            "avoidio": True,
-            "removesave": True,
-            "removewf": True,
-            "wf_collect": False,
-            },
+        # "output": {
+        #     "avoidio": True,
+        #     "removesave": True,
+        #     "removewf": True,
+        #     "wf_collect": False,
+        #     },
 
         "outdir": "calcdir_opt",
         }
@@ -334,6 +334,11 @@ def ionic_opt(
         write("out_opt.traj", atoms)
         #__|
 
+
+    #TEMP
+    if save_wf:
+        atoms.calc.save_wf()
+
     estimate_magmom(
         path_i=".",
         atoms=atoms,
@@ -389,11 +394,8 @@ def ionic_opt(
         print("finished single-point"); sys.stdout.flush()
         #__|
 
-
         bader(atoms, spinpol=espresso_params_opt["spinpol"], run_exec=True)
 
-
-#__| **************************************************************************
 
 #__| **************************************************************************
 
