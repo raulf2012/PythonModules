@@ -5,7 +5,6 @@
 Author: Raul A. Flores
 """
 
-
 #| - IMPORT MODULES
 import numpy as np
 import pandas as pd
@@ -327,10 +326,9 @@ class ORR_Free_E_Plot:
         axes_lab_size=18,
         legend_size=18,
         # font_family="Computer Modern"  # "Courier New, monospace"
-        font_family="Courier New, monospace",  # "Courier New, monospace"
+        font_family="Arial, Courier New, monospace",
         plot_width=680,
         plot_height=510,
-
         annotation_size=12,
         ):
         """
@@ -356,6 +354,11 @@ class ORR_Free_E_Plot:
         elif self.rxn_type == "OER":
             # xax_labels = ["$H_{2}O$", "$*OH$", "$*O$", "$*OOH$", "$O_{2}$"]
             xax_labels = ["H2O", "*OH", "*O", "*OOH", "O2"]
+    #     "font":dict(
+    #         family='Arial',
+    # #         size=18,
+    #         color='black',
+    #         ),
 
         layout = {
             "title": plot_title,
@@ -448,7 +451,6 @@ class ORR_Free_E_Plot:
 
             "width": plot_width,
             "height": plot_height,
-
             }
 
         if self.show_H_e_pairs_annotations:
@@ -2056,14 +2058,14 @@ class Volcano_Plot():
             # xaxis_title = "dG_*OH - dG_*O (eV)"
             xaxis_title = "dG<sub>O</sub> - dG<sub>OH</sub> (eV)"
 
-# layout["margin"] = go.layout.Margin(
-#     b=50.,
-#     l=50.,
-#     r=50.,
-#     t=50.,
-# #     pad=20.,
-#     )
-#
+        # layout["margin"] = go.layout.Margin(
+        #     b=50.,
+        #     l=50.,
+        #     r=50.,
+        #     t=50.,
+        # #     pad=20.,
+        #     )
+
         layout = {
             "title": plot_title,
 

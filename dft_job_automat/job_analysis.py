@@ -10,12 +10,16 @@ Development Notes:
 """
 
 #| - Import Modules
-import sys
 import os
-# import cPickle as pickle
+import sys
+
 import pickle
 import copy
 import glob
+
+from datetime import datetime
+
+
 
 import pandas as pd
 import numpy as np
@@ -57,6 +61,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         methods_to_run=None,
         folders_exist=None,
         parse_all_revisions=True,
+        parallel_exec=False,
         ):
         """Initialize DFT_Jobs_Analysis Instance.
 
@@ -79,6 +84,8 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 populate data column with.
         """
         #| - __init__
+
+        #| - Instantiate DFT_Jobs_Setup
         DFT_Jobs_Setup.__init__(self,
             tree_level=tree_level,
             level_entries=level_entries,
@@ -93,7 +100,12 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             parse_all_revisions=parse_all_revisions,
             )
 
+        #__|
+
+        #| - Class Attributes
         self.dataframe_dir = dataframe_dir
+        self.parallel_exec = parallel_exec
+        #__|
 
         #| - General Methods
         if update_job_state is True:
@@ -101,11 +113,12 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             self.add_data_column(
                 self.job_state,
                 column_name="job_state",
+                parallel_exec=self.parallel_exec,
                 )
             self.add_data_column(
                 self.job_state_3,
                 column_name="N/A",
-                allow_failure=False,
+                parallel_exec=self.parallel_exec,
                 )
         #__|
 
@@ -135,6 +148,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                         column_name=method,
                         allow_failure=True,
                         # allow_failure=False,
+                        parallel_exec=self.parallel_exec,
                         )
 
                     write_data_frame = True
@@ -153,6 +167,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
                         allow_failure=True,
                         # allow_failure=False,
+                        parallel_exec=self.parallel_exec,
                         )
 
                 write_data_frame = True
@@ -352,6 +367,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         column_name="new_column",
         revision="auto",
         allow_failure=True,
+        parallel_exec=False,
         # allow_failure=False,
         ):
         """
@@ -379,8 +395,9 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 If True, a failed method call will result in NaN
         """
         #| - __add_data_coumn__
-        from joblib import Parallel, delayed
-        import multiprocessing
+        startTime = datetime.now()
+
+        print("Adding " + str(column_name))
 
         def process_entry(entry):
             """
@@ -403,34 +420,30 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             return(out)
             #__|
 
-        num_cores = multiprocessing.cpu_count()
-        print(num_cores)
-        new_data_col = Parallel(n_jobs=num_cores)(
-            delayed(process_entry)(i) for i in self.data_frame["Job"]
-            )
+        if parallel_exec:
 
-        #| - __old__
-        # new_data_col = []
-        # print("Adding " + str(column_name))
-        # for entry in self.data_frame["Job"]:
-        #     path = entry.full_path
-        #     path = path + self.cluster.cluster.job_data_dir
-        #
-        #     #| - Run Function
-        #
-        #     if allow_failure is True:
-        #         try:
-        #             out = function(path)
-        #         except:
-        #             out = np.nan
-        #
-        #     else:
-        #         out = function(path)
-        #
-        #     new_data_col.append(out)
-        #     #__|
+            #| - Parallized Execution *****************************************
+            from joblib import Parallel, delayed
+            import multiprocessing
 
-        #__|
+            num_cores = multiprocessing.cpu_count()
+            print("Number of cores:")
+            print(num_cores); print(" ")
+            # new_data_col = Parallel(n_jobs=num_cores)(
+            new_data_col = Parallel(n_jobs=int(num_cores / 2))(
+                delayed(process_entry)(i) for i in self.data_frame["Job"]
+                )
+            #__| **************************************************************
+
+        else:
+
+            #| - Serial Execution *********************************************
+            new_data_col = []
+            for entry in self.data_frame["Job"]:
+                out = process_entry(entry)
+                new_data_col.append(out)
+            #__| **************************************************************
+
 
         data_type_list = [type(x) for x in new_data_col]
         dict_in_list = any(item == dict for item in data_type_list)
@@ -452,6 +465,10 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
         else:
             self.data_frame[column_name] = new_data_col
+
+        print("Run time ", str(datetime.now() - startTime))
+        print("__________________________________"); print("")
+
         #__|
 
 

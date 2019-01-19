@@ -362,19 +362,10 @@ class DFT_Jobs_Setup:
 
                 rev_dirs, max_rev = self.__revision_list_and_max__(job_i_dir)
 
-                # print(rev_dirs)
-                # print(max_rev)
-                # print("LKSJDlkfsd-as-fsadfsafkj")
-                # print("")
-                # TMP
-                
                 print(job_i_dir)
                 if rev_dirs:
                     if self.parse_all_revisions is False:
-                        print("")
-                        print("laskjfsd-_asdf1832897")
                         rev_dirs = [rev_dirs[-1]]
-                        print(rev_dirs)
 
                     for rev_i in rev_dirs:
                         path_i = os.path.join(job_i_dir, rev_i)
