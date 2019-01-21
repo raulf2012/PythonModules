@@ -946,7 +946,11 @@ class ORR_Free_E_Series():
             line=dict(
                 # color=color,
                 color=plot_parameter_dict["color"],
-                width=2,
+
+                # COMBAK
+                # width=2,
+                width=4,
+
                 # dash="dot",  # TEMP
                 dash=plot_parameter_dict["dash"],  # TEMP
                 ),
@@ -995,6 +999,7 @@ class ORR_Free_E_Series():
         #__|
 
         #| - Plot Mode (which data series to plot)
+
         if plot_mode == "all":
             data_lst = [data_1, data_2, data_3]
         elif plot_mode == "states_only":

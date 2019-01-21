@@ -32,10 +32,12 @@ class Energy(object):
         Cv_to_Cp=None,
         entropy_term=None,
         PV_term=None,
-
         # main_energy="gibbs",
         ):
         """Initialize system energy quantities.
+
+        TODO: Wrap all math operations around my custom methods that check for
+        None exeptions
 
         Args:
             electronic_e:
@@ -83,11 +85,11 @@ class Energy(object):
         #__|
 
     def __repr__(self):
-        """
-        """
+        """Representation of instance when printed to stdout."""
         #| - __repr__
-        mess = "Gibbs Free Energy: " + str(self.gibbs_e) + "\n"
-        mess += "Electronic Energy: " + str(self.electronic_e) + "\n"
+        mess = "Electronic Energy: " + str(self.electronic_e) + "\n"
+        mess += "Enthalpy Energy: " + str(self.enthalpy_e) + "\n"
+        mess += "Gibbs Free Energy: " + str(self.gibbs_e) + "\n"
 
         return(mess)
         #__|
@@ -96,29 +98,67 @@ class Energy(object):
         """
         """
         #| - __sub__
-        # return (self.gibbs_e - other.gibbs_e)
+
+        def subtract_mine(a, b):
+            """Return a - b.
+
+            Return None if either of the terms are None
+
+            Args:
+                a:
+                b:
+            """
+            #| - subtract_mine
+            if a is None or b is None:
+                return(None)
+            else:
+                out = a - b
+
+                return(out)
+            #__|
+
 
         if isinstance(other, Energy):
             print("Divisor is Energy class instance!!!")
 
-            # lst = ["gibbs_e", "enthalpy", "electronic_e"]
-            gibbs_e_new = self.gibbs_e - other.gibbs_e
-            electronic_e_new = self.electronic_e - other.electronic_e
+            electronic_e_new = subtract_mine(
+                self.electronic_e,
+                other.electronic_e)
+
+            enthalpy_e_new = subtract_mine(
+                self.enthalpy_e,
+                other.enthalpy_e)
+
+            gibbs_e_new = subtract_mine(
+                self.gibbs_e,
+                other.gibbs_e)
+
+            # electronic_e_new = self.electronic_e - other.electronic_e
+            # enthalpy_e_new = self.enthalpy_e - other.enthalpy_e
+            # gibbs_e_new = self.gibbs_e - other.gibbs_e
 
 
         elif isinstance(other, float) or isinstance(other, int):
-            print("Divisor is integer or float")
-            print(type(other))
 
-            gibbs_e_new = self.gibbs_e - float(other)
-            electronic_e_new = self.electronic_e - float(other)
+
+            electronic_e_new = subtract_mine(self.electronic_e, float(other))
+            enthalpy_e_new = subtract_mine(self.enthalpy_e, float(other))
+            gibbs_e_new = subtract_mine(self.gibbs_e, float(other))
+
+
+            # electronic_e_new = self.electronic_e - float(other)
+            # enthalpy_e_new = self.enthalpy_e - float(other)
+            # gibbs_e_new = self.gibbs_e - float(other)
 
         else:
             print("type:")
             print(type(other))
-            raise NotImplementedError("Haven't figured out how to subract to the Energy class yet")
+            raise NotImplementedError(
+                "Haven't figured out how to subract to the Energy class yet"
+                )
 
         E_dict={
+            "enthalpy_e": enthalpy_e_new,
             "gibbs_e": gibbs_e_new,
             "electronic_e": electronic_e_new,
             }
@@ -139,30 +179,26 @@ class Energy(object):
         """
         """
         #| - __truediv__
-        # print("__truediv__")
 
         if isinstance(other, Energy):
-            # print("Divisor is Energy class instance!!!")
-            # lst = ["gibbs_e", "enthalpy", "electronic_e"]
-            gibbs_e_new = self.gibbs_e / other.gibbs_e
             electronic_e_new = self.electronic_e / other.electronic_e
-
+            enthalpy_e_new = self.enthalpy_e / other.enthalpy_e
+            gibbs_e_new = self.gibbs_e / other.gibbs_e
 
         elif isinstance(other, float) or isinstance(other, int):
-            # print("Divisor is integer or float")
-            # print(type(other))
-
-            gibbs_e_new = self.gibbs_e / float(other)
             electronic_e_new = self.electronic_e / float(other)
+            enthalpy_e_new = self.enthalpy_e / float(other)
+            gibbs_e_new = self.gibbs_e / float(other)
 
         else:
-            # print("Dividand type:")
-            # print(type(other))
-            raise NotImplementedError("Haven't figured out how to divide my Energy class by that yet")
+            raise NotImplementedError(
+                "Haven't figured out how to divide my Energy class by that yet"
+                )
 
         E_dict={
-            "gibbs_e": gibbs_e_new,
             "electronic_e": electronic_e_new,
+            "enthalpy_e": enthalpy_e_new,
+            "gibbs_e": gibbs_e_new,
             }
 
         out_Energy = Energy(**E_dict)
@@ -257,12 +293,20 @@ class Energy(object):
 
     #__| **********************************************************************
 
+
 class Element_Refs():
     """docstring for [object Object].
 
     /u/if/flores12/02_ref_energies/h2/_3
 
     Notes:
+
+        * Water formation energy:
+            G_Liq: | -237.14 kJ/mol  --> -2.457784 eV (-4.915567)
+            G_Gas: | -228.61 kJ/mol  --> -2.369376 eV (-4.738753)
+            --------------------------------------------------------
+            H_Liq: | −285.8 kJ/mol   --> -2.96211 eV  (-5.92422)
+            H_Gas: | −241.818 kJ/mol --> -2.506268 eV (-5.012535)
 
     """
 
@@ -292,22 +336,33 @@ class Element_Refs():
             "electronic_e": -553.638294974,
             },
 
-        H2O_form_gibbs=-2.4583,
+
+        # H2O Formation Energy from H2 and O2 *********************************
+        H2O_form_e_dict={
+            "gibbs_e": -2.4583,
+            "enthalpy_e": -2.96211,
+            },
+
+        # H2O_form_gibbs=-2.4583,
 
         oxygen_ref="H2O",  # "H2O" or "O2"
         hydrogen_ref="H2",
+
+        # reference_states_dict={
+        #     "H": "H2",
+        #     "O": "H2O",
+        #     }
+
         ):
         """Initialize instance.
 
+        # Directories of gas phase DFT jobs (QE):
         H2O, H2, and O2 energies were obtained from:
         /scratch/users/flores12/gas_phase_molec/BEEF-vdW
-
         H2:
         /scratch/users/flores12/gas_phase_molec/BEEF-vdW/h2/_4
-
         H2O:
         /scratch/users/flores12/gas_phase_molec/BEEF-vdW/h2o/_3
-
         O2:
         /scratch/users/flores12/gas_phase_molec/BEEF-vdW/o2/_3
 
@@ -316,6 +371,10 @@ class Element_Refs():
             G_H2:
             G_O2:
             H2O_form_gibbs:
+            oxygen_ref and hydrogen_ref:
+                States of 0 energy, reference for each element type
+                Conventionally for ORR/OER I use a H2, H2O reference state,
+                such that H2O has 0 energy
         """
         #| - __init__
         self.En_H2O = Energy(**H2O_dict)
@@ -324,8 +383,10 @@ class Element_Refs():
         self.En_N2 = Energy(**N2_dict)
 
         self.oxygen_ref = oxygen_ref
+        self.hydrogen_ref = hydrogen_ref
 
-        self.H2O_form_gibbs = Energy(gibbs_e=H2O_form_gibbs)
+        # self.H2O_form_gibbs = Energy(gibbs_e=H2O_form_gibbs)
+        self.H2O_form_gibbs = Energy(**H2O_form_e_dict)
 
         self.E_O_ref, self.E_H_ref = self.calc_ref_energies()
         #__|
@@ -334,11 +395,22 @@ class Element_Refs():
         """
         """
         #| - calc_ref_energies
-        # hyd_ref = self.En_H2 / 2.
-        hyd_ref = self.En_H2 / 2.
+
+        if self.hydrogen_ref == "H2":
+            # hyd_ref = self.En_H2 / 2.
+            hyd_ref = self.En_H2 / 2.
+        else:
+            print("Non H2 H reference state! Do more work here")
+
 
         if self.oxygen_ref == "H2O":
             oxy_ref = self.En_H2O - self.En_H2
+
+        elif self.oxygen_ref == "O2":
+            oxy_ref = self.En_H2O - self.En_H2 - self.H2O_form_gibbs
+
+            # tmp = oxy_ref - self.H2O_form_gibbs
+            # print(tmp)
 
         return(oxy_ref, hyd_ref)
         #__|
