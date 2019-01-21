@@ -1,16 +1,7 @@
 # Python modules used in my research
 
-## Author:
+# Author(s):
 Raul Flores
 
-## Date:
-
-180330-TEMP***********************************
-
-180330-TEMP-Change made in master branch
-
-
-This modification is being made in new "updates_FED" branch (180330)
-
-_Yeah_
-###### This is new now
+# Workflowy Development List
+https://workflowy.com/#/63d9234f4c4a
