@@ -2203,6 +2203,7 @@ class Free_Energy_Plot():
     Development Notes:
         Take the FED methods out of the ORR_Free_E_Plot class and into this one
     """
+
     #| - Free_Energy_Plot *****************************************************
 
     def __init__(self,
