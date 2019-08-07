@@ -18,9 +18,6 @@ pd.options.mode.chained_assignment = None
 
 from oxr_reaction.oxr_series import ORR_Free_E_Series
 from oxr_reaction.adsorbate_scaling import lim_U_i
-
-# from orr_reaction.orr_series import ORR_Free_E_Series
-# from orr_reaction.adsorbate_scaling import lim_U_i
 #__|
 
 
@@ -40,8 +37,6 @@ class Free_Energy_Plot():
 
     def __init__(self,
         ORR_Free_E_Plot,
-
-
         bias=0.,
         opt_name=None,
         properties=None,
@@ -114,7 +109,6 @@ class Free_Energy_Plot():
                 overpotential_type=self.rxn_type,
                 )
 
-            # plot_data.append(data_i)
             plot_data += data_i
 
         return(plot_data)
@@ -147,9 +141,16 @@ class Free_Energy_Plot():
 
         df_ideal = pd.DataFrame(ideal_data_list)
 
+        # system_properties={"system": sys_name_i},
+        # name_i=sys_name_i,
+        # format_dict=format_dict_i,
+        # opt_name=sys_name_i.replace("_", " "),
+
         self.ORR_Free_E_Plot.add_series(
             df_ideal,
             plot_mode="full_lines",  # ##########
+            format_dict={"opacity": 0.},
+            name_i="Ideal ORR Catalyst",
             opt_name="Ideal ORR Catalyst",
             smart_format=False,
             color=None,
@@ -222,7 +223,6 @@ class Free_Energy_Plot():
         #| - plot_fed_series
         e_list = series_i.energy_lst
         e_list = series_i.apply_bias(bias, e_list)
-
 
         for n, i in enumerate(e_list):
             if np.isnan(i) is True:
@@ -429,18 +429,17 @@ class Free_Energy_Plot():
 
         if series_i.format_dict:
             format_i = series_i.format_dict
-            print(format_i)
         else:
             format_i = plot_parameter_dict
 
-        #| - Plotly Scatter Plot Instances
+        #| - Plotly Scatter Plot Instances ************************************
 
         #| - Thick horizontal state lines
         data_1 = go.Scatter(
             x=new_x_dat,
             y=new_y_dat,
             legendgroup=group,
-            showlegend=True,
+            showlegend=False,
             name=name,
             hoverinfo="none",  # TEMP - 180317
 
@@ -483,23 +482,24 @@ class Free_Energy_Plot():
         #__|
 
         #| - Points in middle of energy states (For convienient hover)
-        # 'color_1': 'black', 'color_2': 'blue', 'symbol_i': 'circle', 'symbol_i__matplotlib': 'o', 'marker_size': 18
-
-        format_i.get("color_2", "black")
 
         data_3 = go.Scatter(
             x=short_x,
             y=short_y,
             legendgroup=group,
             name=name,
-            showlegend=False,
+            showlegend=True,
             hoverinfo="y+text",
-            text=hover_text,
+            # hoverinfo="y+name",
+            # text=hover_text,
+            text=name,
             marker=dict(
-                size=format_i.get("marker_size", 10),
+                size=format_i.get("marker_size", 0),
                 color=format_i.get("color_2", "black"),
                 # opacity=0.,
-                opacity=0.8,
+                # opacity=0.8,
+                opacity=format_i.get("opacity", 0.8),
+
                 symbol=format_i.get("symbol_i", "circle"),
                 line=dict(
                     # color=smart_format_i[marker_border_color_key],
@@ -512,15 +512,108 @@ class Free_Energy_Plot():
             )
         #__|
 
+        #| - Points in middle of RDS states
+        # HACK
+        if series_i.limiting_step == ["ooh", "bulk"]:
+            ind_i = 3
+            short_x = short_x[ind_i:ind_i + 2]
+            short_y = short_y[ind_i:ind_i + 2]
+
+        if series_i.limiting_step == ["bulk", "ooh"]:
+            ind_i = 0
+            short_x = short_x[ind_i:ind_i + 2]
+            short_y = short_y[ind_i:ind_i + 2]
+
+
+
+        if series_i.limiting_step == ["o", "ooh"]:
+            ind_i = 2
+            short_x = short_x[ind_i:ind_i + 2]
+            short_y = short_y[ind_i:ind_i + 2]
+
+        if series_i.limiting_step == ["ooh", "o"]:
+            ind_i = 1
+            short_x = short_x[ind_i:ind_i + 2]
+            short_y = short_y[ind_i:ind_i + 2]
+
+
+
+        if series_i.limiting_step == ["oh", "o"]:
+            ind_i = 1
+            short_x = short_x[ind_i:ind_i + 2]
+            short_y = short_y[ind_i:ind_i + 2]
+
+        if series_i.limiting_step == ["o", "oh"]:
+            ind_i = 2
+            short_x = short_x[ind_i:ind_i + 2]
+            short_y = short_y[ind_i:ind_i + 2]
+
+
+
+        if series_i.limiting_step == ["bulk", "oh"]:
+            ind_i = 0
+            short_x = short_x[ind_i:ind_i + 2]
+            short_y = short_y[ind_i:ind_i + 2]
+
+        if series_i.limiting_step == ["oh", "bulk"]:
+            ind_i = 3
+            short_x = short_x[ind_i:ind_i + 2]
+            short_y = short_y[ind_i:ind_i + 2]
+
+        # TEMP
+        # print(series_i.limiting_step)
+        # print(short_x)
+        # print(short_y)
+        # print("***********************************************")
+
+        rds_data = go.Scatter(
+            x=short_x,
+            y=short_y,
+            legendgroup=group,
+            name=name,
+            showlegend=False,
+            hoverinfo="none",
+            # text=hover_text,
+            marker=dict(
+                size=format_i.get("marker_size", 10) + 14,
+                # color=format_i.get("color_2", "black"),
+                color="grey",
+                opacity=0.3,
+                # symbol=format_i.get("symbol_i", "circle"),
+                symbol="circle",
+                line=dict(
+                    # color=smart_format_i[marker_border_color_key],
+                    color=format_i.get("color_1", "black"),
+                    width=0.,
+                    )
+
+                ),
+            mode="markers",
+            )
         #__|
+
+        #__| ******************************************************************
 
         #| - Plot Mode (which data series to plot)
         if plot_mode == "all":
-            data_lst = [data_1, data_2, data_3]
+            data_lst = [
+                rds_data,
+                data_1,
+                data_2,
+                data_3,
+                ]
         elif plot_mode == "states_only":
-            data_lst = [data_1, data_3]
+            data_lst = [
+                rds_data,
+                data_1,
+                data_3,
+                ]
         elif plot_mode == "full_lines":
-            data_lst = [data_2, data_3]
+            data_lst = [
+                rds_data,
+                data_2,
+                data_3,
+                ]
         #__|
 
         return(data_lst)
@@ -563,8 +656,12 @@ class Free_Energy_Plot():
 
         # for series_i in self.series_list:
         for series_i in self.ORR_Free_E_Plot.series_list:
+
+            energy_list_i = series_i.apply_bias(self.bias, series_i.energy_lst)
+
             fe_matrix.append(
-                np.array(series_i.energy_lst),
+                energy_list_i,
+                # np.array(series_i.energy_lst),
                 )
         fe_matrix = np.array(fe_matrix)
 
@@ -585,11 +682,6 @@ class Free_Energy_Plot():
             font_size:
         """
         #| - H_e_pairs_annotations
-        # ann_font_size = 18
-        # states_sep = self.plot_states_sep
-        # states_width = self.plot_states_width
-
-
         mid_state_x_array = self.mid_state_x_array
 
         rxn_x_array = self.rxn_x_coord_array
@@ -697,30 +789,17 @@ class Free_Energy_Plot():
         #__|
 
 
-    def plotly_fed_layout(self,
-        plot_title="FED",
-        plot_title_size=18,
-        tick_lab_size=16,
-        axes_lab_size=18,
-        legend_size=18,
-        # font_family="Computer Modern"  # "Courier New, monospace"
-        font_family="Arial, Courier New, monospace",
-        plot_width=680,
-        plot_height=510,
-        annotation_size=12,
-        ):
+    def get_plotly_layout(self, layout_dict=None):
         """
-
-        Development notes:
-            Move all plot parameters to this method, since the user will call
-                this method to obtain the layout.
         """
         #| - plotly_fed_layout
+        tick_lab_size = 16
+        axes_lab_size = 18
+        legend_size=18
+        annotation_size = 12
 
+        #| - OER vs ORR Settings
         if self.rxn_type == "ORR":
-            # xax_labels = ["$O_{2}$", "$*OOH$", "$*O$", "$*OH$", "$H_{2}O$"]
-            # xax_labels = ["O2", "*OOH", "*O", "*OH", "H2O"]
-
             xax_labels = [
                 "O<sub>2</sub>",
                 "*OOH",
@@ -731,38 +810,45 @@ class Free_Energy_Plot():
 
         elif self.rxn_type == "OER":
             # xax_labels = ["$H_{2}O$", "$*OH$", "$*O$", "$*OOH$", "$O_{2}$"]
-            xax_labels = ["H2O", "*OH", "*O", "*OOH", "O2"]
+            xax_labels = [
+                "H<sub>2</sub>O",
+                "*OH",
+                "*O",
+                "*OOH",
+                "O<sub>2</sub>",
+                ]
+        #__|
 
-    #     "font":dict(
-    #         family='Arial',
-    # #         size=18,
-    #         color='black',
-    #         ),
-
+        #| - Layout
         layout = {
-            # "title": plot_title,
 
+            "title": None,
+
+            #| - Font Settings
             "font": {
-                # "family": "Courier New, monospace",
-                "family": font_family,
-                "size": plot_title_size,
+                "family": "Arial",  # "Courier New, monospace"
                 "color": "black",
                 },
+            #__|
 
+            #| - Margins ------------------------------------------------------
+            "margin": go.layout.Margin(
+                b=50.,
+                l=50.,
+                r=30.,
+                t=30.,
+                ),
+            #__|
 
             #| - Axes ---------------------------------------------------------
             "yaxis": {
                 "title": "Free Energy (eV)",
-                # "title": "$\\Delta G (ev)$",
-
                 "zeroline": False,
                 "linecolor": 'black',
                 "showline": True,
                 "mirror": 'ticks',
                 "showgrid": False,
-
                 "titlefont": dict(size=axes_lab_size),
-
                 "tickfont": dict(
                     size=tick_lab_size,
                     ),
@@ -774,7 +860,6 @@ class Free_Energy_Plot():
                 "ticklen": 2,
                 "tickwidth": 1,
                 "tickcolor": 'black',
-
                 },
 
             "xaxis": {
@@ -806,42 +891,53 @@ class Free_Energy_Plot():
             #__| --------------------------------------------------------------
 
             #| - Legend -------------------------------------------------------
-            "legend": {
-                "traceorder": "normal",
-                "font": dict(size=legend_size),
-                "x": -0.1,
-                "y": -1.2,
-                },
+
+            "legend": go.layout.Legend(
+                x=1.1,
+                xanchor=None,
+                y=1.,
+                yanchor="top",
+                font=dict(size=legend_size),
+                bgcolor="rgba(0,0,0,0.01)",
+
+                arg=None,
+                bordercolor=None,
+                borderwidth=None,
+                itemclick=None,
+                itemdoubleclick=None,
+                itemsizing=None,
+                orientation=None,
+                tracegroupgap=None,
+                traceorder=None,
+                uirevision=None,
+                valign=None,
+                ),
 
             "showlegend": self.show_legend,
 
             #__| --------------------------------------------------------------
 
-            #| - Plot Size
-            # "width": 200 * 4.,
-            # "height": 200 * 3.,
-            #__|
+            "paper_bgcolor": 'rgba(240,240,240,0.9)',
 
-            # "paper_bgcolor": 'rgba(0,0,0,0)',
-            "plot_bgcolor": 'rgba(0,0,0,0)',
-
-            # "width": 9. * 37.795275591,
-            # "height": 9 * 37.795275591,
-
-            "width": plot_width,
-            "height": plot_height,
             }
 
+        #__|
+
+        #| - H/e Count Annotations
         if self.show_H_e_pairs_annotations:
             annotations = self.H_e_pairs_annotations(font_size=annotation_size)
-
             if "annotations" in list(layout):
                 layout["annotations"] += annotations
             else:
                 layout["annotations"] = annotations
+        #__|
+
+        layout = go.Layout(**layout)
+
+        if layout_dict is not None:
+            layout.update(layout_dict)
 
         return(layout)
         #__|
-
 
     #__| **********************************************************************

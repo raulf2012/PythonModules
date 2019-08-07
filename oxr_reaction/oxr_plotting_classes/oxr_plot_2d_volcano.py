@@ -1,3 +1,26 @@
+#!/usr/bin/env python
+
+"""ORR FED plotting class.
+
+Author: Raul A. Flores
+"""
+
+#| - IMPORT MODULES
+import numpy as np
+import pandas as pd
+import copy
+
+from sklearn.linear_model import LinearRegression
+
+import plotly.graph_objs as go
+
+pd.options.mode.chained_assignment = None
+
+from oxr_reaction.oxr_series import ORR_Free_E_Series
+from oxr_reaction.adsorbate_scaling import lim_U_i
+#__|
+
+
 # ██    ██  ██████  ██       ██████         ██████  ██       ██████  ████████
 # ██    ██ ██    ██ ██      ██              ██   ██ ██      ██    ██    ██
 # ██    ██ ██    ██ ██      ██              ██████  ██      ██    ██    ██
@@ -15,374 +38,142 @@ class Volcano_Plot_2D():
 
     def __init__(self,
         ORR_Free_E_Plot,
+        plot_range=None,
         ):
         """
         """
         #| - __init__
         self.ORR_Free_E_Plot = ORR_Free_E_Plot
-        #__|
 
-    def create_volcano_relations_plot(self,
-        show_data_labels=False,
-        # smart_format_dict=None,
-        ):
-        """Create ORR/OER volcano plot.
-
-        Args:
-            smart_format_dict:
-                Optional dictionary that will format data points
-        """
-        #| - create_volcano_relations_plot
-
-        #| - Default Smart Format Dict
-        smart_format_dict = self.smart_format_dict
-
-        if smart_format_dict is None:
-            print("No smart format given!")
-            smart_format_dict = [
-                [{"bulk_system": "IrO3"}, {self.marker_color_key: "green"}],
-                [{"bulk_system": "IrO2"}, {self.marker_color_key: "yellow"}],
-
-                [{"coverage_type": "o_covered"}, {"symbol": "s"}],
-                [{"coverage_type": "h_covered"}, {"symbol": "^"}],
-
-                [{"facet": "110"}, {"color1": "red"}],
-                [{"facet": "211"}, {"color1": "green"}],
-                [{"facet": "100"}, {"color1": "black"}],
-                ]
-        #__|
-
-        #| - Processing Data Points
-        x_data_list = []
-        y_data_list = []
-
-        for series_i in self.ORR_Free_E_Plot.series_list:
-
-            #| - x-axis energy
-            x_spec = self.x_ax_species
-            if x_spec == "o-oh":
-                e_o = series_i.energy_states_dict["o"]
-                e_oh = series_i.energy_states_dict["oh"]
-                x_ax_energy = e_o - e_oh
-            else:
-                x_ax_energy = series_i.energy_states_dict[x_spec]
-            #__|
-
-            #| - y-axis limiting potential
-            if self.ORR_Free_E_Plot.rxn_type == "ORR":
-                lim_pot_i = 1.23 - series_i.overpotential
-
-            elif self.ORR_Free_E_Plot.rxn_type == "OER":
-                lim_pot_i = 1.23 + series_i.overpotential_OER
-            else:
-                print("LSDJFlksdj")
-            #__|
-
-            #| - Process series_i
-            x_data_list.append(x_ax_energy)
-            y_data_list.append(lim_pot_i)
-
-            smart_format_i = self.ORR_Free_E_Plot.__create_smart_format_dict__(
-                series_i.properties,
-                smart_format_dict,
-                )
-
-            name_i = series_i.series_name
-
-            if series_i.color is not None:
-                smart_format_i[self.marker_color_key] = series_i.color
-
-
-            format_i = smart_format_i
-
-            if series_i.format_dict:
-                # print(10 * "format_dict is here | ")
-                # print(series_i.format_dict)
-
-                format_i = series_i.format_dict
-
-            # x_energy,
-            # y_energy,
-            # smart_format_i,
-            # name_i,
-            # # legendgroup=None,
-            # group=None,
-
-            trace_i = self.__create_trace_i__(
-                x_ax_energy,
-                lim_pot_i,
-                # smart_format_i,
-                format_i,
-                name_i,
-                group=series_i.group,
-                show_data_labels=show_data_labels,
-                )
-
-            self.data_points.append(trace_i)
-            #__|
-
-        #__|
-
-        #| - Finding plot axis limits
-        if self.plot_range is None:
-            y_axis_range = [min(y_data_list) - 0.2, max(y_data_list) + 0.2]
-            if self.ORR_Free_E_Plot.rxn_type == "OER":
-                y_axis_range.reverse()
-            else:
-                pass
-
-            plot_range = {
-                "y": y_axis_range,
-                "x": [min(x_data_list) - 0.2, max(x_data_list) + 0.2],
+        if plot_range is None:
+            self.plot_range = {
+                "x": [+0.5, +2.5],
+                "y": [-0.5, +2.0],
                 }
-
+        else:
             self.plot_range = plot_range
+
+        # #####################################################################
+
+
+        self.contour_trace = self.__create_contour_trace__()
+        self.data_point_traces = self.__create_data_point_traces__()
+
+
+        data = []
+        data += self.data_point_traces
+        data.insert(0, self.contour_trace)
+        self.traces = data
         #__|
 
-        #__|
-
-    def create_volcano_lines(self,
-        gas_molec_dict=None,
-        scaling_dict=None,
-        plot_all_legs=True,
-        plot_min_max_legs=False,
-        trace_priority="top",  # 'top' or 'bottom'
-        legs_to_plot=[
-            "o2_to_ooh",
-            "ooh_to_o",
-            "o_to_oh",
-            "oh_to_h2o",
-            ],
-        line_color="black",
-        ):
-        """Create volcano data traces.
-
-        Args:
-            gas_molec_dict:
-            scaling_dict:
-            plot_all_legs:
-            plot_min_max_legs:
-            trace_priority:
-                if 'top', the volcano lines will be placed on the top of the
-                plot, if 'bottom' then the data points will by on top of the
-                volcano
+    def __create_contour_trace__(self):
         """
-        #| - create_volcano_lines
-        out_data = []
-        x_range = self.plot_range["x"]
+        """
+        #| - __create_contour_trace__
+        x_range_bounds = self.plot_range["x"]
+        y_range_bounds = self.plot_range["y"]
 
-        #| - Volcano Legs
-        volc_legs = [
-            'o2_to_ooh',
-            'ooh_to_o',
-            'o_to_oh',
-            'oh_to_h2o',
-            ]
 
-        energy_dict = {
-            'o2_to_ooh': [],
-            'ooh_to_o': [],
-            'o_to_oh': [],
-            'oh_to_h2o': [],
-            }
+        x_range = np.arange(
+            x_range_bounds[0] - 1.,
+            x_range_bounds[1] + 1.,
+            0.01)
 
-        #| - Create Volcano Legs (LOOP)
-        x_axis = np.linspace(x_range[0], x_range[1], num=500)
-        for leg_i in volc_legs:
-            for x_energy_i in x_axis:
+        y_range = np.arange(
+            y_range_bounds[0] - 1.,
+            y_range_bounds[1] + 1.,
+            0.01)
 
-                if self.x_ax_species == "oh":
-                    g_oh = x_energy_i
-                    g_o_minus_g_oh = None
+        # x_range = np.arange(0.9, 2, 0.01)
+        # y_range = np.arange(-0.5, 2., 0.01)
 
-                elif self.x_ax_species == "o-oh":
-                    g_oh = None
-                    g_o_minus_g_oh = x_energy_i
+        X, Y = np.meshgrid(x_range, y_range)
 
-                energy_dict[leg_i].append(
-                    lim_U_i(
-                        g_oh=g_oh,
-                        g_o_minus_g_oh=g_o_minus_g_oh,
-                        # 'o2_to_ooh', 'ooh_to_o', 'o_to_oh', 'oh_to_h2o'
-                        mech_step=leg_i,
-                        gas_molec_dict=gas_molec_dict,
-                        scaling_dict=scaling_dict,
-                        rxn_direction="forward",
-                        ),
-                    )
-        #__|
+        for ind_i, x_i in enumerate(x_range):
+            for ind_j, oh_j in enumerate(y_range):
+                X[ind_j][ind_i] = self.overpotential3(x_i, oh_j)
 
-        if plot_all_legs:
+        series_i = go.Contour(
+            z=X,
+            x=x_range,
+            y=y_range,
 
-            #| - plot_all_legs
-            # hoverinfo_type = "none"
-            hoverinfo_type = "name"
+            zmin=0.2,
+            zmax=1.2,
+        #     zmax=1.2,
 
-            trace_o2_to_ooh = go.Scatter(
-                x=x_axis,
-                y=energy_dict["o2_to_ooh"],
-                name="O2->*OOH",
-                hoverinfo=hoverinfo_type,
-                line=dict(
-                    color="#e7b8bc",
-                    width=2,
-                    dash="solid",
-                    )
-                )
+        #     ncontours=180,
+            ncontours=20,
 
-            trace_ooh_to_o = go.Scatter(
-                x=x_axis,
-                y=energy_dict["ooh_to_o"],
-                name="*OOH->*O",
-                hoverinfo=hoverinfo_type,
-                line=dict(
-                    color="#afd7c3",
-                    width=2,
-                    dash="solid",
-                    )
-                )
+            #| - Color Scale
+            colorscale='Jet',
+            reversescale=True,
+            autocontour=True,
 
-            trace_o_to_oh = go.Scatter(
-                x=x_axis,
-                y=energy_dict["o_to_oh"],
-                name="*O->*OH",
-                hoverinfo=hoverinfo_type,
-                line=dict(
-                    color="#b5c4e2",
-                    width=2,
-                    dash="solid",
-                    )
-                )
-
-            trace_oh_to_h2o = go.Scatter(
-                x=x_axis,
-                y=energy_dict["oh_to_h2o"],
-                name="*OH->H2O",
-                hoverinfo=hoverinfo_type,
-                line=dict(
-                    color="#dbcdab",
-                    width=2,
-                    dash="solid",
-                    )
-                )
-
-            if trace_priority == "top":
-                out_data.append(trace_o2_to_ooh)
-                out_data.append(trace_ooh_to_o)
-                out_data.append(trace_o_to_oh)
-                out_data.append(trace_oh_to_h2o)
-
-            elif trace_priority == "bottom":
-                out_data.insert(0, trace_o2_to_ooh)
-                out_data.insert(0, trace_ooh_to_o)
-                out_data.insert(0, trace_o_to_oh)
-                out_data.insert(0, trace_oh_to_h2o)
+            # showscale=False,
             #__|
 
-        #__|
+            #| - Colorbar
+            colorbar=go.contour.ColorBar(
+                x=None,
+                xanchor=None,
+                xpad=None,
+                y=None,
+                yanchor=None,
+                ),
+            #__|
 
-        #| - Minimum Energy Legs
-        energy_lists= []
-        for leg_i in legs_to_plot:
-            energy_lists.append(energy_dict[leg_i])
-
-        min_max_e_list = []
-        for legs in zip(*energy_lists):
-            if self.ORR_Free_E_Plot.rxn_type == "ORR":
-                energy_i = min(*legs)
-
-            elif self.ORR_Free_E_Plot.rxn_type == "OER":
-                energy_i = max(*legs)
-
-            min_max_e_list.append(energy_i)
-
-        trace_volcano = go.Scatter(
-            x=x_axis,
-            y=min_max_e_list,
-            name="activity volcano",
-            hoverinfo="skip",
-            line=dict(
-                color=line_color,
-                width=2,
-                # dash="dash",
-                dash="5px,2px,5px,2px",
+            #| - Line
+            line=go.contour.Line(
+                color="white",
+                # dash="dot",
+                smoothing=1.,
+                width=0.5,
                 )
             )
+            #__|
 
-        if plot_min_max_legs:
-            if trace_priority == "top":
-                out_data.append(trace_volcano)
-
-            elif trace_priority == "bottom":
-                out_data.insert(0, trace_volcano)
+        return(series_i)
         #__|
 
-        return(out_data)
+
+
+    def __create_data_point_traces__(self):
+        """
+        """
+        #| - __create_data_point_traces__
+        data_list = []
+        for sys_i in self.ORR_Free_E_Plot.series_list:
+            trace_i = self.__create_scatter_trace_i__(sys_i)
+            data_list.append(trace_i)
+
+        return(data_list)
         #__|
 
-    def __create_trace_i__(self,
-        x_energy,
-        y_energy,
-        smart_format_i,
-        name_i,
-        # legendgroup=None,
-        group=None,
-        show_data_labels=False,
+    def __create_scatter_trace_i__(self,
+        sys_i,
+        smart_format_i=None,
         ):
         """
         """
         #| - __create_trace_i__
-
-        if show_data_labels is True:
-            mode_i = "markers+text"
-        elif show_data_labels is False:
-            mode_i = "markers"
-        else:
-            print("TEMP TEMP TEMP | __create_trace_i__")
-
-        # print(mode_i)
-
         trace_i = go.Scatter(
-            x=[x_energy],
-            y=[y_energy],
+            x=[sys_i.energy_states_dict["o"] - sys_i.energy_states_dict["oh"]],
+            y=[sys_i.energy_states_dict["oh"]],
+            mode='markers',
 
-            mode=mode_i,
-            # mode="markers+text",
-            # mode="markers",
+            # name=sys_i.series_name,
+            name=sys_i.series_name,
 
-            name=name_i,
-            text=[name_i],
-            # text=["TEMP"],
-
-            legendgroup=group,
-
-            hoverinfo="text",
-
-            # hoverinfo=None,
-            # hoverinfosrc=None,
-            # hoverlabel=None,
-            # hoveron=None,
-            # hovertext=None,
-            # hovertextsrc=None,
-
-            # textposition='top right',
-            textposition='middle left',
-            textfont={
-                # "family": "Courier New, monospace",
-                # "family": font_family,
-                "size": 10,
-                "color": "black",
-                },
+            # <br>
 
             marker=dict(
-                size=smart_format_i.get("marker_size", 9),
-                color=smart_format_i.get(self.marker_color_key, "red"),
-                symbol=smart_format_i.get(
-                    self.marker_shape_key, "circle"),
+                size=20,
+                symbol=sys_i.format_dict["symbol_i"],
+                color=sys_i.format_dict["color_2"],
                 line=dict(
-                    width=smart_format_i.get("marker_border_width", 1.),
-                    color=smart_format_i.get(
-                        self.marker_border_color_key, "black"),
+                    width=2,
+                    color=sys_i.format_dict["color_1"],
                     ),
                 ),
             )
@@ -390,61 +181,96 @@ class Volcano_Plot_2D():
         return(trace_i)
         #__|
 
+
+
+
+
+
+
+
+
+
+    # #########################################################################
+    # #########################################################################
+
+    def ooh_oh_scaling(self, doh):
+        """ooh_oh_scaling equation."""
+        #| - ooh_oh_scaling
+        #like ambars
+        #dooh=0.5*doh  + 3.0		 #O
+        #normal one
+        # dooh = doh + 3.2
+
+        # m = 0.8926
+        # b = 3.174
+
+        m = 0.9104
+        b = 3.144
+
+        # 0.9104 x + 3.144
+        # 1.302 x + 1.338
+
+        dooh = m * doh + b  # TEMP
+
+        return(dooh)
+        #__|
+
+    def overpotential3(self, x, doh):
+        """Calculate overpotential (version 3).
+
+        Args:
+            x:
+            doh:
+        """
+        #| - overpotential3
+        dooh = self.ooh_oh_scaling(doh)
+        dg14 = [doh, x, dooh - (x + doh), -dooh + 4.92]
+        m = max(dg14)
+        return(m - 1.23)
+
+        #return doh*do
+        #__|
+
+    # #########################################################################
+    # #########################################################################
+
+
     def get_plotly_layout(self,
         showlegend=False,
-        width=9. * 37.795275591,
-        height=9. * 37.795275591,
         layout_dict=None,
+
+        # height=9. * 37.795275591,
+        # width=9. * 37.795275591,
         ):
         """
         """
         #| - get_plotly_layout
+        y_range = self.plot_range["y"]
+        x_range = self.plot_range["x"]
 
-        #| - Properties
-        # plot_title="FED"
-        plot_title = None
-        # plot_title_size = 18
-        # tick_lab_size = 9 * (4. / 3.)
         tick_lab_size = 8 * (4. / 3.)
         axes_lab_size = 9 * (4. / 3.)
-        legend_size = 18
-        # font_family="Computer Modern"  # "Courier New, monospace"
-        font_family = "Arial"  # "Courier New, monospace"
-        #__|
-
-        # self.x_ax_spec
-
-        if self.x_ax_species == "oh":
-            # xaxis_title = "dG_*OH (eV)"
-            xaxis_title = "dG<sub>OH</sub> (eV)"
-        elif self.x_ax_species == "o-oh":
-            # xaxis_title = "dG_*OH - dG_*O (eV)"
-            xaxis_title = "dG<sub>O</sub> - dG<sub>OH</sub> (eV)"
-
-        # layout["margin"] = go.layout.Margin(
-        #     b=50.,
-        #     l=50.,
-        #     r=50.,
-        #     t=50.,
-        # #     pad=20.,
-        #     )
 
         layout = {
-            "title": plot_title,
 
+            "title": None,
+
+            #| - Font Settings
             "font": {
-                "family": font_family,
+                "family": "Arial",  # "Courier New, monospace"
                 "color": "black",
                 },
+            #__|
 
-            #| - Axes -----------------------------------------------------
+            #| - Axes ---------------------------------------------------------
 
             #| - yaxis
             "yaxis": {
-                "title": "Limiting Potential (V)",
-                # "title": "$\\Delta G (ev)$",
+                "title": "ΔG<sub>OH</sub> (eV)",
 
-                "range": self.plot_range["y"],
+                # "title": "$\\Delta G (ev)$",
+                "range": y_range,
+
                 "zeroline": False,
                 "showline": True,
                 "mirror": 'ticks',
@@ -457,10 +283,12 @@ class Volcano_Plot_2D():
                 "tickfont": dict(
                     size=tick_lab_size,
                     ),
-                "ticks": 'inside',
-                "tick0": 0,
+                "ticks": 'outside',
+
+                # "tick0": 0,
+                # "dtick": 0.1,
+
                 "tickcolor": 'black',
-                "dtick": 0.1,
                 "ticklen": 2,
                 "tickwidth": 1,
                 },
@@ -468,9 +296,9 @@ class Volcano_Plot_2D():
 
             #| - xaxis
             "xaxis": {
-                # "title": "$\\Delta G_{OH} (ev)$",
-                "title": xaxis_title,
-                "range": self.plot_range["x"],
+                "title": "ΔG<sub>O</sub> - ΔG<sub>OH</sub> (eV)",
+                "range": x_range,
+
                 "zeroline": False,
                 "showline": True,
                 "mirror": True,
@@ -479,9 +307,11 @@ class Volcano_Plot_2D():
                 "showgrid": False,
                 "titlefont": dict(size=axes_lab_size),
                 "showticklabels": True,
-                "ticks": 'inside',
-                "tick0": 0,
-                "dtick": 0.2,
+                "ticks": 'outside',
+
+                # "tick0": 0,
+                # "dtick": 0.2,
+
                 "ticklen": 2,
                 "tickwidth": 1,
                 "tickcolor": 'black',
@@ -493,69 +323,76 @@ class Volcano_Plot_2D():
 
             #__|
 
+            #| - Margins ------------------------------------------------------
             "margin": go.layout.Margin(
                 b=50.,
                 l=50.,
-                r=50.,
-                t=50.,
+                r=30.,
+                t=30.,
                 ),
-
-            # "paper_bgcolor": 'rgba(0,0,0,0)',
-            "plot_bgcolor": 'rgba(0,0,0,0)',
+            #__|
 
             #| - Legend ---------------------------------------------------
-            "legend": {
-                "traceorder": "normal",
-                "font": dict(size=legend_size),
-                "x": 0.,
-                "y": -0.1,
-                # "xanchor": "left",
-                "yanchor": "top",
-                },
+            "legend": go.layout.Legend(
+                x=1.2,
+                xanchor=None,
+                y=0.98,
+                yanchor="top",
+                font=dict(size=18),
+                bgcolor="rgba(200,255,255,0.85)",
 
-            # "showlegend": False,
-            "showlegend": showlegend,
+                arg=None,
+                bordercolor=None,
+                borderwidth=None,
+                itemclick=None,
+                itemdoubleclick=None,
+                itemsizing=None,
+                orientation=None,
+                tracegroupgap=None,
+                traceorder=None,
+                uirevision=None,
+                valign=None,
+                ),
 
+            "showlegend": True,
+            # "showlegend": showlegend,
             #__|
+
+            #| - Plot Size
+            "width": 37 * 37.795275591,
+            "height": 23 * 37.795275591,
+            #__|
+
+            "paper_bgcolor": 'rgba(255,255,255,1.)',
+            # "plot_bgcolor": 'rgba(3,3,3,0.3)',
+            # "plot_bgcolor": 'rgba(0,0,0,0)',
 
             }
 
         #| - Plot Size Settings
-        # bottom_margin_size = 2.5 * 9. * 37.795275591
-        plot_size_settings = {
-            "width": width,
-            "height": height,
-
-            # "width": 9. * 37.795275591,
-            # "height": 9 * 37.795275591,
-
-            # "margin": go.layout.Margin({
-            #     "l": 50,
-            #     "r": 50,
-            #     # "b": bottom_margin_size,
-            #     # "b": 100,
-            #     "b": 1200,
-            #     "t": 10,
-            #     "pad": 4,
-            #     }),
-            }
-
+        # # bottom_margin_size = 2.5 * 9. * 37.795275591
+        # plot_size_settings = {
+        #
+        #     # "width": 37 * 37.795275591,
+        #     # "height": 23 * 37.795275591,
+        #
+        #     # "width": 25 * 37.795275591,
+        #     # "height": 17 * 37.795275591,
+        #     }
+        # layout = {**layout, **plot_size_settings}
         #__|
 
-        layout = {**layout, **plot_size_settings}
+        layout = go.Layout(**layout)
 
-        #| - Applying Layout override dict
         if layout_dict is not None:
-            from misc_modules.misc_methods import dict_merge
-            dict_merge(layout, layout_dict)
+            layout.update(layout_dict)
 
-            # layout_i = {**layout_i, **layout_dict}
+            # from misc_modules.misc_methods import dict_merge
+            # dict_merge(layout, layout_dict)
+
+
+        return(layout)  # COMBAK
 
         #__|
-
-        return(layout)
-
-        #__|
-
 
     #__| **********************************************************************

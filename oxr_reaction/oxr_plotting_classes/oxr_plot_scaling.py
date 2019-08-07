@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""ORR energetics classes and methods.
+"""OXR class for plotting OXR energetics (scaling relations).
 
 Author: Raul A. Flores
 """
@@ -13,13 +13,10 @@ from sklearn.linear_model import LinearRegression
 
 import plotly.graph_objs as go
 
-pd.options.mode.chained_assignment = None
+# pd.options.mode.chained_assignment = None
 
 from oxr_reaction.oxr_series import ORR_Free_E_Series
 from oxr_reaction.adsorbate_scaling import lim_U_i
-
-# from orr_reaction.orr_series import ORR_Free_E_Series
-# from orr_reaction.adsorbate_scaling import lim_U_i
 #__|
 
 
@@ -259,7 +256,8 @@ class Scaling_Relations_Plot():
             text=name_i,
             name=name_i,
             mode="markers",
-            legendgroup=legendgroup,
+            # legendgroup=legendgroup,
+            legendgroup=name_i,
             marker=dict(
                 size=smart_format_i.get("marker_size", 9),
                 symbol=smart_format_i.get(
@@ -276,143 +274,6 @@ class Scaling_Relations_Plot():
             )
 
         return(trace_i)
-        #__|
-
-    # NOTE | This shouldn't be an internal method
-    def __create_layout__(self,
-        # x_ax_spec="oh",
-        title="Scaling Relations",
-        showlegend=True,
-        layout_dict=None,
-        ):
-        """Create plotly layout dict.
-
-        Args:
-            x_ax_spec:
-            title:
-            showlegend:
-        """
-        #| - create_layout
-
-        # if x_ax_spec == ""
-        if self.x_ax_species == "oh":
-            x_ax_title = "G<sub>ads,*OH</sub> (eV)"
-        else:
-            x_ax_title = "TEMP"
-
-        y_ax_title = "G<sub>ads,*OH</sub>, " + \
-            "G<sub>ads,*O</sub>, " + \
-            "G<sub>ads,*OOH</sub> (eV)"
-
-        tick_lab_size = 12 * (4. / 3.)
-        axes_lab_size = 14 * (4. / 3.)
-
-        # legend_size = 18
-
-        #| - Common Axis Dict
-        common_axis_dict = {
-
-            # "range": y_axis_range,
-            "zeroline": False,
-            "showline": True,
-            "mirror": 'ticks',
-            "linecolor": 'black',
-            "showgrid": False,
-
-            "titlefont": dict(size=axes_lab_size),
-            "tickfont": dict(
-                size=tick_lab_size,
-                ),
-            "ticks": 'inside',
-            "tick0": 0,
-            "tickcolor": 'black',
-            # "dtick": 0.25,
-            "ticklen": 2,
-            "tickwidth": 1,
-            }
-        #__|
-
-        #| - __old__
-        # x_range_ooh_vs_oh=[0., 3.5],
-        # y_range_ooh_vs_oh=[0., 5.],
-        # x_range_o_vs_oh=[0., 3.5],
-        # y_range_o_vs_oh=[0., 5.],
-
-        # if y_ax_spec == "ooh":
-        #     x_range = self.x_range_ooh_vs_oh
-        # elif y_ax_spec == "o":
-        #     x_range = self.x_range_o_vs_oh
-        # elif y_ax_spec == "oh":
-        #     x_range = self.x_range_oh_vs_oh
-        # else:
-        #     print("Woops - create_layout")
-        #
-        # if y_ax_spec == "ooh":
-        #     y_range = self.y_range_ooh_vs_oh
-        # elif y_ax_spec == "o":
-        #     y_range = self._range_o_vs_oh
-        # elif y_ax_spec == "oh":
-        #     y_range = self.y_range_oh_vs_oh
-        # else:
-        #     print("Woops - create_layout")
-        #__|
-
-        x_range = self.x_range
-        y_range = self.y_range
-
-        layout_i = {
-            "title": title,
-            "titlefont": go.layout.title.Font(size=24),
-            # "titlefont": go.layout.Titlefont(size=24),
-
-            "xaxis": dict(
-                common_axis_dict,
-                **{
-                    "title": x_ax_title,
-                    "range": x_range,
-                    },
-                ),
-
-            "yaxis": dict(
-                common_axis_dict,
-                **{
-                    "title": y_ax_title,
-                    "range": y_range,
-                    },
-                ),
-
-            # Margin
-            "margin": go.layout.Margin(
-                b=50.,
-                l=50.,
-                r=50.,
-                t=50.,
-                ),
-
-            "font": dict(
-                family='Arial',
-                # size=18,
-                color='black',
-                ),
-
-            "width": 1.5 * 18.7 * 37.795275591,
-            "height": 18.7 * 37.795275591,
-
-            "showlegend": showlegend,
-
-            "legend": dict(
-                font=dict(
-                    size=10,
-                    ),
-                ),
-            }
-
-        if layout_dict is not None:
-            from misc_modules.misc_methods import dict_merge
-            dict_merge(layout_i, layout_dict)
-            # layout_i = {**layout_i, **layout_dict}
-
-        return(layout_i)
         #__|
 
     def __series_excluded__(self,
@@ -627,11 +488,10 @@ class Scaling_Relations_Plot():
             return(out)
             #__|
 
-        LH_bound = self.x_range[0]
-        RH_bound = self.x_range[1]
+        LH_bound = self.x_range[0] - 0.2
+        RH_bound = self.x_range[1] + 0.2
 
         scaling_trace = go.Scatter(
-            # x=[self.x_range_ooh_vs_oh[0], self.x_range_ooh_vs_oh[1]],
             x=[LH_bound, RH_bound],
             y=[
                 scaling_meth(LH_bound),
@@ -667,6 +527,171 @@ class Scaling_Relations_Plot():
         #     ""
         #     )
 
+        #__|
+
+    # NOTE | This shouldn't be an internal method
+    # I don't remember why I wrote the above note
+    def get_plotly_layout(self,
+        # x_ax_spec="oh",
+        title="Scaling Relations",
+        showlegend=True,
+        layout_dict=None,
+        ):
+        """Create plotly layout dict.
+
+        Args:
+            x_ax_spec:
+            title:
+            showlegend:
+        """
+        #| - create_layout
+        # if x_ax_spec == ""
+        if self.x_ax_species == "oh":
+            x_ax_title = "G<sub>ads,*OH</sub> (eV)"
+        else:
+            x_ax_title = "TEMP"
+
+        y_ax_title = "G<sub>ads,*OH</sub>, " + \
+            "G<sub>ads,*O</sub>, " + \
+            "G<sub>ads,*OOH</sub> (eV)"
+
+        tick_lab_size = 12 * (4. / 3.)
+        axes_lab_size = 14 * (4. / 3.)
+
+        # legend_size = 18
+
+        #| - Common Axis Dict
+        common_axis_dict = {
+
+            # "range": y_axis_range,
+            "zeroline": False,
+            "showline": True,
+            "mirror": 'ticks',
+            "linecolor": 'black',
+            "showgrid": False,
+
+            "titlefont": dict(size=axes_lab_size),
+            "tickfont": dict(
+                size=tick_lab_size,
+                ),
+            "ticks": 'inside',
+            "tick0": 0,
+            "tickcolor": 'black',
+            # "dtick": 0.25,
+            "ticklen": 2,
+            "tickwidth": 1,
+            }
+        #__|
+
+        x_range = self.x_range
+        y_range = self.y_range
+
+        layout = {
+            "title": None,
+
+            # "titlefont": go.layout.title.Font(size=24),
+            # # "titlefont": go.layout.Titlefont(size=24),
+
+            "font": {
+                "family": "Arial",  # "Courier New, monospace"
+                "color": "black",
+                },
+
+            "xaxis": dict(
+                common_axis_dict,
+                **{
+                    "title": x_ax_title,
+                    "range": x_range,
+                    },
+                ),
+
+            "yaxis": dict(
+                common_axis_dict,
+                **{
+                    "title": y_ax_title,
+                    "range": y_range,
+                    },
+                ),
+
+            #| - Margins ------------------------------------------------------
+            "margin": go.layout.Margin(
+                b=50.,
+                l=50.,
+                r=30.,
+                t=30.,
+                ),
+            #__|
+
+
+            # # Margin
+            # "margin": go.layout.Margin(
+            #     b=50.,
+            #     l=50.,
+            #     r=50.,
+            #     t=50.,
+            #     ),
+
+            "font": dict(
+                family='Arial',
+                # size=18,
+                color='black',
+                ),
+
+            #| - Plot Size
+            # "width": 37 * 37.795275591,
+            # "height": 23 * 37.795275591,
+            #
+            # # "width": 1.5 * 18.7 * 37.795275591,
+            # # "height": 18.7 * 37.795275591,
+            # # "width": 1.5 * 18.7 * 37.795275591,
+            # # "height": 18.7 * 37.795275591,
+            #__|
+
+            #| - Legend
+            "showlegend": showlegend,
+
+            "legend": go.layout.Legend(
+                x=1.,
+                xanchor=None,
+                y=1.,
+                yanchor="top",
+                font=dict(size=10),
+                bgcolor="rgba(0,0,0,0.01)",
+
+                arg=None,
+                bordercolor=None,
+                borderwidth=None,
+                itemclick=None,
+                itemdoubleclick=None,
+                itemsizing=None,
+                orientation=None,
+                tracegroupgap=None,
+                traceorder=None,
+                uirevision=None,
+                valign=None,
+                ),
+
+            # "legend": dict(
+            #     font=dict(
+            #         size=10,
+            #         ),
+            #     ),
+
+            #__|
+
+            }
+
+        layout = go.Layout(**layout)
+
+        if layout_dict is not None:
+            layout.update(layout_dict)
+
+        # if layout_dict is not None:
+        #     from misc_modules.misc_methods import dict_merge
+        #     dict_merge(layout_i, layout_dict)
+        #     # layout_i = {**layout_i, **layout_dict}
+
+        return(layout)
         #__|
 
 
@@ -709,3 +734,31 @@ class Scaling_Relations_Plot():
     #__|
 
 #__| **********************************************************************
+
+
+
+
+#| - __old__
+# x_range_ooh_vs_oh=[0., 3.5],
+# y_range_ooh_vs_oh=[0., 5.],
+# x_range_o_vs_oh=[0., 3.5],
+# y_range_o_vs_oh=[0., 5.],
+
+# if y_ax_spec == "ooh":
+#     x_range = self.x_range_ooh_vs_oh
+# elif y_ax_spec == "o":
+#     x_range = self.x_range_o_vs_oh
+# elif y_ax_spec == "oh":
+#     x_range = self.x_range_oh_vs_oh
+# else:
+#     print("Woops - create_layout")
+#
+# if y_ax_spec == "ooh":
+#     y_range = self.y_range_ooh_vs_oh
+# elif y_ax_spec == "o":
+#     y_range = self._range_o_vs_oh
+# elif y_ax_spec == "oh":
+#     y_range = self.y_range_oh_vs_oh
+# else:
+#     print("Woops - create_layout")
+#__|

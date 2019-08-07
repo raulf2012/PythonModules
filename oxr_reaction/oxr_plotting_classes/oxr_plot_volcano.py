@@ -10,16 +10,10 @@ import numpy as np
 import pandas as pd
 
 from sklearn.linear_model import LinearRegression
-
 import plotly.graph_objs as go
 
-pd.options.mode.chained_assignment = None
-
 from oxr_reaction.oxr_series import ORR_Free_E_Series
-# from orr_reaction.orr_series import ORR_Free_E_Series
-
 from oxr_reaction.adsorbate_scaling import lim_U_i
-# from orr_reaction.adsorbate_scaling import lim_U_i
 #__|
 
 
@@ -438,8 +432,8 @@ class Volcano_Plot():
 
     def get_plotly_layout(self,
         showlegend=False,
-        width=9. * 37.795275591,
-        height=9. * 37.795275591,
+        # width=9. * 37.795275591,
+        # height=9. * 37.795275591,
         layout_dict=None,
         ):
         """
@@ -458,22 +452,10 @@ class Volcano_Plot():
         font_family = "Arial"  # "Courier New, monospace"
         #__|
 
-        # self.x_ax_spec
-
         if self.x_ax_species == "oh":
-            # xaxis_title = "dG_*OH (eV)"
             xaxis_title = "dG<sub>OH</sub> (eV)"
         elif self.x_ax_species == "o-oh":
-            # xaxis_title = "dG_*OH - dG_*O (eV)"
             xaxis_title = "dG<sub>O</sub> - dG<sub>OH</sub> (eV)"
-
-        # layout["margin"] = go.layout.Margin(
-        #     b=50.,
-        #     l=50.,
-        #     r=50.,
-        #     t=50.,
-        # #     pad=20.,
-        #     )
 
         layout = {
             "title": plot_title,
@@ -504,9 +486,9 @@ class Volcano_Plot():
                     size=tick_lab_size,
                     ),
                 "ticks": 'inside',
-                "tick0": 0,
+                # "tick0": 0,
                 "tickcolor": 'black',
-                "dtick": 0.1,
+                # "dtick": 0.1,
                 "ticklen": 2,
                 "tickwidth": 1,
                 },
@@ -526,8 +508,8 @@ class Volcano_Plot():
                 "titlefont": dict(size=axes_lab_size),
                 "showticklabels": True,
                 "ticks": 'inside',
-                "tick0": 0,
-                "dtick": 0.2,
+                # "tick0": 0,
+                # "dtick": 0.2,
                 "ticklen": 2,
                 "tickwidth": 1,
                 "tickcolor": 'black',
@@ -564,31 +546,32 @@ class Volcano_Plot():
 
             #__|
 
+            "paper_bgcolor": 'rgba(250,250,250,0.9)',
+
             }
 
         #| - Plot Size Settings
-        # bottom_margin_size = 2.5 * 9. * 37.795275591
-        plot_size_settings = {
-            "width": width,
-            "height": height,
-
-            # "width": 9. * 37.795275591,
-            # "height": 9 * 37.795275591,
-
-            # "margin": go.layout.Margin({
-            #     "l": 50,
-            #     "r": 50,
-            #     # "b": bottom_margin_size,
-            #     # "b": 100,
-            #     "b": 1200,
-            #     "t": 10,
-            #     "pad": 4,
-            #     }),
-            }
-
+        # # bottom_margin_size = 2.5 * 9. * 37.795275591
+        # plot_size_settings = {
+        #     "width": width,
+        #     "height": height,
+        #
+        #     # "width": 9. * 37.795275591,
+        #     # "height": 9 * 37.795275591,
+        #
+        #     # "margin": go.layout.Margin({
+        #     #     "l": 50,
+        #     #     "r": 50,
+        #     #     # "b": bottom_margin_size,
+        #     #     # "b": 100,
+        #     #     "b": 1200,
+        #     #     "t": 10,
+        #     #     "pad": 4,
+        #     #     }),
+        #     }
+        # layout = {**layout, **plot_size_settings}
         #__|
 
-        layout = {**layout, **plot_size_settings}
 
         #| - Applying Layout override dict
         if layout_dict is not None:
