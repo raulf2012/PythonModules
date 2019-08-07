@@ -87,3 +87,30 @@ def reorder_df_columns(col_order_list, df):
 
     return(df)
     #__|
+
+
+
+def drop_columns(df=None, columns=None, keep_or_drop="keep"):
+    """
+    """
+    #| - drop_columns
+    if keep_or_drop == "keep":
+        cols_to_keep = columns
+
+        columns_to_drop = []
+        for col_i in df.columns:
+            if col_i not in cols_to_keep:
+                columns_to_drop.append(col_i)
+
+        df_out = df.drop(columns=columns_to_drop)
+
+    elif keep_or_drop == "drop":
+        cols_to_drop = columns
+
+        df_out = df.drop(columns=cols_to_drop)
+
+    else:
+        raise ValueError('BAD BAD BAD')
+
+    return(df_out)
+    #__|
