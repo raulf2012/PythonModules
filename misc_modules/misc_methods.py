@@ -1,8 +1,13 @@
-"""Miscellaneous and helpful methods for everday work."""
+"""Miscellaneous and helpful methods for everday work.
+
+TEMP
+TEMP
+"""
 
 #| - IMPORT MODULES
 import os
-import sys
+
+# import sys
 #__|
 
 
@@ -72,6 +77,7 @@ def dict_merge(dct, merge_dct):
 def remove_file_from_all_folders(
     file_name_list,
     remove_files=False,
+    show_file_size=True,
     root_dir=".",
     ):
     """Removes charge files (CHG and CHGCAR) from Raman DFT job folders.
@@ -82,21 +88,45 @@ def remove_file_from_all_folders(
         root_dir: Starting directory, assumed to be current directory
     """
     #| - remove_file_from_all_folders
+    total_disk_usage = 0.
     for dirName, subdirList, fileList in os.walk(root_dir):
         for file_name in file_name_list:
             if file_name in fileList:
                 print(dirName)
-                print(subdirList)
-                print(fileList)
-                print(file_name)
+                # print(subdirList)
+                # print(fileList)
+                # print(file_name)
+
+                file_path_i = os.path.join(
+                    dirName,
+                    file_name,
+                    )
+
+                if show_file_size:
+                    file_size_i = os.stat(file_path_i).st_size * 1E-6
+                    print("File size: ", str(file_size_i), " MB")
+
+                    total_disk_usage += file_size_i
+
                 print("_________")
 
                 if remove_files:
                     try:
-                        os.remove(dirName + "/" + file_name)
+                        os.remove(file_path_i)
                         print("File removed!!")
                     except:
                         pass
+
+
+    if show_file_size:
+        if total_disk_usage > 1E3:
+            total_disk_usage_print = total_disk_usage * 1E-3
+            unit = "GB"
+        else:
+            total_disk_usage_print = total_disk_usage
+            unit = "MB"
+
+        print("Total Disk Usage: ", str(total_disk_usage_print), "", unit)
     #__|
 
 
