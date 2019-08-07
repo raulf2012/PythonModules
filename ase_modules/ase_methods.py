@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 """Methods for ASE scripts, mostly DFT scripts.
@@ -395,7 +396,7 @@ def ionic_opt(
         #__|
 
         bader(atoms, spinpol=espresso_params_opt["spinpol"], run_exec=True)
-
+    #__|
 
 #__| **************************************************************************
 
@@ -2155,8 +2156,8 @@ def create_species_element_dict(
             True: Includes all elements in the periodic table, with 0 values
             for the elements not present in the atoms object
 
-        elems_to_always_include:
-            List: List of elements to include in the final dict, not including
+        elems_to_always_include: <list>
+            List of elements to include in the final dict, not including
             the elements present in the atoms object.
 
     """
