@@ -93,7 +93,7 @@ def slurm_squeue_parse(
 
 #__|
 
-################################################################################
+###############################################################################
 class ComputerCluster():
     """Base class for interfacing with computing resources.
 
@@ -311,7 +311,7 @@ class ComputerCluster():
 
     #__| **********************************************************************
 
-################################################################################
+###############################################################################
 
 
 class EdisonCluster(ComputerCluster):
@@ -1214,6 +1214,7 @@ class SherlockCluster(ComputerCluster):
                     )
 
             sub_time = datetime.datetime.now().isoformat()
+
         # except subprocess.CalledProcessError, e:
         except subprocess.CalledProcessError as e:
             print("Ping stdout output:\n", e.output)
@@ -1445,7 +1446,11 @@ class SherlockCluster(ComputerCluster):
 
 
 class AWSCluster(ComputerCluster):
-    """AWS EC2 computing resource."""
+    """AWS EC2 computing resource.
+
+    Must define $awsdir environment variable
+        ex. $awsdir=/scratch/users/flores12/AWS/matr.io
+    """
 
     #| - AWSCluster ***********************************************************
     def __init__(self,
@@ -1457,8 +1462,18 @@ class AWSCluster(ComputerCluster):
         self.job_data_dir = "/simulation"
         self.root_dir = root_dir
         self.default_sub_params = self.default_submission_parameters()
-        self.aws_dir = os.environ["aws_sc"]
-        self.job_queue_dir = self.aws_dir + "/jobs_bin"
+        self.aws_dir = os.environ.get("awsdir", "")
+
+        #| - Create job_queue_dir
+        self.job_queue_dir = os.path.join(
+            self.aws_dir,
+            "jobs_bin")
+
+        directory = self.job_queue_dir
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        #__|
+
         self.job_state_keys = self.job_state_dict()
         self.queues = self.__queue_types__()
         self.job_queue_state_key = "job_status"
@@ -1479,7 +1494,7 @@ class AWSCluster(ComputerCluster):
             "job_script": "model.py",
 
             "copy_PythonModules": True,
-            "copy_PythonPackages": True,
+            "copy_PythonPackages": False,
             }
 
         return(def_params)
@@ -1514,7 +1529,7 @@ class AWSCluster(ComputerCluster):
         if os.path.isfile(".SUBMITTED"):
             print("Directory already submitted, will be skipped")
             os.chdir(root_dir)
-            return(None)  # <-------- SKIP JOB ---------------------------------
+            return(None)  # <-------- SKIP JOB --------------------------------
         else:
             os.chdir(root_dir)
         #__|
@@ -1536,25 +1551,39 @@ class AWSCluster(ComputerCluster):
             return(None)
         else:
             print("submitting job")
-            aws_dir = os.environ["aws_sc"]
+            aws_dir = self.aws_dir
 
             if cpus == "default":
                 bash_command = aws_dir + "/bin/trisub -q " + queue
-                # bash_command = aws_dir + "/matr.io/bin/trisub -q " + queue
             else:
+
+                #| - Checking that number of cpus is within allows
+                if queue == "medium":
+                    if cpus > 4:
+                        print("Medium queue can't have more than 4 cpus")
+                        print("    setting cpus to 4")
+                        cpus = 4
+                #__|
+
                 bash_command = aws_dir + "/bin/trisub -c " + str(cpus) + \
                     " -q " + queue
 
-            try:
-                output = subprocess.check_output(bash_command, shell=True)
-                sub_time = datetime.datetime.now().isoformat()
-            # except subprocess.CalledProcessError, e:
-            except subprocess.CalledProcessError as e:
-                print("Ping stdout output:\n", e.output)
+            # try:
+            output = subprocess.check_output(
+                bash_command,
+                shell=True,
+                universal_newlines=True,  # CHANGED
+                )
 
-                os.chdir(root_dir)
-                print("JOB SKIPPED: ")
-                return(None)
+            sub_time = datetime.datetime.now().isoformat()
+
+            # # except subprocess.CalledProcessError, e:
+            # except subprocess.CalledProcessError as e:
+            #     print("Ping stdout output:\n", e.output)
+            #
+            #     os.chdir(root_dir)
+            #     print("JOB SKIPPED: ")
+            #     return(None)
         #__|
 
         os.system("chmod 777 " + path + "/*")
@@ -1562,6 +1591,8 @@ class AWSCluster(ComputerCluster):
 
         #| - Parsing Submission for Job ID
         output = output.splitlines()
+        print(output)  # CHANGED
+
         for line in output:
             if "jobId" in line:
                 lst = line.split('"')
@@ -1796,6 +1827,7 @@ class AWSCluster(ComputerCluster):
     #__| **********************************************************************
 
 
+
 class DummyCluster(ComputerCluster):
     """Placeholder class for when current cluster isn't supported."""
     #| - DummyCluster
@@ -1836,288 +1868,5 @@ class DummyCluster(ComputerCluster):
         print("submit_job_clust | DummyCluster")
         print("Nothing happens!!")
         #__|
-
-
-    #| - Not Needed
-
-    # def default_submission_parameters(self):
-    #     """Defaul SLURM parameters for
-    #     """
-    #     #| - default_submission_parameters
-    #     def_params = {
-    #         "queue": "owners,iric,normal",  # -p flag
-    #         "nodes": "1",  # --nodes
-    #         "cpus": "16",  # --ntasks-per-node
-    #         "memory": "4000",  # --mem-per-cpu
-    #         "wall_time": "720",  # --time (720min -> 12hrs)
-    #         "job_name": "Default",  # --job-name
-    #         "priority": "normal",  # --qos
-    #         "email": "flores12@stanford.edu",  # --mail-user
-    #         "email_mess": "FAIL",  # --mail-type
-    #         }
-    #
-    #     return(def_params)
-    #     #__|
-    #
-    # def submit_job_clust(self, **kwargs):
-    #     """
-    #     Submits job to sherlck.
-    #     """
-    #     #| - submit_job
-    #     time.sleep(1.5)
-    #
-    #     #| - Merging Submission Parameters
-    #     params = merge_two_dicts(self.default_sub_params, kwargs)
-    #
-    #     path = params["path_i"]
-    #     #__|
-    #
-    #     #| - Submit Job
-    #     os.chdir(path)
-    #
-    #     if params["job_name"] == "Default":
-    #         params["job_name"] = os.getcwd()
-    #
-    #     print("submitting job")
-    #     os.system("chmod 777 *")
-    #     # bash_command = "/u/if/flores12/bin/qv model.py"
-    #     #__| **** TEMP
-    #
-    #     #| - Bash Submisssion Command
-    #     bash_command = "/usr/bin/sbatch "
-    #
-    #     bash_command += "-p " +                 str(params["queue"])       + " "
-    #     bash_command += "--nodes " +            str(params["nodes"])       + " "
-    #     bash_command += "--ntasks-per-node " +  str(params["cpus"])        + " "
-    #     bash_command += "--mem-per-cpu " +      str(params["memory"])      + " "
-    #     bash_command += "--time " +             str(params["wall_time"])   + " "
-    #     bash_command += "--job-name " +         str(params["job_name"])    + " "
-    #     bash_command += "--qos " +              str(params["priority"])    + " "
-    #     bash_command += "--mail-user " +        str(params["email"])       + " "
-    #     bash_command += "--mail-type " +        str(params["email_mess"])  + " "
-    #     bash_command += "--output " +           str(params["out_file"])    + " "
-    #     bash_command += "--error " +            str(params["err_file"])    + " "
-    #     bash_command += "-C CPU_GEN:HSW "  # COMBAK Formalize this cpu architecture filter
-    #
-    #     bash_command += params["job_script"]
-    #
-    #     print("Bash Submission Command:")
-    #     print(bash_command)
-    #     #__|
-    #
-    #     try:
-    #         output = subprocess.Popen(
-    #             bash_command,
-    #             stdout=subprocess.PIPE,
-    #             shell=True,
-    #             )
-    #         sub_time = datetime.datetime.now().isoformat()
-    #     # except subprocess.CalledProcessError, e:
-    #     except subprocess.CalledProcessError as e:
-    #         print("Ping stdout output:\n", e.output)
-    #
-    #         os.chdir(self.root_dir)
-    #         print("JOB SKIPPED: ")
-    #         return(None)
-    #
-    #     #| - Parsing Output
-    #     out = output.communicate()[0]
-    #     out_copy = copy.deepcopy(out)
-    #
-    #     ind = out.find("job")
-    #     out = out[ind + 3:]
-    #
-    #     jobid = re.sub("[^0-9]", "", out)
-    #
-    #     try:
-    #         jobid = int(jobid)
-    #
-    #     except:
-    #         print("Couldn't parse for jobid | !@!!")
-    #         jobid = None
-    #         pass
-    #
-    #     if type(jobid) == int:
-    #         jobid = jobid
-    #     else:
-    #         jobid = None
-    #     #__|
-    #
-    #     #| - Writing Files
-    #     with open(".SUBMITTED", "w") as fle:
-    #         fle.write("\n")
-    #
-    #     with open(".bash_comm", "w") as fle:
-    #         fle.write(str(bash_command) + str("\n"))
-    #
-    #     with open(".jobid", "w") as fle:
-    #         fle.write(str(jobid) + str("\n"))
-    #
-    #     with open(".sub_out", "w") as fle:
-    #         fle.write(out_copy)
-    #     #__|
-    #
-    #     os.chdir(self.root_dir)
-    #
-    #     return(out, jobid)
-    #
-    #     #__|
-    #
-    # def job_state_dict(self):
-    #     """
-    #     """
-    #     #| - job_state_dict
-    #     job_state_dict = {
-    #         "PD": "PENDING",
-    #         "R": "RUNNING",
-    #         "CF": "CONFIGURING",
-    #         "SUCCEEDED": "SUCCEEDED",
-    #
-    #         # "FAILED": "FAILED",
-    #         # "STARTING": "STARTING",
-    #         # "RUNNABLE": "PENDING",
-    #         # "SUBMITTED": "SUBMITTED",
-    #         }
-    #
-    #     return(job_state_dict)
-    #     #__|
-    #
-    # def __queue_types__(self):
-    #     """Queue types for SLAC cluster
-    #     """
-    #     #| - __queue_types__
-    #     queue_list = [
-    #         "owners",
-    #         "iric",
-    #         ]
-    #
-    #     return(queue_list)
-    #     #__|
-    #
-    # def get_jobid(self, path_i="."):
-    #     """
-    #     """
-    #     #| - get_jobid
-    #     # # path_i = "."
-    #     # fileid_path = path_i + "/.jobid"
-    #     # # print(fileid_path)
-    #     # if os.path.isfile(fileid_path):
-    #     #     with open(path_i + "/.jobid") as fle:
-    #     #         jobid = fle.read().strip()
-    #     # else:
-    #     #     jobid=None
-    #     #
-    #     # return(jobid)
-    #     #__|
-    #
-    # def job_info_batch(self, job_id, path_i=None):
-    #     """
-    #     """
-    #     #| - job_info_batch
-    #     bash_comm = "squeue -j " + str(job_id)
-    #
-    #     try:
-    #         out = subprocess.check_output(
-    #             bash_comm,
-    #             shell=True,
-    #             stderr=subprocess.STDOUT,
-    #             )
-    #
-    #         # 'JOBID PARTITION NAME USER ST TIME NODES NODELIST(REASON)'
-    #         out = out.splitlines()
-    #         out = out[1].split(" ")
-    #         out = [i for i in out if i != '']
-    #
-    #         data_dict = {
-    #             "PARTITION": out[1],
-    #             "STAT": out[4],
-    #             # "CF":
-    #             }
-    #
-    #         if path_i is not None:
-    #             key = self.job_queue_state_key
-    #             with open(path_i + "/.QUEUESTATE", "w") as fle:
-    #                 fle.write(self.job_state_keys[data_dict[key]])
-    #                 fle.write("\n")
-    #
-    #     except subprocess.CalledProcessError:
-    #         data_dict = None
-    #         pass
-    #
-    #     except:
-    #         data_dict = None
-    #         pass
-    #
-    #
-    #     return(data_dict)
-    #
-    #     #__|
-    #
-    # def completed_file(self, path_i="."):
-    #     """
-    #     Check whether ".FINISHED" file exists.
-    #
-    #     Indicates that the job has gone to completion
-    #
-    #     Args:
-    #         path_i:
-    #     """
-    #     #| - completed_file
-    #     completed_fle = False
-    #     if os.path.exists(path_i + "/.FINISHED"):
-    #         completed_fle = True
-    #
-    #     return(completed_fle)
-    #     #__|
-    #
-    # def job_state(self, path_i="."):
-    #     """
-    #     Return job state of path_i --> job_i.
-    #
-    #     Args:
-    #         path_i
-    #     """
-    #     #| - job_state
-    #     job_id = self.get_jobid(path_i=path_i)
-    #
-    #     job_state_out = None
-    #     if job_id is not None:
-    #         job_info = self.job_info_batch(job_id, path_i=path_i)
-    #
-    #         if job_info is not None:
-    #             key = self.job_queue_state_key
-    #             if key in job_info:
-    #                 job_state_out = job_info[key]
-    #                 job_state_out = self.job_state_keys[job_state_out]
-    #
-    #     #| - Checking for "completed" file indicating success
-    #     completed_fle = self.completed_file(path_i=path_i)
-    #     if completed_fle:
-    #         job_state_out = self.job_state_keys["SUCCEEDED"]
-    #     #__|
-    #
-    #     return(job_state_out)
-    #
-    #     #__|
-    #
-    # def get_jobid(self, path_i="."):
-    #     """
-    #     Return job ID of job_i.
-    #
-    #     Args:
-    #         path_i:
-    #     """
-    #     #| - get_jobid
-    #     fileid_path = path_i + "/.jobid"
-    #     if os.path.isfile(fileid_path):
-    #         with open(path_i + "/.jobid") as fle:
-    #             jobid = fle.read().strip()
-    #     else:
-    #         jobid = None
-    #
-    #     return(jobid)
-    #     #__|
-
-    #__|
 
     #__|

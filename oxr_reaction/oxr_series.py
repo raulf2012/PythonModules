@@ -19,14 +19,17 @@ class ORR_Free_E_Series():
     """ORR free energy diagram series class.
 
     Still a work in progress
-
     Take a 2nd look at how the bulk/bare state is being taken care of
+
+    # TODO Break series name with a '<br>' so that the legend entries have a
+    line break
+    # TODO Figure out which class attributes aren't being used anymore
+    # TODO Calculate *OOH from scaling, as an option (Colin does this)
 
     # TODO | The color_list approach is not good
     """
 
     #| - ORR_Free_E_Series ****************************************************
-
     def __init__(self,
         free_energy_df=None,
         state_title="adsorbate",
@@ -475,9 +478,18 @@ class ORR_Free_E_Series():
         and adjusts their free energies accordingly
         """
         #| - apply_bias
-        mod_free_e_lst = []        # Free energy reaction path at applied bias
-        for energy, elec in zip(energy_list, range(len(energy_list))[::-1]):
-            mod_free_e_lst.append(energy - elec * bias)
+        if self.rxn_type == "ORR":
+            flip_energy_list = False
+            bool_flip = -1
+        elif self.rxn_type == "OER":
+            flip_energy_list = True
+            bool_flip = +1
+
+        e_lst = energy_list
+
+        mod_free_e_lst = []  # Free energy reaction path at applied bias
+        for en, elec in zip(e_lst, range(len(e_lst))[::bool_flip]):
+            mod_free_e_lst.append(en - elec * bias)
 
         return(mod_free_e_lst)
         #__|

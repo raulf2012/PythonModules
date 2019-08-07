@@ -18,7 +18,16 @@ from ase import io
 #__|
 
 
-def bader(atoms, spinpol=False, outdir=None, run_exec=True):
+def bader(
+    atoms,
+    spinpol=False,
+    outdir=None,
+    run_exec=True,
+    run_exec_2=True,
+    convert_charge_den=True,
+    cleanup=True,
+    dft_code="QE",
+    ):
     """Perform bader charge analysis on atoms.
 
     Calculate charge density using atoms.calc, calculate bader charges on each
@@ -57,15 +66,30 @@ def bader(atoms, spinpol=False, outdir=None, run_exec=True):
     if spinpol:
 
         #| - Spin up
-        cd2cube(atoms, spin="up")
+        if convert_charge_den:
+            cd2cube(atoms, spin="up")
         if run_exec:
-            bader_exec(atoms, spin="up")
+            bader_exec(
+                atoms,
+                spin="up",
+                execute_bader=run_exec_2,
+                clean_up=cleanup,
+                dft_code=dft_code,
+                )
+
         #__|
 
         #| - Spin down
-        cd2cube(atoms, spin="down")
+        if convert_charge_den:
+            cd2cube(atoms, spin="down")
         if run_exec:
-            bader_exec(atoms, spin="down")
+            bader_exec(
+                atoms,
+                spin="down",
+                execute_bader=run_exec_2,
+                clean_up=cleanup,
+                dft_code=dft_code,
+                )
         #__|
 
         print("BADER MAGMOMS: " + str(atoms.get_initial_magnetic_moments()))
@@ -74,10 +98,16 @@ def bader(atoms, spinpol=False, outdir=None, run_exec=True):
 
     #| - Not Spin Polarized
     else:
-        cd2cube(atoms)
-
+        if convert_charge_den:
+            cd2cube(atoms)
         if run_exec:
-            bader_exec(atoms)
+            bader_exec(
+                atoms,
+                spin="",
+                clean_up=cleanup,
+                execute_bader=run_exec_2,
+                dft_code=dft_code,
+                )
     #__|
 
     print("BADER CHARGES: " + str(atoms.get_initial_charges()))
@@ -192,25 +222,42 @@ def cleanup(suffix="", save_cube=True):
     os.system("mv BCF.dat dir_bader/BCF.dat")
     #__|
 
-def bader_exec(atoms, spin=""):
-    """Run bader executable on cube density file.
+def bader_exec(
+    atoms,
+    spin="",
+    execute_bader=True,
+    clean_up=True,
+    dft_code="QE",  # 'VASP' or 'QE'
+    ):
+    """Run bader executable on cube density file and process data.
 
     Args:
+        atoms:
         spin:
+            Spin component to process | "", "up", "down"
+
     """
     #| - bader_exec
-    bash_comm = "bader density" + spin + ".cube >> bader.out"
-    os.system(bash_comm)
+    if execute_bader:
+        bash_comm = "bader density" + spin + ".cube >> bader.out"
+        os.system(bash_comm)
+
+    if dft_code == "VASP":
+        if execute_bader:
+            bash_comm = "chgsum.pl AECCAR0 AECCAR2"
+            os.system(bash_comm)
+            bash_comm = "bader CHGCAR -ref CHGCAR_sum"
+            os.system(bash_comm)
 
     #| - Spin Polarlized Calculation
     if spin == "up":
-
         f = open("ACF.dat"); lines = f.readlines(); f.close()
         for i, line in enumerate(lines[2:-4]):
             line = line.split()
             atoms[i].magmom = float(line[4])
             atoms[i].charge = -float(line[4])
-        cleanup(suffix=spin)
+        if clean_up:
+            cleanup(suffix=spin)
 
     elif spin == "down":
         f = open("ACF.dat"); lines = f.readlines(); f.close()
@@ -220,7 +267,17 @@ def bader_exec(atoms, spin=""):
         for i, line in enumerate(lines[2:-4]):
             line = line.split()
             atoms[i].magmom -= float(line[4])
-            val_i = atoms.calc.get_nvalence()[1][atoms[i].symbol]
+
+            #| - Getting number of valence electrons
+            calc_has_get_nvalence = getattr(atoms.calc, "get_nvalence", None)
+            if calc_has_get_nvalence:
+                val_i = atoms.calc.get_nvalence()[1][atoms[i].symbol]
+            else:
+                val_i = valence_dict.get(atoms[i].symbol, None)
+
+            assert val_i is not None, "Can't find # of valence electrons!!"
+            #__|
+
             atoms[i].charge -= float(line[4]) - val_i
 
             magmom_list.append(atoms[i].magmom)
@@ -238,8 +295,8 @@ def bader_exec(atoms, spin=""):
                 )
         #__|
 
-
-        cleanup(suffix=spin)
+        if clean_up:
+            cleanup(suffix=spin)
     #__|
 
     #| - Non-Spin Polarized Calculation
@@ -249,7 +306,18 @@ def bader_exec(atoms, spin=""):
         for i, line in enumerate(lines[2:-4]):
             line = line.split()
 
-            charge_i = atoms.calc.get_nvalence()[1][atoms[i].symbol]
+            #| - Getting number of valence electrons
+            calc_has_get_nvalence = getattr(atoms.calc, "get_nvalence", None)
+            if calc_has_get_nvalence:
+                charge_i = atoms.calc.get_nvalence()[1][atoms[i].symbol]
+            else:
+                charge_i = valence_dict.get(atoms[i].symbol, None)
+
+            assert charge_i is not None, "Can't find # of valence electrons!!"
+            #__|
+
+            # charge_i = atoms.calc.get_nvalence()[1][atoms[i].symbol]
+
             atoms[i].charge = charge_i - float(line[4])
             charge_list.append(atoms[i].charge)
 
@@ -267,3 +335,13 @@ def bader_exec(atoms, spin=""):
     #__|
 
     #__|
+
+
+# From VASP PBE
+valence_dict = {
+    "O": 6,
+    "Ir": 9,
+    "Cr": 6,
+    "Ti": 4,
+    "Ni": 10,
+    }
