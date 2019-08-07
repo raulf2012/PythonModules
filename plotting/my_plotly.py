@@ -8,13 +8,14 @@ Author: Raul A. Flores
 #| - Import Modules
 import plotly
 
+import os
+# import plotly.plotly as py
+import chart_studio.plotly as py
+import plotly.graph_objs as go
+
+from plotly import io as pyio
 #__|
 
-# "font": {
-#     "family": "Courier New, monospace",
-#     "size": plot_title_size,
-#     "color": "black",
-#     },
 
 #| - Plotly
 def reapply_colors(data):
@@ -145,3 +146,106 @@ def plot_layout(
     #__|
 
 #__|
+
+
+
+def my_plotly_plot(
+    layout=None,
+    layout_override=None,
+    plot_name=None,
+    save_dir=None,
+    data=None,
+    upload_plot=True,
+    ):
+    """
+    TODO:
+      Remove layout override functionality, this should be done before calling
+      the method
+
+    Args:
+    ---------------------------------------------------------------------------
+    layout:
+      plotly layout
+    layout_override:
+      Dictionary to override layout
+    plot_name:
+      Plot name (used both for plot upload and local save)
+    save_dir:
+      Plot.ly folder to save figure into (Not used for local save)
+    data:
+      plotly data object
+    upload_plot:
+      Upload plot to plotly servers
+
+    """
+    #| - plot_proto
+    if layout is None:
+        layout = go.Layout()
+
+    layout.update(layout_override)
+
+    fig = go.Figure(data=data, layout=layout)
+
+    #| - Upload to plot.ly website
+    # #########################################################################
+    if upload_plot:
+        plotly_filename = os.path.join(
+            save_dir,
+            # "02_oer_analysis",
+            # "oer_2d_volcano_plot",
+            plot_name)
+        tmp = py.iplot(fig, filename=plotly_filename)
+        print(plotly_filename)
+    #__|
+
+    #| - Local write to HTML
+    # #########################################################################
+    plot_dir = "out_plot"
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
+
+    local_filename = os.path.join(
+        plot_dir,
+        plot_name + ".html"
+        )
+
+    pyio.write_html(
+        {
+            "data": data,
+            "layout": layout,
+
+            },
+        local_filename,
+        )
+    #__|
+
+    #| - Write pdf and svg (if ORCA is installed and working)
+    import socket
+    hostname = socket.gethostbyaddr(socket.gethostname())[0]
+
+    # Requires ORCA installation
+    if os.environ["USER"] == "raul-ubuntu-desktop" or hostname == "raul-ubuntu-vb":
+        print("Writing pdf with ORCA")
+
+        # pyio.write_json(
+        #     {
+        #         "data": data,
+        #         "layout": layout,
+        #         },
+        #     os.path.join(plot_dir, plot_name + ".pdf"))
+
+        # This seems to be the preferred syntax now
+        fig.write_image(
+            os.path.join(plot_dir, plot_name + ".pdf")
+            # "out_plot/test_fig.pdf"
+            )
+
+        # This seems to be the preferred syntax now
+        fig.write_image(
+            os.path.join(plot_dir, plot_name + ".svg")
+            # "out_plot/test_fig.pdf"
+            )
+    #__|
+
+    return(fig)
+    #__|
