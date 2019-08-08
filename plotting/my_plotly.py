@@ -150,6 +150,7 @@ def plot_layout(
 
 
 def my_plotly_plot(
+    figure=None,
     layout=None,
     layout_override=None,
     plot_name=None,
@@ -161,6 +162,8 @@ def my_plotly_plot(
     TODO:
       Remove layout override functionality, this should be done before calling
       the method
+
+    Returns: Plotly figure object
 
     Args:
     ---------------------------------------------------------------------------
@@ -182,9 +185,14 @@ def my_plotly_plot(
     if layout is None:
         layout = go.Layout()
 
-    layout.update(layout_override)
+    if figure is not None:
+        fig = figure
+    else:
+        fig = go.Figure(data=data, layout=layout)
 
-    fig = go.Figure(data=data, layout=layout)
+
+    fig.layout.update(layout_override)
+
 
     #| - Upload to plot.ly website
     # #########################################################################
@@ -198,26 +206,31 @@ def my_plotly_plot(
         print(plotly_filename)
     #__|
 
-    #| - Local write to HTML
+
     # #########################################################################
     plot_dir = "out_plot"
     if not os.path.exists(plot_dir):
         os.makedirs(plot_dir)
 
-    local_filename = os.path.join(
-        plot_dir,
-        plot_name + ".html"
-        )
 
+    #| - Local write to HTML
     pyio.write_html(
-        {
-            "data": data,
-            "layout": layout,
-
-            },
-        local_filename,
+        fig,
+        os.path.join(plot_dir, plot_name + ".html"),
+        # config=None,
+        # auto_play=True,
+        # include_plotlyjs=True,
+        # include_mathjax=False,
+        # post_script=None,
+        # full_html=True,
+        # animation_opts=None,
+        # validate=True,
+        # default_width='100%',
+        # default_height='100%',
+        # auto_open=False,
         )
     #__|
+
 
     #| - Write pdf and svg (if ORCA is installed and working)
     import socket
@@ -226,13 +239,6 @@ def my_plotly_plot(
     # Requires ORCA installation
     if os.environ["USER"] == "raul-ubuntu-desktop" or hostname == "raul-ubuntu-vb":
         print("Writing pdf with ORCA")
-
-        # pyio.write_json(
-        #     {
-        #         "data": data,
-        #         "layout": layout,
-        #         },
-        #     os.path.join(plot_dir, plot_name + ".pdf"))
 
         # This seems to be the preferred syntax now
         fig.write_image(
@@ -246,6 +252,7 @@ def my_plotly_plot(
             # "out_plot/test_fig.pdf"
             )
     #__|
+
 
     return(fig)
     #__|
