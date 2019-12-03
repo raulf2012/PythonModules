@@ -39,6 +39,8 @@ class SurfaceEnergy:
         H_ref_electronic_energy=None,
         O_ref_electronic_energy=None,
 
+        special_surface_species_corrections=None,
+        apply_special_species_corrections=False,
         num_surface_atoms=None,
 
         bias=0.,
@@ -60,6 +62,10 @@ class SurfaceEnergy:
 
         self.H_ref_electronic_energy = H_ref_electronic_energy
         self.O_ref_electronic_energy = O_ref_electronic_energy
+        self.special_surface_species_corrections = \
+            special_surface_species_corrections
+        self.apply_special_species_corrections = \
+            apply_special_species_corrections
 
         self.num_surface_atoms = num_surface_atoms
 
@@ -77,8 +83,9 @@ class SurfaceEnergy:
         self.slab_thickness = None
 
         self.__bulk_energy_per_atom__ = None
-        #__|
 
+        self.non_stoich_comp_new = dict()
+        #__|
 
         self.surface_area = self.__calc_surface_area__()
 
@@ -98,9 +105,15 @@ class SurfaceEnergy:
         self.__bulk_energy_per_formula_unit__ = \
             self.__calc_bulk_energy_per_formula_unit__()
 
-        self.surface_e_per_side = self.calc_std_surface_energy()
+        self.special_surface_species = \
+            self.__count_special_surface_species__()
 
-        self.surface_e_per_area = self.__calc_std_surface_energy_per_area__()
+        self.std_surface_e_per_side = self.calc_std_surface_energy()
+
+        self.std_surface_e_per_area = \
+            self.__calc_surface_energy_per_area__(
+                unnorm_surface_e=self.std_surface_e_per_side)
+
 
         if self.num_surface_atoms is not None:
             self.surface_e_per_surface_atom = \
@@ -109,17 +122,80 @@ class SurfaceEnergy:
         self.slab_thickness = self.__calc_slab_thickness__()
         #__|
 
+    def calc_surface_energy(self, bias, pH, norm_type="area"):
+        """
+
+        Args:
+            norm_type: 'area', 'surface_atom', None
+        """
+        #| - calc_surface_energy
+        surface_e_per_side = self.std_surface_e_per_side
+        non_stoich_comp = self.non_stoich_comp
+
+        # print(surface_e_per_side)
+
+        nonstoich_O = non_stoich_comp.get("O", 0)
+        nonstoich_H = non_stoich_comp.get("H", 0)
+
+        slope = 2 * nonstoich_O - nonstoich_H
+
+        surf_e_V_ph = 0. + \
+            +surface_e_per_side + \
+            +(slope * 0.0591 * pH) + \
+            -(slope * bias) + \
+            +0.
+
+        # print(surf_e_V_ph)
+
+
+        if norm_type == "area":
+            surf_e_V_ph__norm = self.__calc_surface_energy_per_area__(
+                unnorm_surface_e=surf_e_V_ph)
+        elif norm_type == "surface_atom":
+            print("NOT SUPPORTEE")
+            assert False
+            surf_e_V_ph__norm = "TEMP"
+        elif norm_type is None:
+            surf_e_V_ph__norm = surf_e_V_ph
+        else:
+            assert False
+            surf_e_V_ph__norm = "TEMP"
+
+
+        return(surf_e_V_ph__norm)
+        #__|
+
     def calc_std_surface_energy(self):
         """
         """
         #| - calc_std_surface_energy
+
         electronic_energy = self.electronic_energy
         bulk_formula_units_in_slab = self.__bulk_formula_units_in_slab__
         bulk_energy_per_formula_unit = self.__bulk_energy_per_formula_unit__
         H_ref_electronic_energy = self.H_ref_electronic_energy
         O_ref_electronic_energy = self.O_ref_electronic_energy
 
+
         non_stoich_comp = self.non_stoich_comp
+        # non_stoich_comp_new = self.non_stoich_comp_new
+        special_surface_species = self.special_surface_species
+
+
+        # TODO add this as class input
+        apply_special_species_corrections = \
+            self.apply_special_species_corrections
+
+        special_surface_species_corrections = \
+            self.special_surface_species_corrections
+        # special_surface_species_corrections = {
+        #     "*OH": 0.2945, "*O": 0.044, "*OOH": 0.3765}
+        sssc = special_surface_species_corrections
+
+
+        # TEMP
+        print(non_stoich_comp)
+        print(H_ref_electronic_energy)
 
         # TODO Make the referencing more robust, take arbitary dict of
         # referencec atoms
@@ -130,24 +206,99 @@ class SurfaceEnergy:
             -non_stoich_comp.get("H", 0.) * (H_ref_electronic_energy) + \
             +0.
 
+        if apply_special_species_corrections:
+            special_surface_species
+            for spec_i, num_spec_i in special_surface_species.items():
+                corr_i = num_spec_i * sssc[spec_i]
+                print(corr_i)
+                surf_e_0 += corr_i
+
+        print(surf_e_0)
+
         # Divide surface energy across two sides of slab
         surf_e_0 /= 2
 
         return(surf_e_0)
-
-        # if norm_mode == "area":
-        #     surf_e_0 = surf_e_0 / (2 * row_i["slab_area"])
-        # elif norm_mode == "atoms":
-        #     if num_atoms is not None:
-        #         surf_e_0 = surf_e_0 / (2 * num_atoms)
         #__|
 
-    def __calc_std_surface_energy_per_area__(self):
-        """Normalize the surface energy to surface area (A^2)."""
-        #| - calc_std_surface_energy_per_area
-        surface_area = self.surface_area
-        surface_e_per_side = self.surface_e_per_side
 
+    def __count_special_surface_species__(self):
+        """Count the number of *OH and *O surface species.
+
+        Taks the non-stoich dict and pairs the max number of O and H pairs into
+        *OH and the remaining O's into *O
+        """
+        #| - __count_special_surface_species__
+        import copy
+
+        non_stoich_comp = self.non_stoich_comp
+
+        non_stoich_comp_new = copy.copy(non_stoich_comp)
+
+        print(non_stoich_comp)
+
+        special_species_dict = dict()
+        if "O" in non_stoich_comp.keys():
+
+            num_Os = non_stoich_comp.get("O")
+
+            if "H" in non_stoich_comp.keys():
+                num_Hs = non_stoich_comp.get("H")
+
+                min_num = min([num_Os, num_Hs])
+
+                num_OHs = min_num
+
+                left_over_Hs = num_Hs - min_num
+                left_over_Os = num_Os - min_num
+
+                special_species_dict["*OH"] = num_OHs
+                special_species_dict["*O"] = left_over_Os
+
+                # All nonstoich Os will be *O species
+                non_stoich_comp_new["O"] = 0
+                non_stoich_comp_new["H"] = left_over_Hs
+            else:
+                num_OHs = 0
+                special_species_dict["*OH"] = num_OHs
+
+                left_over_Hs = 0
+                left_over_Os = num_Os
+
+                special_species_dict["*O"] = left_over_Os
+                special_species_dict["*OH"] = 0
+
+                # All nonstoich Os will be *O species
+                non_stoich_comp_new["O"] = 0
+                non_stoich_comp_new["H"] = left_over_Hs
+
+        else:
+            num_OHs = 0
+            left_over_Os = num_Os
+            left_over_Hs = 0
+
+            if "H" in non_stoich_comp.keys():
+                if non_stoich_comp.get("H") > 0:
+                    raise ValueError(
+                        "NOT GOOD HERE, THERE IS AN *H WITHOUT and *OH")
+
+
+        # print("----")
+        # print(non_stoich_comp_new)
+        # print(special_species_dict)
+
+
+        self.non_stoich_comp_new = non_stoich_comp_new
+
+        return(special_species_dict)
+        #__|
+
+    def __calc_surface_energy_per_area__(self, unnorm_surface_e=None):
+        """Normalize the surface energy to surface area (A^2)."""
+        #| - __calc_surface_energy_per_area__
+        surface_area = self.surface_area
+        # surface_e_per_side = self.std_surface_e_per_side
+        surface_e_per_side = unnorm_surface_e
 
         surface_e_per_area = surface_e_per_side / surface_area
 
@@ -159,7 +310,7 @@ class SurfaceEnergy:
         """Normalize the surface area to a per surface atom basis."""
         #| - calc_std_surface_energy_per_area
         num_surface_atoms = self.num_surface_atoms
-        surface_e_per_side = self.surface_e_per_side
+        surface_e_per_side = self.std_surface_e_per_side
 
         surface_e_per_surface_atoms = surface_e_per_side / num_surface_atoms
 
@@ -216,6 +367,12 @@ class SurfaceEnergy:
         """
         """
         #| - __calc_units_of_bulk_in_slab__
+        # TODO
+        main_atom = "Ir"  # Make this a class attribute
+
+        # 'main_atom' or 'gcm' (greatest common multiple)
+        find_bulk_form_units_method = "main_atom"
+
         bulk_atoms = self.bulk_atoms
         atoms = self.atoms
 
@@ -234,12 +391,21 @@ class SurfaceEnergy:
         # Removingg columns with 0
         df = df.loc[:, (df != 0).any(axis=0)]
 
-        slab_comp_array = np.array(list(df.loc["slab"]))
-        bulk_comp_array = np.array(list(df.loc["bulk"]))
+        # slab_comp_array = np.array(list(df.loc["slab"]))
+        # bulk_comp_array = np.array(list(df.loc["bulk"]))
+        # df.loc["slab"].to_numpy()
+        # df.loc["bulk"].to_numpy()
 
         # Number of unit of the bulk's reduced formula that fit into the slab
-        bulk_formula_units_in_slab = min(slab_comp_array / bulk_comp_array)
-        bulk_formula_units_in_slab = int(bulk_formula_units_in_slab)
+        if find_bulk_form_units_method == "main_atom":
+            bulk_formula_units_in_slab = int(
+                df.loc["slab"][main_atom] / df.loc["bulk"][main_atom]
+                )
+
+        elif find_bulk_form_units_method == "gcm":
+            bulk_formula_units_in_slab = int(min(
+                df.loc["slab"].to_numpy() / df.loc["bulk"].to_numpy()
+                ))
         bfuis = bulk_formula_units_in_slab
 
         # #####################################################################
@@ -248,7 +414,8 @@ class SurfaceEnergy:
         non_stoich_comp = df.loc["nonstoich"].to_dict()
         self.non_stoich_comp = non_stoich_comp
 
-
+        # print(bulk_formula_units_in_slab)
+        # print(non_stoich_comp)
 
         return(bulk_formula_units_in_slab)
         #__|
@@ -558,7 +725,7 @@ class SurfaceEnergyConvergence:
         y_surface_e = []
         x_slab_thickness = []
         for SE_inst_i in SurfaceEnergy_instances:
-            y_surface_e.append(SE_inst_i.surface_e_per_area)
+            y_surface_e.append(SE_inst_i.std_surface_e_per_area)
             x_slab_thickness.append(SE_inst_i.slab_thickness)
 
         df = pd.DataFrame()
@@ -623,7 +790,7 @@ class SurfaceEnergyConvergence:
         #| - Surface Energy (DFT Bulk) ########################################
         y_surface_e = []; x_slab_thickness = []
         for SE_inst_i in self.SurfaceEnergy_instances:
-            y_surface_e.append(SE_inst_i.surface_e_per_area)
+            y_surface_e.append(SE_inst_i.std_surface_e_per_area)
             x_slab_thickness.append(SE_inst_i.slab_thickness)
 
         trace_i = go.Scatter(
@@ -655,7 +822,7 @@ class SurfaceEnergyConvergence:
         #| - Surface Energy (Fitted Bulk) #####################################
         y_surface_e = []; x_slab_thickness = []
         for SE_inst_i in self.new_SurfaceEnergy_instances:
-            y_surface_e.append(SE_inst_i.surface_e_per_area)
+            y_surface_e.append(SE_inst_i.std_surface_e_per_area)
             x_slab_thickness.append(SE_inst_i.slab_thickness)
 
         trace_i = go.Scatter(
@@ -802,8 +969,11 @@ def surf_e_4(
     get_e0_from_row=False,
     norm_mode="area",  # 'area' or 'atoms'
     num_atoms=None,
+    units="eV/A^2",  # 'eV/A^2' or 'J/m^2'
     ):
     """
+    DEPRECATED SWITCH TO USING CLASS
+
     Calculate surface energy assuming a water reference state
     and using the computational hydrogen electrode.
     """
@@ -841,11 +1011,13 @@ def surf_e_4(
             +0.
             # -nonstoich_Hs * (G_H2) + \
 
+
         if norm_mode == "area":
-            surf_e_0 = surf_e_0 / (2 * row_i["slab_area"])
-        elif norm_mode == "atoms":
-            if num_atoms is not None:
-                surf_e_0 = surf_e_0 / (2 * num_atoms)
+            norm_term = 2 * row_i["slab_area"]
+            surf_e_0 = surf_e_0 / norm_term
+        elif norm_mode == "atoms" and num_atoms is not None:
+            norm_term = 2 * num_atoms
+            surf_e_0 = surf_e_0 / norm_term
     #__|
 
     #| - Calculate V, pH Dependant Surface Energy
@@ -853,12 +1025,29 @@ def surf_e_4(
 
     surf_e = 0. + \
         +surf_e_0 + \
-        +(slope * 0.0591 * pH) / (2 * row_i["slab_area"]) + \
-        -(slope * bias) / (2 * row_i["slab_area"]) + \
+        +(slope * 0.0591 * pH) / norm_term + \
+        -(slope * bias) / norm_term + \
         +0.
+
+        # +(slope * 0.0591 * pH) / (2 * row_i["slab_area"]) + \
+        # -(slope * bias) / (2 * row_i["slab_area"]) + \
 
 #     surf_e = surf_e / (2 * row_i["slab_area"])
     #__|
+
+
+    #| - Unit conversion
+    units="eV/A^2",  # 'eV/A^2' or 'J/m^2'
+
+    if norm_mode == "area":
+        if units == "eV/A^2":
+            pass
+        elif units == "J/m^2":
+            # Convert eV/A^2 to J/m^2
+            # (1E10 A/m) ^ 2 * (1.6022E-19 J/eV) = 16.022
+            ev_A2__to__J_m2 = 16.022
+            surf_e = surf_e * ev_A2__to__J_m2
+    # __|
 
     return(surf_e)
     #__|

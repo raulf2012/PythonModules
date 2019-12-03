@@ -48,7 +48,7 @@ def number_of_atoms(path_i=".", log="log"):
     num_atoms = len(atom_list)
 
     return(num_atoms)
-    #__|
+    # __|
 
 def tot_abs_magnetization(path_i=".", log="log"):
     """Return total and absolute magnetization vs SCF iteration.

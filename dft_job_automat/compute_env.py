@@ -26,6 +26,7 @@ import copy
 import time
 
 import pandas as pd
+from shutil import copyfile
 
 import json
 
@@ -66,7 +67,7 @@ def slurm_squeue_parse(
 
         # 'JOBID PARTITION NAME USER ST TIME NODES NODELIST(REASON)'
         out = out.splitlines()
-        out = out[1].split(" ")
+        out = out[1].decode().split(" ")
         out = [i for i in out if i != '']
 
         data_dict = {
@@ -115,30 +116,6 @@ class ComputerCluster():
         self.__parse_cluster_type__()
         #__|
 
-    #| - __old__
-    # def __parse_username__(self):
-    #     """
-    #     """
-    #     #| - __parse_username__
-    #     username = os.environ.get("USER")
-    #
-    #     cond_1 = False
-    #     if type(username) == str:
-    #         cond_1 = True
-    #
-    #     cond_2 = False
-    #     if username is not None:
-    #         cond_2 = True
-    #
-    #     print(cond_1)
-    #     print(cond_2)
-    #
-    #     print(username)
-    #     print("*******")
-    #     return(username)
-    #     #__|
-    #__|
-
     def __parse_cluster_type__(self):
         """Parse for the current cluster system."""
         #| - __parse_cluster_type__
@@ -153,7 +130,16 @@ class ComputerCluster():
 
         if cluster_sys in clusters_dict:
             package = "dft_job_automat.compute_env"
+
+
             name = clusters_dict[cluster_sys]
+
+            # TEMP Writing new NERSC module ###################################
+            if cluster_sys == "nersc":
+                package = "compute_envs.nersc"
+                name = "NERSC_Cluster"
+            # #################################################################
+
             cluster = getattr(__import__(package, fromlist=[name]), name)
 
             self.cluster_sys = cluster_sys
@@ -292,7 +278,8 @@ class ComputerCluster():
         #__|
 
         #| - Writing Job Submission Parameters
-        with open(".submission_params.json", "w") as fle:
+        sub_params_name = ".submission_params.json"
+        with open(os.path.join(path_i, sub_params_name), "w") as fle:
             json.dump(kwargs, fle, indent=2, skipkeys=True)
         #__|
 
@@ -302,7 +289,7 @@ class ComputerCluster():
         if "path_i" in kwargs:
             path_i = kwargs["path_i"]
 
-            with open(".cluster_sys", "w") as fle:
+            with open(os.path.join(path_i, ".cluster_sys"), "w") as fle:
                 # fle.write(self.cluster_sys)
                 fle.write(self.cluster_sys + "\n")
         #__|
@@ -316,9 +303,7 @@ class ComputerCluster():
 
 class EdisonCluster(ComputerCluster):
     """NERSC Edison computing cluster.
-
-
-    I'll try to get this to work with Cori as well
+    DEPRECATED
     """
 
     #| - EdisonCluster ********************************************************
@@ -329,6 +314,20 @@ class EdisonCluster(ComputerCluster):
             root_dir:
         """
         #| - __init__
+        print("THIS MODULE IS DEPRECATED")
+        print("USE THE ONE IN COMPUTE_ENVS")
+        print("THIS MODULE IS DEPRECATED")
+        print("USE THE ONE IN COMPUTE_ENVS")
+        print("THIS MODULE IS DEPRECATED")
+        print("USE THE ONE IN COMPUTE_ENVS")
+        print("THIS MODULE IS DEPRECATED")
+        print("USE THE ONE IN COMPUTE_ENVS")
+        print("THIS MODULE IS DEPRECATED")
+        print("USE THE ONE IN COMPUTE_ENVS")
+        print("THIS MODULE IS DEPRECATED")
+        print("USE THE ONE IN COMPUTE_ENVS")
+        print("THIS MODULE IS DEPRECATED")
+        print("USE THE ONE IN COMPUTE_ENVS")
         # 24 cores (edison) 32 cpus (cori)
 
         nersc_host = os.environ["NERSC_HOST"]
@@ -434,6 +433,7 @@ class EdisonCluster(ComputerCluster):
         os.system("cd $SLURM_SUBMIT_DIR")
         os.system("export TMPDIR=$SLURM_SUBMIT_DIR")
         os.system("export VASP_SCRIPT=./run_vasp.py")
+
         os.system("echo import os > run_vasp.py")
 
         exitcode_line = "exitcode = os.system('srun -n " + \
@@ -446,7 +446,6 @@ class EdisonCluster(ComputerCluster):
 
         #| - Bash Submisssion Command
         bash_command = "/usr/bin/sbatch "
-
 
         # The -q flag is being used in place of the -p flag
         # Only the -q needs to be defined
@@ -814,7 +813,9 @@ class SLACCluster(ComputerCluster):
         #| - default_submission_parameters
         def_params = {
             "queue": "suncat",
-            "cpus": "8",
+            "cpus": "10",
+            "nodes": "1",
+
             "wall_time": "3000",
             # "memory": "6000",
             # "job_name":     "Default",
@@ -858,9 +859,15 @@ class SLACCluster(ComputerCluster):
 
         # bash_command = "/u/if/flores12/bin/qv model.py"
 
-        bash_command = "/afs/slac/g/suncat/bin/dobsub "
+        # bash_command = "/afs/slac/g/suncat/bin/dobsub "
+        bash_command = "dobsub "
         bash_command += "-q " + str(params["queue"]) + " "
+
+        # Not sure why, but the -n flag is used to specify the numer of cores
         bash_command += "-n " + str(params["cpus"]) + " "
+        # bash_command += "-n " + str(params["nodes"]) + " "
+        # bash_command += "-c " + str(params["cpus"]) + " "
+
         bash_command += "-W " + str(params["wall_time"]) + " "
         bash_command += "-o " + str(params["out_file"]) + " "
         bash_command += "-e " + str(params["err_file"]) + " "
@@ -933,7 +940,8 @@ class SLACCluster(ComputerCluster):
         #__|
 
         #| - Parsing Output
-        out = output.communicate()[0]
+        # out = output.communicate()[0]
+        out = output.communicate()[0].decode()
         ind = out.find("Job <")
 
         out1 = out[ind:]
@@ -976,6 +984,9 @@ class SLACCluster(ComputerCluster):
         if os.path.isfile(path_i + "/.jobid"):
             with open(path_i + "/.jobid") as fle:
                 jobid = fle.read().strip()
+
+                if jobid == "None":
+                    jobid = None
         else:
             jobid = None
 
@@ -998,7 +1009,7 @@ class SLACCluster(ComputerCluster):
             bash_comm,
             shell=True,
             stderr=subprocess.STDOUT,
-            )
+            ).decode()
 
         #| - Checking if Job Id Still in Batch System
         if "is not found" in out:
@@ -1039,7 +1050,17 @@ class SLACCluster(ComputerCluster):
         #| - write_job_queue_state_file
         key = self.job_queue_state_key
         with open(path_i + "/.QUEUESTATE", "w") as fle:
-            fle.write(self.job_state_keys[data_dict[key]])
+
+            # fle.write(self.job_state_keys[data_dict[key]])
+
+            fle.write(
+                self.job_state_keys.get(
+                    data_dict[key],
+                    data_dict[key],
+                    ),
+                )
+
+
             fle.write("\n")
         #__|
 
@@ -1061,7 +1082,11 @@ class SLACCluster(ComputerCluster):
             key = self.job_queue_state_key
             if key in job_info:
                 job_state_out = job_info[key]
-                job_state_out = self.job_state_keys[job_state_out]
+                job_state_out = self.job_state_keys.get(
+                    job_state_out,
+                    job_state_out,
+                    )
+
         else:
             job_state_out = None
 
@@ -1101,6 +1126,8 @@ class SherlockCluster(ComputerCluster):
         self.error_file = "job.err"
         self.out_file = "job.out"
 
+        self.cores_per_node = 16
+
         # self.aws_dir = os.environ["aws_sc"]
         # self.job_queue_dir = self.aws_dir + "/jobs_bin"
 
@@ -1126,6 +1153,29 @@ class SherlockCluster(ComputerCluster):
         #__|
 
 
+    def __make_run_vasp_script__(self, params):
+        """
+        """
+        #| - __make_run_vasp_script__
+        os.system("echo import os > run_vasp.py")
+        exitcode_line = "exitcode = os.system('srun -n" + " " + \
+            str(int(self.cores_per_node * int(params["nodes"]))) + " " + \
+            "vasp_std_544_161018')"
+        # "-c 4 --cpu_bind=cores" + " " + \
+        line_2 = 'echo ' + '"' + exitcode_line + '" >> run_vasp.py'
+        os.system(line_2)  # on edison
+
+
+        if params["path_i"] == ".":
+            pass
+
+        else:
+            copyfile(
+                "run_vasp.py",
+                os.path.join(params["path_i"], "run_vasp.py"),
+                )
+        #__|
+
     def default_submission_parameters(self):
         """Defaul SLURM parameters for Sherlock cluster."""
         #| - default_submission_parameters
@@ -1138,9 +1188,11 @@ class SherlockCluster(ComputerCluster):
             "wall_time": "720",  # --time (720min -> 12hrs)
             "job_name": "Default",  # --job-name
             "priority": "normal",  # --qos
-            # "email": "flores12@stanford.edu",  # --mail-user
             "email": self.username + "@stanford.edu",  # --mail-user
-            "email_mess": "FAIL",  # --mail-type
+
+            # NONE, BEGIN, END, FAIL, REQUEUE, ALL
+            # "email_mess": "FAIL",  # --mail-type
+            "email_mess": "END",  # --mail-type
             }
 
         return(def_params)
@@ -1161,6 +1213,9 @@ class SherlockCluster(ComputerCluster):
         path = params["path_i"]
         #__|
 
+        self.__make_run_vasp_script__(params)
+
+
         #| - Submit Job
         os.chdir(path)
 
@@ -1171,6 +1226,7 @@ class SherlockCluster(ComputerCluster):
         os.system("chmod 777 *")
         # bash_command = "/u/if/flores12/bin/qv model.py"
         #__| **** TEMP
+
 
         #| - Bash Submisssion Command
         bash_command = "/usr/bin/sbatch "
@@ -1868,5 +1924,23 @@ class DummyCluster(ComputerCluster):
         print("submit_job_clust | DummyCluster")
         print("Nothing happens!!")
         #__|
+
+    def job_state(self, path_i="."):
+        """
+        """
+        #| - job_state
+        return("TEMP")
+
+        # job_info = self.job_info_batch(path_i=path_i)
+        # if job_info is not None:
+        #     key = self.job_queue_state_key
+        #     if key in job_info:
+        #         job_state_out = job_info[key]
+        #         job_state_out = self.job_state_keys[job_state_out]
+        # else:
+        #     job_state_out = None
+        # return(job_state_out)
+        #__|
+
 
     #__|

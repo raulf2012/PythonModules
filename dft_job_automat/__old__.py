@@ -1,3 +1,31 @@
+
+    #| - __old__
+    # def __parse_username__(self):
+    #     """
+    #     """
+    #     #| - __parse_username__
+    #     username = os.environ.get("USER")
+    #
+    #     cond_1 = False
+    #     if type(username) == str:
+    #         cond_1 = True
+    #
+    #     cond_2 = False
+    #     if username is not None:
+    #         cond_2 = True
+    #
+    #     print(cond_1)
+    #     print(cond_2)
+    #
+    #     print(username)
+    #     print("*******")
+    #     return(username)
+    #     #__|
+    #__|
+
+
+
+
 #| - job_analysis
 
 #| - DEPRECATED METHODS

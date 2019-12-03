@@ -73,16 +73,25 @@ class Volcano_Plot_2D():
         x_range_bounds = self.plot_range["x"]
         y_range_bounds = self.plot_range["y"]
 
-
         x_range = np.arange(
-            x_range_bounds[0] - 1.,
-            x_range_bounds[1] + 1.,
+            x_range_bounds[0],
+            x_range_bounds[1],
             0.01)
 
         y_range = np.arange(
-            y_range_bounds[0] - 1.,
-            y_range_bounds[1] + 1.,
+            y_range_bounds[0],
+            y_range_bounds[1],
             0.01)
+
+        # x_range = np.arange(
+        #     x_range_bounds[0] - 1.,
+        #     x_range_bounds[1] + 1.,
+        #     0.01)
+        #
+        # y_range = np.arange(
+        #     y_range_bounds[0] - 1.,
+        #     y_range_bounds[1] + 1.,
+        #     0.01)
 
         # x_range = np.arange(0.9, 2, 0.01)
         # y_range = np.arange(-0.5, 2., 0.01)
@@ -115,11 +124,26 @@ class Volcano_Plot_2D():
 
             #| - Colorbar
             colorbar=go.contour.ColorBar(
-                x=None,
-                xanchor=None,
-                xpad=None,
-                y=None,
-                yanchor=None,
+                # x=None,
+                # xanchor=None,
+                # xpad=None,
+                # y=None,
+                # yanchor=None,
+
+                title=go.contour.colorbar.Title(
+                    # font=None,
+                    side="top",  # ['right', 'top', 'bottom']
+                    text="η (V)",
+                    ),
+
+
+                dtick=0.2,
+                lenmode="fraction",
+                len=1.,
+                xpad=0.,
+                ypad=0.,
+                outlinecolor="black",
+                outlinewidth=1.,
                 ),
             #__|
 
@@ -128,7 +152,8 @@ class Volcano_Plot_2D():
                 color="white",
                 # dash="dot",
                 smoothing=1.,
-                width=0.5,
+                # width=0.5,
+                width=0.,
                 )
             )
             #__|
@@ -166,6 +191,7 @@ class Volcano_Plot_2D():
             name=sys_i.series_name,
 
             # <br>
+            hoverinfo="name",
 
             marker=dict(
                 size=20,

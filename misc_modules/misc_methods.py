@@ -36,7 +36,6 @@ def even_spaced_range(start_finish, spacing):
     return(out_list)
     #__|
 
-
 def merge_two_dicts(x, y):
     """
     """
@@ -72,6 +71,7 @@ def dict_merge(dct, merge_dct):
             dct[k] = merge_dct[k]
     #__|
 
+
 #| - File and Directory Management
 
 def remove_file_from_all_folders(
@@ -103,10 +103,13 @@ def remove_file_from_all_folders(
                     )
 
                 if show_file_size:
-                    file_size_i = os.stat(file_path_i).st_size * 1E-6
-                    print("File size: ", str(file_size_i), " MB")
+                    try:
+                        file_size_i = os.stat(file_path_i).st_size * 1E-6
+                        print("File size: ", str(file_size_i), " MB")
 
-                    total_disk_usage += file_size_i
+                        total_disk_usage += file_size_i
+                    except:
+                        pass
 
                 print("_________")
 
@@ -129,5 +132,53 @@ def remove_file_from_all_folders(
         print("Total Disk Usage: ", str(total_disk_usage_print), "", unit)
     #__|
 
+
+#__|
+
+
+#| - Generating unique IDs
+import random
+from random import choice
+
+def GetFriendlyID(append_random_num=False):
+    """
+    Create an ID string we can recognise.
+    (Think Italian or Japanese or Native American.)
+    """
+    #| - GetFriendlyID
+    v = 'aeiou'
+    c = 'bdfghklmnprstvw'
+
+    id_i = ''.join([choice(v if i % 2 else c) for i in range(8)])
+
+    if append_random_num:
+        id_i += "_" + \
+            str(random.randint(0, 9)) + \
+            str(random.randint(0, 9))
+
+    return(id_i)
+    #__|
+
+def GetUniqueFriendlyID(used_ids):
+    """Return an ID that is not in our list of already used IDs.
+
+    used_ids = set()
+    for i in range(50):
+        id = GetUniqueFriendlyID(used_ids)
+        used_ids.add(id)
+    """
+    #| - GetUniqueFriendlyID
+    # trying infinitely is a bad idea
+    LIMIT = 1000
+
+    count = 0
+    while count < LIMIT:
+        id = GetFriendlyID(append_random_num=True)
+        if id not in used_ids:
+            break
+        count += 1
+        id = ''
+    return id
+    #__|
 
 #__|

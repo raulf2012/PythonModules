@@ -33,7 +33,11 @@ layout = go.Layout(
     extendfunnelareacolors=None,
     extendpiecolors=None,
     extendsunburstcolors=None,
-    font=None,
+    font=go.layout.Font(
+        color=None,
+        family=None,
+        size=None,
+        ),
     funnelareacolorway=None,
     funnelgap=None,
     funnelgroupgap=None,
@@ -51,7 +55,14 @@ layout = go.Layout(
     imagedefaults=None,
     legend=None,
     mapbox=None,
-    margin=None,
+    margin=go.layout.Margin(
+        autoexpand=None,
+        b=None,
+        l=None,
+        pad=None,
+        r=None,
+        t=None,
+        ),
     meta=None,
     metasrc=None,
     modebar=None,
@@ -146,7 +157,11 @@ shared_axis_dict = dict(
     tick0=None,
     tickangle=None,
     tickcolor=None,
-    tickfont=None,
+    tickfont=dict(
+        color=None,
+        family=None,
+        size=None,
+        ),
     tickformat=None,
     tickformatstops=None,
     tickformatstopdefaults=None,
@@ -183,8 +198,47 @@ yaxis_layout = go.layout.YAxis(shared_axis_dict)
 yaxis_layout.update(go.layout.YAxis(
     title="ISJFIDJSF",
     ))
-#__|
-
 
 layout.xaxis = xaxis_layout
 layout.yaxis = yaxis_layout
+#__|
+
+
+#| - Plot Annotations
+annotations = [
+
+    #| - Axis Titles
+    {
+        # 'font': {'size': axis_label_font_size},
+        'font': {'size': 12},
+        'showarrow': False,
+        'text': 'Voltage (V vs RHE)',
+        'x': 0.5,
+        'xanchor': 'center',
+        'xref': 'paper',
+        'y': 0,
+        'yanchor': 'top',
+        'yref': 'paper',
+        'yshift': -30,
+        },
+
+    {
+        # 'font': {'size': axis_label_font_size},
+        'font': {'size': 12},
+        'showarrow': False,
+        'text': 'Surface Free Energy (eV / A<sup>2</sup>)',
+        'textangle': -90,
+        'x': 0,
+        'xanchor': 'right',
+        'xref': 'paper',
+        'xshift': -40,
+        'y': 0.5,
+        'yanchor': 'middle',
+        'yref': 'paper'
+        },
+    #__|
+
+    ]
+
+layout.annotations = annotations
+#__|

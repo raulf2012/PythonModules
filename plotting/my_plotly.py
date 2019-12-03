@@ -151,12 +151,19 @@ def plot_layout(
 
 def my_plotly_plot(
     figure=None,
-    layout=None,
-    layout_override=None,
-    plot_name=None,
-    save_dir=None,
-    data=None,
-    upload_plot=True,
+    plot_name="TEMP_PLOT_NAME",
+    online_save_dir=None,
+    write_html=False,
+    write_png=False,
+    png_scale=6.,
+    write_pdf=False,
+    write_svg=False,
+    upload_plot=False,
+
+    # layout=None,
+    # layout_override=None,
+    # data=None,
+    # write_pdf_svg=True,
     ):
     """
     TODO:
@@ -173,7 +180,7 @@ def my_plotly_plot(
       Dictionary to override layout
     plot_name:
       Plot name (used both for plot upload and local save)
-    save_dir:
+    online_save_dir:
       Plot.ly folder to save figure into (Not used for local save)
     data:
       plotly data object
@@ -181,24 +188,25 @@ def my_plotly_plot(
       Upload plot to plotly servers
 
     """
-    #| - plot_proto
-    if layout is None:
-        layout = go.Layout()
+    #| - my_plotly_plot
+    # if layout is None:
+    #     layout = go.Layout()
 
     if figure is not None:
         fig = figure
     else:
-        fig = go.Figure(data=data, layout=layout)
+        print("NOOOOOOOOOOOOOOOOOOO!!!")
+        # fig = go.Figure(data=data, layout=layout)
 
 
-    fig.layout.update(layout_override)
+    # fig.layout.update(layout_override)
 
 
     #| - Upload to plot.ly website
     # #########################################################################
     if upload_plot:
         plotly_filename = os.path.join(
-            save_dir,
+            online_save_dir,
             # "02_oer_analysis",
             # "oer_2d_volcano_plot",
             plot_name)
@@ -214,21 +222,22 @@ def my_plotly_plot(
 
 
     #| - Local write to HTML
-    pyio.write_html(
-        fig,
-        os.path.join(plot_dir, plot_name + ".html"),
-        # config=None,
-        # auto_play=True,
-        # include_plotlyjs=True,
-        # include_mathjax=False,
-        # post_script=None,
-        # full_html=True,
-        # animation_opts=None,
-        # validate=True,
-        # default_width='100%',
-        # default_height='100%',
-        # auto_open=False,
-        )
+    if write_html:
+        pyio.write_html(
+            fig,
+            os.path.join(plot_dir, plot_name + ".html"),
+            # config=None,
+            # auto_play=True,
+            # include_plotlyjs=True,
+            # include_mathjax=False,
+            # post_script=None,
+            # full_html=True,
+            # animation_opts=None,
+            # validate=True,
+            # default_width='100%',
+            # default_height='100%',
+            # auto_open=False,
+            )
     #__|
 
 
@@ -237,20 +246,27 @@ def my_plotly_plot(
     hostname = socket.gethostbyaddr(socket.gethostname())[0]
 
     # Requires ORCA installation
-    if os.environ["USER"] == "raul-ubuntu-desktop" or hostname == "raul-ubuntu-vb":
+    if (
+        os.environ["USER"] == "raul-ubuntu-desktop" or
+        hostname == "raul-ubuntu-vb" or
+        hostname == "DESKTOP-37GUFJ5" or
+        hostname == "raul-dell-latitude"
+        # write_pdf_svg is True
+        ):
         print("Writing pdf with ORCA")
 
-        # This seems to be the preferred syntax now
-        fig.write_image(
-            os.path.join(plot_dir, plot_name + ".pdf")
-            # "out_plot/test_fig.pdf"
-            )
+        if write_pdf:
+            fig.write_image(
+                os.path.join(plot_dir, plot_name + ".pdf"))
+        if write_svg:
+            fig.write_image(
+                os.path.join(plot_dir, plot_name + ".svg"))
+        if write_png:
+            fig.write_image(
+                os.path.join(plot_dir, plot_name + ".png"),
+                scale=png_scale,
+                )
 
-        # This seems to be the preferred syntax now
-        fig.write_image(
-            os.path.join(plot_dir, plot_name + ".svg")
-            # "out_plot/test_fig.pdf"
-            )
     #__|
 
 
