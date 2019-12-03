@@ -1349,10 +1349,12 @@ def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
     print("User inputed dir_list len: ", str(len(user_dirs)))
     print("Parsed dir_list len: ", str(len(parsed_dirs)))
 
-    print(20 * "_")
+    print(20 * "_"); print("")
 
+    print("Dirs that were parsed but are not in the user specified list")
     print(set(parsed_dirs).difference(set(user_dirs)))
     print(20 * "*")
+    print("Dirs that are in the user list but not in the parsed list")
     print(set(user_dirs).difference(set(parsed_dirs)))
 
     #__|

@@ -8,13 +8,14 @@ Author: Raul A. Flores
 #| - Import Modules
 import plotly
 
+import os
+# import plotly.plotly as py
+import chart_studio.plotly as py
+import plotly.graph_objs as go
+
+from plotly import io as pyio
 #__|
 
-# "font": {
-#     "family": "Courier New, monospace",
-#     "size": plot_title_size,
-#     "color": "black",
-#     },
 
 #| - Plotly
 def reapply_colors(data):
@@ -145,3 +146,129 @@ def plot_layout(
     #__|
 
 #__|
+
+
+
+def my_plotly_plot(
+    figure=None,
+    plot_name="TEMP_PLOT_NAME",
+    online_save_dir=None,
+    write_html=False,
+    write_png=False,
+    png_scale=6.,
+    write_pdf=False,
+    write_svg=False,
+    upload_plot=False,
+
+    # layout=None,
+    # layout_override=None,
+    # data=None,
+    # write_pdf_svg=True,
+    ):
+    """
+    TODO:
+      Remove layout override functionality, this should be done before calling
+      the method
+
+    Returns: Plotly figure object
+
+    Args:
+    ---------------------------------------------------------------------------
+    layout:
+      plotly layout
+    layout_override:
+      Dictionary to override layout
+    plot_name:
+      Plot name (used both for plot upload and local save)
+    online_save_dir:
+      Plot.ly folder to save figure into (Not used for local save)
+    data:
+      plotly data object
+    upload_plot:
+      Upload plot to plotly servers
+
+    """
+    #| - my_plotly_plot
+    # if layout is None:
+    #     layout = go.Layout()
+
+    if figure is not None:
+        fig = figure
+    else:
+        print("NOOOOOOOOOOOOOOOOOOO!!!")
+        # fig = go.Figure(data=data, layout=layout)
+
+
+    # fig.layout.update(layout_override)
+
+
+    #| - Upload to plot.ly website
+    # #########################################################################
+    if upload_plot:
+        plotly_filename = os.path.join(
+            online_save_dir,
+            # "02_oer_analysis",
+            # "oer_2d_volcano_plot",
+            plot_name)
+        tmp = py.iplot(fig, filename=plotly_filename)
+        print(plotly_filename)
+    #__|
+
+
+    # #########################################################################
+    plot_dir = "out_plot"
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
+
+
+    #| - Local write to HTML
+    if write_html:
+        pyio.write_html(
+            fig,
+            os.path.join(plot_dir, plot_name + ".html"),
+            # config=None,
+            # auto_play=True,
+            # include_plotlyjs=True,
+            # include_mathjax=False,
+            # post_script=None,
+            # full_html=True,
+            # animation_opts=None,
+            # validate=True,
+            # default_width='100%',
+            # default_height='100%',
+            # auto_open=False,
+            )
+    #__|
+
+
+    #| - Write pdf and svg (if ORCA is installed and working)
+    import socket
+    hostname = socket.gethostbyaddr(socket.gethostname())[0]
+
+    # Requires ORCA installation
+    if (
+        os.environ["USER"] == "raul-ubuntu-desktop" or
+        hostname == "raul-ubuntu-vb" or
+        hostname == "DESKTOP-37GUFJ5" or
+        hostname == "raul-dell-latitude"
+        # write_pdf_svg is True
+        ):
+        print("Writing pdf with ORCA")
+
+        if write_pdf:
+            fig.write_image(
+                os.path.join(plot_dir, plot_name + ".pdf"))
+        if write_svg:
+            fig.write_image(
+                os.path.join(plot_dir, plot_name + ".svg"))
+        if write_png:
+            fig.write_image(
+                os.path.join(plot_dir, plot_name + ".png"),
+                scale=png_scale,
+                )
+
+    #__|
+
+
+    return(fig)
+    #__|

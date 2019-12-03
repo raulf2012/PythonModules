@@ -1,6 +1,9 @@
 # My additions #
 ################
 *.pyc
+* conflicted copy *
+*__pycache__*
+
 
 # Compiled source #
 ###################

@@ -109,7 +109,6 @@ def lim_U_i(
     assert mech_step is not None, "Please provide the step to calculate"
     #__|
 
-
     #| - linear fit and gas molecule data
     m_ooh = scaling_dict["ooh"]["m"]
     b_ooh = scaling_dict["ooh"]["b"]
@@ -127,6 +126,11 @@ def lim_U_i(
     #__|
 
     if g_o_minus_g_oh is not None:
+        """
+        (G_O-G_OH) = m_o*G_OH + b_o - (G_OH)
+        (G_O-G_OH) - b_o = G_OH*(m_o - 1)
+        G_OH = [(G_O-G_OH) - b_o] / (m_o - 1)
+        """
         g_oh = (g_o_minus_g_oh - b_o) / (m_o - 1)
 
     elif g_oh is not None:

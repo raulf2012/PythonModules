@@ -43,17 +43,19 @@ class DFT_Params:
             filename:
                 Name of file containing submission parameters in a json
                 file format. The file is created automatically from my
-                comp_env module when used in conjuction witht he job
+                comp_env module when used in conjuction with the job
                 submission script.
         """
         #| - load_submission_params
+        bkp_filename = ".submission_params.json"
+
         submission_params = None
         if os.path.isfile(filename):
             with open(filename, "r") as fle:
                 submission_params = json.load(fle)
 
-        elif os.path.isfile(".submission_params.json"):
-            with open(filename, "r") as fle:
+        elif os.path.isfile(bkp_filename):
+            with open(bkp_filename, "r") as fle:
                 submission_params = json.load(fle)
         else:
             print("Couldn't read submission_params file")
@@ -70,7 +72,7 @@ class DFT_Params:
         """
         #| - load_params
         try:
-            data = open(dir + "/dft-params.json").read()
+            data = open(os.path.join(dir, "dft-params.json")).read()
             data = json.loads(data)
 
             if update_params is True:
@@ -79,6 +81,8 @@ class DFT_Params:
                 self.params = data
 
         except:
+            print("ase_modules/dft_params.py")
+            print("    Couldn't read dft-params.json file")
             pass
         #__|
 

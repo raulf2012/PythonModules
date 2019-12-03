@@ -1,0 +1,5 @@
+#!/bin/bash
+
+module load vasp-tpc/5.4.4-hsw
+
+python ./model.py

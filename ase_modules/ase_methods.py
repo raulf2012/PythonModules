@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 """Methods for ASE scripts, mostly DFT scripts.
@@ -29,6 +30,7 @@ import matplotlib as plt
 
 from ase.io import read, write, Trajectory
 from ase import io
+from ase.visualize import view
 from ase.dft.kpoints import ibz_points, get_bandpath
 from ase.vibrations import Vibrations
 from ase.thermochemistry import HarmonicThermo
@@ -43,6 +45,11 @@ from ase_modules.dft_params import Espresso_Params
 from quantum_espresso.qe_methods import estimate_magmom
 
 from bader_charge.bader import bader
+
+import tempfile
+import shutil
+import random
+import string
 #__|
 
 #| - METHODS
@@ -395,7 +402,7 @@ def ionic_opt(
         #__|
 
         bader(atoms, spinpol=espresso_params_opt["spinpol"], run_exec=True)
-
+    #__|
 
 #__| **************************************************************************
 
@@ -2155,8 +2162,8 @@ def create_species_element_dict(
             True: Includes all elements in the periodic table, with 0 values
             for the elements not present in the atoms object
 
-        elems_to_always_include:
-            List: List of elements to include in the final dict, not including
+        elems_to_always_include: <list>
+            List of elements to include in the final dict, not including
             the elements present in the atoms object.
 
     """
@@ -2216,6 +2223,70 @@ def create_species_element_dict(
 #__| **************************************************************************
 
 #| - Visualization ************************************************************
+
+
+def view_in_vesta(
+    atoms,
+    ase_gui=False,
+    name_list=None,
+    ):
+    """
+
+    Args:
+        atoms: atoms object or list of atoms objects
+        ase_gui: Boolean
+          Whether to also show atoms with ase-gui
+        name_list: list or None
+          Optional list of names for cif files, easier to id structures when
+          opened in VESTA
+    """
+    #| - view_in_vesta
+    def randomString(stringLength=10):
+        """Generate a random string of fixed length """
+        letters = string.ascii_lowercase
+        return ''.join(random.choice(letters) for i in range(stringLength))
+
+    dirpath = tempfile.mkdtemp(
+        suffix=None,
+        prefix="RAUL_TEMP_DIR_",
+        )
+    # dirpath = "/tmp/RAUL_TEMP_DIR_i5jjf29c"
+
+    if type(atoms) == list:
+        atoms_list = atoms
+    else:
+        atoms_list = [atoms]
+
+    bash_comm = "VESTA "
+    for i_cnt, atoms_i in enumerate(atoms_list):
+        if ase_gui:
+            view(atoms_i)
+
+        file_i = randomString(stringLength=10)
+
+        if name_list is not None:
+            mess_i = "name_list must be the same len as atoms_list"
+            assert len(name_list) == len(atoms_list), mess_i 
+            filename_prepend = name_list[i_cnt]
+            file_i = str(i_cnt).zfill(3) + "_" + filename_prepend + "_"  + file_i            
+
+        full_path_i = os.path.join(
+            dirpath,
+            file_i + ".cif")
+        atoms_i.write(full_path_i)
+        bash_comm += full_path_i + " "
+    bash_comm += "&"
+    print(bash_comm)
+
+    os.system(bash_comm)
+
+
+
+    # shutil.rmtree(dirpath)
+    #__|
+
+
+
 def create_gif_from_traj(
     traj_name="qn.traj",
     path_i=".",
@@ -2435,7 +2506,5 @@ def max_force(atoms):
 
     return(largest, sum)
     #__|
-
-
 
 #__|

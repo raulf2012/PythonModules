@@ -337,10 +337,21 @@ class Element_Refs():
             },
 
 
+        # * Water formation energy:
+        #     G_Liq: | -237.14 kJ/mol  --> -2.457784 eV (-4.915567)
+        #     G_Gas: | -228.61 kJ/mol  --> -2.369376 eV (-4.738753)
+        #     --------------------------------------------------------
+        #     H_Liq: | −285.8 kJ/mol   --> -2.96211 eV  (-5.92422)
+        #     H_Gas: | −241.818 kJ/mol --> -2.506268 eV (-5.012535)
+        #
+
         # H2O Formation Energy from H2 and O2 *********************************
         H2O_form_e_dict={
-            "gibbs_e": -2.4583,
-            "enthalpy_e": -2.96211,
+            # "gibbs_e": -2.4583,
+            # "enthalpy_e": -2.96211,
+
+            "gibbs_e": -2.4583,  # Liquid phase Gibbs
+            "enthalpy_e": -2.506268,  # Gas phase enthalpy
             },
 
         # H2O_form_gibbs=-2.4583,
