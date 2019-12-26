@@ -6,18 +6,271 @@ Author: Raul A. Flores
 """
 
 #| - Import Modules
+import os
+
+import copy
+
+# Plotly imports
 import plotly
 
-import os
-# import plotly.plotly as py
 import chart_studio.plotly as py
 import plotly.graph_objs as go
 
 from plotly import io as pyio
 #__|
 
+def get_xy_axis_info(fig):
+    """
+    """
+    #| - get_xy_axis_info
+    xy_axis_list = [i for i in fig.layout._props if "axis" in i]
 
-#| - Plotly
+    x_axis_list = [i for i in xy_axis_list if i[0] == "x"]
+    y_axis_list = [i for i in xy_axis_list if i[0] == "y"]
+
+    num_of_xaxis = len(x_axis_list)
+    num_of_yaxis = len(y_axis_list)
+
+    # print("x_axis_list:", x_axis_list)
+    # print("y_axis_list:", y_axis_list)
+
+    # print("")
+
+    x_axis_num_list = []
+    for axis_i in x_axis_list:
+        if axis_i == "xaxis" or axis_i == "yaxis":
+            x_axis_num_list.append("")
+        else:
+            x_axis_num_list.append(axis_i[5:])
+
+    y_axis_num_list = []
+    for axis_i in x_axis_list:
+        if axis_i == "xaxis" or axis_i == "yaxis":
+            y_axis_num_list.append("")
+        else:
+            y_axis_num_list.append(axis_i[5:])
+
+    # print("x_axis_num_list:", x_axis_num_list)
+    # print("y_axis_num_list:", y_axis_num_list)
+
+    out_dict = dict(
+        num_of_xaxis=num_of_xaxis,
+        num_of_yaxis=num_of_yaxis,
+        x_axis_list=x_axis_list,
+        y_axis_list=y_axis_list,
+        x_axis_num_list=x_axis_num_list,
+        y_axis_num_list=y_axis_num_list,
+        )
+
+    return(out_dict)
+    #__|
+
+
+def add_minor_ticks(
+    fig,
+    axis="x",  # 'x', 'y', or 'both'
+    ticks_props_new_x=None,
+    ticks_props_new_y=None,
+    ):
+    """
+    """
+    #| - add_minor_ticks
+    dummy_trace = go.Scatter(
+        x=[0],
+        y=[0],
+        # xaxis="x2",
+        xaxis="x",
+        yaxis="y",
+        opacity=0.,
+        name="TEMP|8asdf",
+        )
+
+    xaxis_orig = copy.deepcopy(fig.layout.xaxis)
+    yaxis_orig = copy.deepcopy(fig.layout.yaxis)
+
+
+    if axis == "x" or axis == "both":
+        for trace in fig.data:
+            if trace.xaxis == None or trace.xaxis == "x":
+                xaxis_new = "x2"
+            else:
+                tmp = "x2"
+                xaxis_old = trace.xaxis
+                tmp = int(xaxis_old[1:])
+                xaxis_new = "x" + str(tmp)
+
+            fig.add_scatter(
+                **trace.update(dict1=dict(xaxis=xaxis_new), overwrite=True).to_plotly_json(),
+                )
+
+
+
+
+
+    if axis == "y" or axis == "both":
+        for trace in fig.data:
+            if trace.yaxis == None or trace.yaxis == "y":
+                yaxis_new = "y2"
+            else:
+                tmp = "y2"
+                yaxis_old = trace.yaxis
+                tmp = int(axis_old[1:])
+                yaxis_new = "y" + str(tmp)
+
+            fig.add_scatter(
+                **trace.update(dict1=dict(yaxis=yaxis_new), overwrite=True).to_plotly_json(),
+                )
+
+
+
+
+    # #########################################################################
+    # global_axis_props = go.layout.XAxis(
+
+    global_axis_props = dict(
+        showticklabels=False,
+        # title=go.layout.xaxis.Title(
+        title=dict(
+            font=None,
+            standoff=None,
+            # text="d",
+            text="",
+            ),
+        )
+
+    new_xaxis = xaxis_orig.update(
+        # global_axis_props.to_plotly_json(),
+        global_axis_props,
+        overwrite=True)
+    new_xaxis = new_xaxis.update(ticks_props_new_x)
+
+    new_yaxis = yaxis_orig.update(
+        global_axis_props,
+        overwrite=True)
+    # new_yaxis = new_yaxis.update(ticks_props_new_y.to_plotly_json())
+    new_yaxis = new_yaxis.update(ticks_props_new_y)
+
+    tmp = fig.update_layout(
+        xaxis2=new_xaxis,
+        yaxis2=new_yaxis,
+        )
+
+
+
+    fig.add_scatter(**dummy_trace.to_plotly_json())
+
+    return(fig)
+
+    #__|
+
+
+def my_plotly_plot(
+    figure=None,
+    plot_name="TEMP_PLOT_NAME",
+    write_html=False,
+    write_png=False,
+    png_scale=6.,
+    write_pdf=False,
+    write_svg=False,
+
+    try_orca_write=False,
+    ):
+    """
+    Returns: Plotly figure object
+
+    TODO The upload to plotly functionality is not that useful anymore, probably remove
+
+    TODO Add functionality to display image using Ipython.display instead of displaying the full plotly html (interactive), this will save space
+
+    from IPython.display import Image
+    Image("out_plot/" + plot_name_i + ".png")
+
+    Args:
+    ---------------------------------------------------------------------------
+    layout:
+      plotly layout
+    layout_override:
+      Dictionary to override layout
+    plot_name:
+      Plot name (used both for plot upload and local save)
+    data:
+      plotly data object
+
+    """
+    #| - my_plotly_plot
+    assert figure is not None, "Must pass a plot.ly figure object"
+    fig = figure
+
+
+    # #########################################################################
+    plot_dir = "out_plot"
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
+
+
+    #| - Local write to HTML
+    if write_html:
+        pyio.write_html(
+            fig,
+            os.path.join(plot_dir, plot_name + ".html"),
+            # config=None,
+            # auto_play=True,
+            # include_plotlyjs=True,
+            # include_mathjax=False,
+            # post_script=None,
+            # full_html=True,
+            # animation_opts=None,
+            # validate=True,
+            # default_width='100%',
+            # default_height='100%',
+            # auto_open=False,
+            )
+    #__|
+
+    #| - Write pdf and svg (if ORCA is installed and working)
+    # Getting the hostname of computer
+    import socket
+    hostname = socket.gethostbyaddr(socket.gethostname())[0]
+
+    # Requires ORCA installation
+    if (
+        os.environ.get("USER", "") == "raul-ubuntu-desktop" or
+        hostname == "raul-ubuntu-vb" or
+        hostname == "DESKTOP-37GUFJ5" or
+        hostname == "raul-dell-ubuntu" or
+        hostname == "raul-dell-latitude" or
+        try_orca_write
+        ):
+        print("Writing pdf with ORCA")
+
+        prepath = os.path.join(plot_dir, plot_name)
+        print("prepath:", prepath)
+
+        if write_pdf:
+            try:
+                fig.write_image(prepath + ".pdf")
+            except:
+                print("Couldn't write pdf")
+        if write_svg:
+            try:
+                fig.write_image(prepath + ".svg")
+            except:
+                print("Couldn't write svg")
+        if write_png:
+            try:
+                fig.write_image(prepath + ".png", scale=png_scale)
+            except:
+                print("Couldn't write png")
+
+    #__|
+
+
+    return(fig)
+    #__|
+
+
+
+
 def reapply_colors(data):
     """Redefines the line colors of a plotly data series.
 
@@ -143,132 +396,4 @@ def plot_layout(
 
     return(layout)
 
-    #__|
-
-#__|
-
-
-
-def my_plotly_plot(
-    figure=None,
-    plot_name="TEMP_PLOT_NAME",
-    online_save_dir=None,
-    write_html=False,
-    write_png=False,
-    png_scale=6.,
-    write_pdf=False,
-    write_svg=False,
-    upload_plot=False,
-
-    # layout=None,
-    # layout_override=None,
-    # data=None,
-    # write_pdf_svg=True,
-    ):
-    """
-    TODO:
-      Remove layout override functionality, this should be done before calling
-      the method
-
-    Returns: Plotly figure object
-
-    Args:
-    ---------------------------------------------------------------------------
-    layout:
-      plotly layout
-    layout_override:
-      Dictionary to override layout
-    plot_name:
-      Plot name (used both for plot upload and local save)
-    online_save_dir:
-      Plot.ly folder to save figure into (Not used for local save)
-    data:
-      plotly data object
-    upload_plot:
-      Upload plot to plotly servers
-
-    """
-    #| - my_plotly_plot
-    # if layout is None:
-    #     layout = go.Layout()
-
-    if figure is not None:
-        fig = figure
-    else:
-        print("NOOOOOOOOOOOOOOOOOOO!!!")
-        # fig = go.Figure(data=data, layout=layout)
-
-
-    # fig.layout.update(layout_override)
-
-
-    #| - Upload to plot.ly website
-    # #########################################################################
-    if upload_plot:
-        plotly_filename = os.path.join(
-            online_save_dir,
-            # "02_oer_analysis",
-            # "oer_2d_volcano_plot",
-            plot_name)
-        tmp = py.iplot(fig, filename=plotly_filename)
-        print(plotly_filename)
-    #__|
-
-
-    # #########################################################################
-    plot_dir = "out_plot"
-    if not os.path.exists(plot_dir):
-        os.makedirs(plot_dir)
-
-
-    #| - Local write to HTML
-    if write_html:
-        pyio.write_html(
-            fig,
-            os.path.join(plot_dir, plot_name + ".html"),
-            # config=None,
-            # auto_play=True,
-            # include_plotlyjs=True,
-            # include_mathjax=False,
-            # post_script=None,
-            # full_html=True,
-            # animation_opts=None,
-            # validate=True,
-            # default_width='100%',
-            # default_height='100%',
-            # auto_open=False,
-            )
-    #__|
-
-
-    #| - Write pdf and svg (if ORCA is installed and working)
-    import socket
-    hostname = socket.gethostbyaddr(socket.gethostname())[0]
-
-    # Requires ORCA installation
-    if (
-        os.environ["USER"] == "raul-ubuntu-desktop" or
-        hostname == "raul-ubuntu-vb" or
-        hostname == "DESKTOP-37GUFJ5" or
-        hostname == "raul-dell-latitude"
-        # write_pdf_svg is True
-        ):
-        print("Writing pdf with ORCA")
-
-        if write_pdf:
-            fig.write_image(
-                os.path.join(plot_dir, plot_name + ".pdf"))
-        if write_svg:
-            fig.write_image(
-                os.path.join(plot_dir, plot_name + ".svg"))
-        if write_png:
-            fig.write_image(
-                os.path.join(plot_dir, plot_name + ".png"),
-                scale=png_scale,
-                )
-
-    #__|
-
-
-    return(fig)
     #__|
