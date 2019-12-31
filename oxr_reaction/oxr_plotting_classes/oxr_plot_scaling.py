@@ -5,19 +5,17 @@
 Author: Raul A. Flores
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import numpy as np
-import pandas as pd
+# import pandas as pd
 
 from sklearn.linear_model import LinearRegression
 
 import plotly.graph_objs as go
 
-# pd.options.mode.chained_assignment = None
-
 from oxr_reaction.oxr_series import ORR_Free_E_Series
 from oxr_reaction.adsorbate_scaling import lim_U_i
-#__|
+# __|
 
 
 # ███████ ██████          ██████  ██       ██████  ████████
@@ -543,6 +541,7 @@ class Scaling_Relations_Plot():
             x_ax_spec:
             title:
             showlegend:
+            layout_dict: <dict> <plotly layout>
         """
         #| - create_layout
         # if x_ax_spec == ""
@@ -685,11 +684,6 @@ class Scaling_Relations_Plot():
 
         if layout_dict is not None:
             layout.update(layout_dict)
-
-        # if layout_dict is not None:
-        #     from misc_modules.misc_methods import dict_merge
-        #     dict_merge(layout_i, layout_dict)
-        #     # layout_i = {**layout_i, **layout_dict}
 
         return(layout)
         #__|

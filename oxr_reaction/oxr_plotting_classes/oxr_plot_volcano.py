@@ -343,9 +343,9 @@ class Volcano_Plot():
             hoverinfo="skip",
             line=dict(
                 color=line_color,
-                width=2,
+                width=1.5,
                 # dash="dash",
-                dash="5px,2px,5px,2px",
+                # dash="5px,2px,5px,2px",
                 )
             )
 
