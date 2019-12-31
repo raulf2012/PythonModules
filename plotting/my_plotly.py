@@ -33,37 +33,164 @@ def get_xy_axis_info(fig):
 
     # print("x_axis_list:", x_axis_list)
     # print("y_axis_list:", y_axis_list)
-
     # print("")
 
     x_axis_num_list = []
     for axis_i in x_axis_list:
         if axis_i == "xaxis" or axis_i == "yaxis":
-            x_axis_num_list.append("")
+            x_axis_num_list.append(1)
         else:
-            x_axis_num_list.append(axis_i[5:])
+            x_axis_num_list.append(int(axis_i[5:]))
 
     y_axis_num_list = []
     for axis_i in x_axis_list:
         if axis_i == "xaxis" or axis_i == "yaxis":
-            y_axis_num_list.append("")
+            y_axis_num_list.append(1)
         else:
-            y_axis_num_list.append(axis_i[5:])
+            y_axis_num_list.append(int(axis_i[5:]))
 
     # print("x_axis_num_list:", x_axis_num_list)
     # print("y_axis_num_list:", y_axis_num_list)
 
     out_dict = dict(
-        num_of_xaxis=num_of_xaxis,
-        num_of_yaxis=num_of_yaxis,
-        x_axis_list=x_axis_list,
-        y_axis_list=y_axis_list,
-        x_axis_num_list=x_axis_num_list,
-        y_axis_num_list=y_axis_num_list,
+        x=dict(
+            num_of_axis=num_of_xaxis,
+            axis_list=x_axis_list,
+            axis_num_list=x_axis_num_list,
+            ),
+
+        y=dict(
+            num_of_axis=num_of_yaxis,
+            axis_list=y_axis_list,
+            axis_num_list=y_axis_num_list,
+            ),
         )
 
     return(out_dict)
     #__|
+
+
+
+def add_duplicate_axes(
+    fig,
+    axis_type="x",  # 'x' or 'y'
+    axis_data=dict(),
+    axis_num_list=None,
+    ):
+    """
+    """
+    #| - add_duplicate_axes
+
+    # This is necessary to make sure that the original traces are still visible after adding the new traces
+    fig.update_layout(
+        # paper_bgcolor="white",
+        plot_bgcolor="rgba(255,255,255,0.)",
+        )
+
+    axis_info_dict = get_xy_axis_info(fig)[axis_type]
+    num_of_axis = axis_info_dict["num_of_axis"]
+
+    # #########################################################################
+    if axis_num_list is None:
+        # axis_list = axis_info_dict["axis_list"]
+        axis_num_list = axis_info_dict["axis_num_list"]
+
+
+    # axis_num_list_new = [i + len(axis_num_list) for i in axis_num_list]
+    axis_num_list_new = [i + num_of_axis + 1 for i, j in enumerate(axis_num_list)]
+
+
+    # print("num_of_axis:", num_of_axis)
+    # print("axis_num_list_new:", axis_num_list_new)
+
+    # [(i, j) for i, j in enumerate(mylist)]
+
+    iterator = enumerate(zip(axis_num_list, axis_num_list_new))
+    for i_cnt, (old_index, new_index) in iterator:
+        old_Axis = fig.layout[axis_type + "axis" + str(old_index)]
+
+        new_axis = copy.deepcopy(old_Axis)
+        new_axis = new_axis.update(
+            # dtick=0.1,
+            showticklabels=False,
+            title=dict(
+                font=None,
+                standoff=None,
+                text="",
+                ),
+            )
+
+        new_axis = new_axis.update(**axis_data)
+
+        axis_key = axis_type + "axis" + str(new_index)
+        new_layout = go.Layout({
+            axis_key: new_axis,
+            })
+
+        fig.update_layout(new_layout)
+
+        fig.add_scatter(
+            **go.Scatter({
+                axis_type + "axis": axis_type + str(new_index)
+                }).to_plotly_json())
+
+    #__|
+
+
+#| - OLD | add_duplicate_axes
+# def add_duplicate_axes(
+#     fig,
+#     axis_type="x",  # 'x' or 'y'
+#     axis_data=dict(),
+#     ):
+#     """
+#     """
+#     #| - add_duplicate_axes
+#
+#     # This is necessary to make sure that the original traces are still visible after adding the new traces
+#     fig.update_layout(
+#         # paper_bgcolor="white",
+#         plot_bgcolor="rgba(255,255,255,0.)",
+#         )
+#
+#     # #########################################################################
+#     axis_info_dict = get_xy_axis_info(fig)[axis_type]
+#
+#     num_of_axis = axis_info_dict["num_of_axis"]
+#     axis_list = axis_info_dict["axis_list"]
+#     axis_num_list = axis_info_dict["axis_num_list"]
+#
+#     axis_num_list_new = [i + num_of_axis for i in axis_num_list]
+#     iterator = enumerate(zip(axis_num_list, axis_num_list_new))
+#     for i_cnt, (old_index, new_index) in iterator:
+#         old_Axis = fig.layout[axis_type + "axis" + str(old_index)]
+#
+#         new_axis = copy.deepcopy(old_Axis)
+#         new_axis = new_axis.update(
+#             # dtick=0.1,
+#             showticklabels=False,
+#             title=dict(
+#                 font=None,
+#                 standoff=None,
+#                 text="",
+#                 ),
+#             )
+#
+#         new_axis = new_axis.update(**axis_data)
+#
+#         axis_key = axis_type + "axis" + str(new_index)
+#         new_layout = go.Layout({
+#             axis_key: new_axis,
+#             })
+#
+#         fig.update_layout(new_layout)
+#
+#         fig.add_scatter(
+#             **go.Scatter({
+#                 axis_type + "axis": axis_type + str(new_index)
+#                 }).to_plotly_json())
+#     #__|
+#__|
 
 
 def add_minor_ticks(
@@ -178,7 +305,6 @@ def my_plotly_plot(
     """
     Returns: Plotly figure object
 
-    TODO The upload to plotly functionality is not that useful anymore, probably remove
 
     TODO Add functionality to display image using Ipython.display instead of displaying the full plotly html (interactive), this will save space
 
@@ -265,7 +391,7 @@ def my_plotly_plot(
     #__|
 
 
-    return(fig)
+    # return(fig)
     #__|
 
 
