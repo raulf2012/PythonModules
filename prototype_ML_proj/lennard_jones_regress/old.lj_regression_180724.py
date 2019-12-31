@@ -5,7 +5,7 @@
 Author: Raul A. Flores
 """
 
-#| - Import Modules
+# | - Import Modules
 import gc
 import pickle
 
@@ -21,7 +21,7 @@ from classical_methods.lennard_jones import lennard_jones_sp
 
 from IPython.display import display, clear_output
 
-#| - __old__
+# | - __old__
 # import os
 # import copy
 # from scipy import stats
@@ -35,9 +35,9 @@ from IPython.display import display, clear_output
 # import math
 # from an_data_processing import load_df
 # from ase_modules.ase_methods import create_species_element_dict
-#__|
+# __|
 
-#__|
+# __|
 
 def calc_lennard_jones_form_e(
     atoms_i=None,
@@ -60,7 +60,7 @@ def calc_lennard_jones_form_e(
         epsilon:
         sigma:
     """
-    #| - calc_lennard_jones_form_e
+    # | - calc_lennard_jones_form_e
     E_H = lennard_jones_sp(epsilon, sigma, atoms_H2)
     E_O = lennard_jones_sp(epsilon, sigma, atoms_O2)
     E_Ir = lennard_jones_sp(epsilon, sigma, atoms_Ir)
@@ -103,7 +103,7 @@ def calc_lennard_jones_form_e(
     E_out = E_form_per_atom_i
 
     return(E_out)
-    #__|
+    # __|
 
 def calc_lennard_jones_all_atoms(
     pars,
@@ -121,7 +121,7 @@ def calc_lennard_jones_all_atoms(
         reference_atoms:
         return_quantity:
     """
-    #| - calc_lennard_jones_all_atoms
+    # | - calc_lennard_jones_all_atoms
 
     epsilon = pars[0]
     sigma = pars[1]
@@ -137,7 +137,7 @@ def calc_lennard_jones_all_atoms(
     if return_quantity == "energies":
         for atoms_i in atoms_list:
 
-            #| - Energy
+            # | - Energy
             lj_energy_i = calc_lennard_jones_form_e(
                 atoms_i=atoms_i,
                 atoms_H2=atoms_H2,
@@ -148,7 +148,7 @@ def calc_lennard_jones_all_atoms(
                 )
 
             predicted_energies.append(lj_energy_i)
-            #__|
+            # __|
 
         predicted_energies = np.array(predicted_energies)
         return(predicted_energies)
@@ -156,7 +156,7 @@ def calc_lennard_jones_all_atoms(
     if return_quantity == "forces":
         for atoms_i in atoms_list:
 
-            #| - Forces
+            # | - Forces
             lj_forces_i = lennard_jones_sp(
                 epsilon,
                 sigma,
@@ -167,7 +167,7 @@ def calc_lennard_jones_all_atoms(
                 )
 
             predicted_forces.append(lj_forces_i)
-            #__|
+            # __|
 
         predicted_forces = np.array(predicted_energies)
 
@@ -175,7 +175,7 @@ def calc_lennard_jones_all_atoms(
 
     # predicted_energies = np.array(predicted_energies)
     # return(predicted_energies)
-    #__|
+    # __|
 
 def objective(
     pars,
@@ -200,7 +200,7 @@ def objective(
         sig_shape:
         reference_atoms:
     """
-    #| - objective
+    # | - objective
     epsilon, sigma = unflatten_eps_sig_array(
         pars,
         eps_shape,
@@ -208,7 +208,7 @@ def objective(
         elem_list,
         )
 
-    #| - Energy Term
+    # | - Energy Term
     err = known_energies - \
         calc_lennard_jones_all_atoms(
             (epsilon, sigma),
@@ -217,9 +217,9 @@ def objective(
             )
 
     MSE = np.mean(err ** 2)
-    #__|
+    # __|
 
-    #| - Force Term
+    # | - Force Term
     def calc_sum_of_normals_of_forces(forces):
         """Calculate sum of normals of forces on each atom.
 
@@ -227,13 +227,13 @@ def objective(
             forces:
                 List of 3 components of force for each atom
         """
-        #| - calc_sum_of_normals_of_forces
+        # | - calc_sum_of_normals_of_forces
         sum_of_normals = 0.
         for atom_forces_i in forces:
             sum_of_normals += np.linalg.norm(atom_forces_i)
 
         return(sum_of_normals)
-        #__|
+        # __|
 
     known_sum_of_normals = calc_sum_of_normals_of_forces(known_forces)
 
@@ -255,7 +255,7 @@ def objective(
     # print(tmp)
 
     print(30 * "&")
-    #__|
+    # __|
 
 
     # clear_output(wait=True)
@@ -280,7 +280,7 @@ def objective(
     info["Nfeval"] += 1
 
     return(MSE)
-    #__|
+    # __|
 
 def flatten_eps_sig_triangular_matrices(
     epsilon,
@@ -293,7 +293,7 @@ def flatten_eps_sig_triangular_matrices(
         epsilon:
         sigma:
     """
-    #| - flatten_eps_sig_triangular_matrices
+    # | - flatten_eps_sig_triangular_matrices
     epsilon = epsilon.values
     sigma = sigma.values
 
@@ -317,7 +317,7 @@ def flatten_eps_sig_triangular_matrices(
             )
 
         return(flat_eps_sig_diag)
-    #__|
+    # __|
 
 def unflatten_eps_sig_array(
     flat_eps_sig,
@@ -332,9 +332,9 @@ def unflatten_eps_sig_array(
         eps_shape:
         sig_shape:
     """
-    #| - unflatten_eps_sig_array
+    # | - unflatten_eps_sig_array
 
-    #| - Array Dimension Check
+    # | - Array Dimension Check
     assert eps_shape[0] == eps_shape[1]
     assert sig_shape[0] == sig_shape[1]
 
@@ -344,7 +344,7 @@ def unflatten_eps_sig_array(
     assert N_eps == N_sig
 
     N = N_eps
-    #__|
+    # __|
 
     len_pars = len(flat_eps_sig)
     half_way = int(len_pars / 2)
@@ -357,7 +357,7 @@ def unflatten_eps_sig_array(
     else:
         pars_mode = "triangular"
 
-    #| - Methods
+    # | - Methods
     def unflatten_tri_matrix_with_defined_cross_terms(
         flat_array,
         N,
@@ -373,7 +373,7 @@ def unflatten_eps_sig_array(
             cross_terms_mode:
                 "geo" or "ave"
         """
-        #| - unflatten_tri_matrix_with_defined_cross_terms
+        # | - unflatten_tri_matrix_with_defined_cross_terms
         matrix = np.diag(flat_array)
 
         # Return list of i, j indices corresponding to the off diagonal
@@ -413,7 +413,7 @@ def unflatten_eps_sig_array(
                 matrix[i_ind][j_ind] = average_ij
 
         return(matrix)
-        #__|
+        # __|
 
     def unflatten_single_triangular_matrix(flat_array, N):
         """Unflatten a single triangular matrix.
@@ -422,7 +422,7 @@ def unflatten_eps_sig_array(
             flat_array:
             N:
         """
-        #| - unflatten_single_traingular_matrix
+        # | - unflatten_single_traingular_matrix
         start_index_list = []
         stop_index_list = []
         j_cnt = 0
@@ -449,9 +449,9 @@ def unflatten_eps_sig_array(
         rebuilt_matrix = np.array(rebuilt_matrix)
 
         return(rebuilt_matrix)
-        #__|
+        # __|
 
-    #__|
+    # __|
 
     if pars_mode == "triangular":
         epsilon = unflatten_single_triangular_matrix(epsilon_short, N)
@@ -485,7 +485,7 @@ def unflatten_eps_sig_array(
 
     return(epsilon, sigma)
 
-    #__|
+    # __|
 
 def fit_LJ_to_DFT(
     objective=None,
@@ -514,7 +514,7 @@ def fit_LJ_to_DFT(
         maxiter:
         maxfun:
     """
-    #| - fit_LJ_to_DFT
+    # | - fit_LJ_to_DFT
     atoms_H2 = reference_atoms[0]
     atoms_O2 = reference_atoms[1]
     atoms_Ir = reference_atoms[2]
@@ -532,7 +532,7 @@ def fit_LJ_to_DFT(
         mode=params_mode,  # 'triangular' or 'diagonal'
         )
 
-    #| - Minimize Method
+    # | - Minimize Method
     opt_out = minimize(
         objective,
         pars,
@@ -574,7 +574,7 @@ def fit_LJ_to_DFT(
             "disp": True,
             },
         )
-    #__|
+    # __|
 
     LJ_pars = opt_out.x
 
@@ -589,7 +589,7 @@ def fit_LJ_to_DFT(
         pickle.dump((epsilon_out, sigma_out), fle)
 
     return(epsilon_out, sigma_out)
-    #__|
+    # __|
 
 def calc_MSE(
     pars,
@@ -605,7 +605,7 @@ def calc_MSE(
         DFT_energies_col:
         ref_atoms_list:
     """
-    #| - calc_MSE
+    # | - calc_MSE
     # df_i = df_orig.iloc[cv_folds_indices[0]["testing"]]
     epsilon = pars[0]
     sigma = pars[1]
@@ -624,7 +624,7 @@ def calc_MSE(
     MSE = np.mean(err ** 2)
 
     return(MSE)
-    #__|
+    # __|
 
 def k_fold_cross_validation(data, k=5):
     """k-fold cross-validation indices list.
@@ -633,7 +633,7 @@ def k_fold_cross_validation(data, k=5):
         data:
         k:
     """
-    #| - k_fold_cross_validation
+    # | - k_fold_cross_validation
     folds = np.array_split(data, k)
 
     cv_data = []
@@ -650,4 +650,4 @@ def k_fold_cross_validation(data, k=5):
             })
 
     return(cv_data)
-    #__|
+    # __|

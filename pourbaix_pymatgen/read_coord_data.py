@@ -6,7 +6,7 @@ def read_coord_data(elem_1,elem_2, mat1_co=0.5):
 		elem_2:
 		mat1_co:
 	"""
-	#| -  - read_coord_data
+	# | -  - read_coord_data
 	from monty.json import MontyEncoder, MontyDecoder
 	import json
 	import os
@@ -62,4 +62,4 @@ def read_coord_data(elem_1,elem_2, mat1_co=0.5):
 		reg_cnt = reg_cnt+1
 
 	return coord
-	#__|
+	# __|

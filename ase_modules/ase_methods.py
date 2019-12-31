@@ -11,7 +11,7 @@ Development Notes:
     TODO Add work function analysis (Ask Colin about Karen's method)
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import sys
 import os
 import glob
@@ -50,9 +50,9 @@ import tempfile
 import shutil
 import random
 import string
-#__|
+# __|
 
-#| - METHODS
+# | - METHODS
 
 def update_FINISHED(text, filename=".FINISHED.new"):
     """Update finished job/processes log file with message.
@@ -64,7 +64,7 @@ def update_FINISHED(text, filename=".FINISHED.new"):
         text:
         filename:
     """
-    #| - update_FINISHED
+    # | - update_FINISHED
     if os.path.exists("./" + filename):
         append_write = "a"  # append if already exists
     else:
@@ -73,11 +73,11 @@ def update_FINISHED(text, filename=".FINISHED.new"):
     with open(filename, append_write) as fle:
         fle.write(text)
         fle.write("\n")
-    #__|
+    # __|
 
-#__|
+# __|
 
-#| - Parse DFT Job Parameters *************************************************
+# | - Parse DFT Job Parameters *************************************************
 
 def set_QE_calc_params(
     atoms=None,
@@ -96,7 +96,7 @@ def set_QE_calc_params(
         init_inst:
             Whether or not to institiate an espresso instance
     """
-    #| - set_QE_calc_params
+    # | - set_QE_calc_params
     from espresso import espresso
 
     mess = "Loading QE Parameters From File "
@@ -127,11 +127,11 @@ def set_QE_calc_params(
     # atoms.set_calculator(calc=calc)
 
     return(calc, espresso_params)
-    #__|
+    # __|
 
-#__| **************************************************************************
+# __| **************************************************************************
 
-#| - Ionic Optimization *******************************************************
+# | - Ionic Optimization *******************************************************
 
 def ionic_opt(
     atoms,
@@ -168,7 +168,7 @@ def ionic_opt(
             Attempts to run Beef-vdW ensemble of energies
             Must have ran calculation with appropriate paramters to begin with
     """
-    #| - ionic_opt
+    # | - ionic_opt
     from espresso import espresso
     from ase.optimize import QuasiNewton
 
@@ -179,7 +179,7 @@ def ionic_opt(
 
     # TODO Skip calculation if previously converged
     # COMBAK Uncomment this section
-    #| - Checking if Previous Calculation Has Been Completed
+    # | - Checking if Previous Calculation Has Been Completed
     # filename = ".FINISHED.new"
     # if os.path.exists("./" + filename):
     #     with open(filename, "r") as fle:
@@ -189,9 +189,9 @@ def ionic_opt(
     #                 "(Running a single-point calculation)"
     #                 )
     #             mode = "sp"
-    #__|
+    # __|
 
-    #| - Setting Optimization Specific Espresso Parameters
+    # | - Setting Optimization Specific Espresso Parameters
     # espresso_params_copy = copy.deepcopy(espresso_params)
 
     params_opt = {
@@ -215,12 +215,12 @@ def ionic_opt(
 
     calc_opt = espresso(**espresso_params_opt)
     atoms.set_calculator(calc_opt)
-    #__|
+    # __|
 
     reduce_magmoms(atoms)
 
     if mode == "opt":
-        #| - Regular Optimization
+        # | - Regular Optimization
         mess = "Running regular optimization "
         print(mess); sys.stdout.flush()
 
@@ -255,14 +255,14 @@ def ionic_opt(
             fmax=fmax,
             steps=maxsteps,
             )
-        #__|
+        # __|
 
     elif mode == "easy_opt":
-        #| - Easy Optimization -> Full Optimization
+        # | - Easy Optimization -> Full Optimization
         mess = "Running easy optimization scheme"
         print(mess); sys.stdout.flush()
 
-        #| - Easy Optimization Settings
+        # | - Easy Optimization Settings
         espresso_params_copy = copy.deepcopy(espresso_params)
 
         easy_params = {
@@ -284,7 +284,7 @@ def ionic_opt(
 
         espresso_params_copy.update(easy_params)
         easy_calc = espresso(**espresso_params_copy)
-        #__|
+        # __|
 
         #TODO: Find a way to freeze all atoms but adsorbates
         # SIMPLE RELAXATION #################
@@ -330,16 +330,16 @@ def ionic_opt(
             qn.replay_trajectory("prev.traj")
 
         qn.run(fmax=fmax)
-        #__|
+        # __|
 
     elif mode == "sp":
-        #| - Single Point Calculation
+        # | - Single Point Calculation
         mess = "Running Single-Point Calculation"
         print(mess); sys.stdout.flush()
 
         atoms.get_potential_energy()
         write("out_opt.traj", atoms)
-        #__|
+        # __|
 
 
     #TEMP
@@ -363,11 +363,11 @@ def ionic_opt(
         fle.write(str(elec_e) + "\n")
 
     # if mode != "sp":
-    #     #| - Always Run Single-Point Calculation with Full IO
+    #     # | - Always Run Single-Point Calculation with Full IO
     #     mess = "Running Post-run Single-Point Calculation"
     #     print(mess); sys.stdout.flush()
     #     atoms.get_potential_energy()
-    #     #__|
+    #     # __|
 
     update_FINISHED("ionic_opt")
 
@@ -376,7 +376,7 @@ def ionic_opt(
 
     if run_bader_an:
 
-        #| - Running initial single-point calculation
+        # | - Running initial single-point calculation
         params_bader = {
             "output": {
                 "avoidio": False,
@@ -399,14 +399,14 @@ def ionic_opt(
         print(mess); sys.stdout.flush()
         atoms.get_potential_energy()
         print("finished single-point"); sys.stdout.flush()
-        #__|
+        # __|
 
         bader(atoms, spinpol=espresso_params_opt["spinpol"], run_exec=True)
-    #__|
+    # __|
 
-#__| **************************************************************************
+# __| **************************************************************************
 
-#| - Magnetic Moments *********************************************************
+# | - Magnetic Moments *********************************************************
 
 def set_init_mag_moms(
     atoms,
@@ -441,7 +441,7 @@ def set_init_mag_moms(
             convergence. This is best used when starting from previously
             converged magmoms.
     """
-    #| - set_init_mag_moms
+    # | - set_init_mag_moms
     mess = "Setting Inital Magnetic Moments "
     mess += "**********************************************"
     print(mess); sys.stdout.flush()
@@ -485,13 +485,13 @@ def set_init_mag_moms(
             if "spinpol" in list(espresso_params):
                 spinpol_calc = espresso_params["spinpol"]
 
-        #| - Spin-polarization turned off, set magmoms to 0
+        # | - Spin-polarization turned off, set magmoms to 0
         if not spinpol_calc:
             print("set_init_mag_moms | Spin-polarization turned off")
             sys.stdout.flush()
             mag_mom_list = atoms.get_initial_magnetic_moments()
             magmoms_i = np.zeros(len(mag_mom_list))
-        #__|
+        # __|
 
         # COMBAK This is a poor way of enforcing the analysis method preference
         # Assumes that there are only 2 analysis methods
@@ -511,13 +511,13 @@ def set_init_mag_moms(
 
             magmoms_i = magmoms_master_dict[an_method]
 
-        #| - Use simple method
+        # | - Use simple method
         else:
             text = ("set_init_mag_moms | "
                     "Using simple method for initial magnetic moments")
             print(text); sys.stdout.flush()
             magmoms_i = simple_mag_moms(atoms)
-        #__|
+        # __|
 
         if read_from_file:
             text = ("set_init_mag_moms | "
@@ -529,31 +529,31 @@ def set_init_mag_moms(
                 magmoms_i = magmoms_tmp
 
 
-    #| - Check That Length of Magmoms_list == len(atoms)
+    # | - Check That Length of Magmoms_list == len(atoms)
     if not len(magmoms_i) == len(atoms):
         text = ("Length of magmoms doesn't match the number of atoms!!!!!!!!!!!"
                 "\n Will use simple method to assign initial magmoms")
 
         print(text); sys.stdout.flush()
         magmoms_i = simple_mag_moms(atoms)
-    #__|
+    # __|
 
     if inc_val_magmoms:
         magmoms_i = increase_abs_val_magmoms(atoms, magmoms_i)
 
     atoms.set_initial_magnetic_moments(magmoms_i)
 
-    #| - Printing Magnetic Moments
+    # | - Printing Magnetic Moments
     print("set_init_mag_moms | Initial Magnetic Moments:")
     for atom in atoms:
         elem = atom.symbol
         magmom = atom.magmom
         print(elem + ": " + str(magmom))
 
-    #__|
+    # __|
 
     reduce_magmoms(atoms)
-    #__|
+    # __|
 
 def increase_abs_val_magmoms(atoms, magmoms_list, increase_amount=0.8):
     """Increase absolute value of magmoms for atoms object.
@@ -570,7 +570,7 @@ def increase_abs_val_magmoms(atoms, magmoms_list, increase_amount=0.8):
         magmoms_list:
         increase_amount:
     """
-    #| - increase_abs_val_magmoms
+    # | - increase_abs_val_magmoms
     inc = increase_amount
 
     light_atoms_list = {
@@ -614,7 +614,7 @@ def increase_abs_val_magmoms(atoms, magmoms_list, increase_amount=0.8):
 
 
     return(new_magmom_list)
-    #__|
+    # __|
 
 def calc_spinpol(atoms):
     """Return whether spin polarization should be turned on or off.
@@ -625,7 +625,7 @@ def calc_spinpol(atoms):
     Args:
         atoms:
     """
-    #| - calc_spinpol
+    # | - calc_spinpol
     spinpol = True
     if hasattr(atoms, "calc"):
         if atoms.calc is not None:
@@ -639,7 +639,7 @@ def calc_spinpol(atoms):
                     # return(spinpol)
 
     return(spinpol)
-    #__|
+    # __|
 
 def simple_mag_moms(atoms):
     """Implement simple procedure to set initial guess for magnetic moments.
@@ -647,9 +647,9 @@ def simple_mag_moms(atoms):
     Args:
         atoms
     """
-    #| - simple_mag_moms
+    # | - simple_mag_moms
 
-    #| - High Spin Dictionary
+    # | - High Spin Dictionary
     master_dict_high_spin = {
 
         "Cr": 5, "Mn": 5,
@@ -667,23 +667,23 @@ def simple_mag_moms(atoms):
         "C": 0.2,
         "N": 0.2,
         }
-    #__|
+    # __|
 
-    #| - Find cations
+    # | - Find cations
     cations = []
     for atom in atoms:
         if atom.symbol in master_dict_high_spin.keys():
             # if master_dict_high_spin.has_key(atom.symbol):
             cations.append(atom.symbol)
-    #__|
+    # __|
 
-    #| - Cation Magnetic Moments Dictionary
+    # | - Cation Magnetic Moments Dictionary
     cation_magmom_dict = {}
     for cation in cations:
         cation_magmom_dict[cation] = master_dict_high_spin[cation] * 1.1 + 0.3
-    #__|
+    # __|
 
-    #| - Setting Magnetic Moments of Atoms
+    # | - Setting Magnetic Moments of Atoms
     magmoms = atoms.get_initial_magnetic_moments()
 
     for atom in atoms:
@@ -701,9 +701,9 @@ def simple_mag_moms(atoms):
     magmoms = np.array(magmoms)
 
     return(magmoms)
-    #__|
+    # __|
 
-    #__|
+    # __|
 
 def reduce_magmoms(atoms, ntypx=10):
     """Reduce number of unique magnetic moments of atoms object.
@@ -713,7 +713,7 @@ def reduce_magmoms(atoms, ntypx=10):
     atoms objects with more than 10 types of magmom/symbol pairs because QE
     only accepts a maximum of 10 types of atoms.
     """
-    #| - reduce_magmoms
+    # | - reduce_magmoms
     syms = set(atoms.get_chemical_symbols())
 
     master_dict = {}
@@ -781,7 +781,7 @@ def reduce_magmoms(atoms, ntypx=10):
         for magmom in master_dict[sym]:
             for index in master_dict[sym][magmom]:
                 atoms[index].magmom = magmom
-    #__|
+    # __|
 
 
 def read_magmoms_from_file(file_name="magmom_init.in"):
@@ -790,7 +790,7 @@ def read_magmoms_from_file(file_name="magmom_init.in"):
     Args:
         file_name:
     """
-    #| - read_magmoms_from_file
+    # | - read_magmoms_from_file
     print(os.path.isfile(file_name))
     magmoms = None
     if os.path.isfile(file_name):
@@ -822,10 +822,10 @@ def read_magmoms_from_file(file_name="magmom_init.in"):
     # print("__SD-sfd-")
 
     return(magmoms)
-    #__|
+    # __|
 
 
-#| - __old__
+# | - __old__
 # def compare_magmoms(self):
 # def compare_magmoms():
 #     """Compare spin states of two atoms objects.
@@ -839,10 +839,10 @@ def read_magmoms_from_file(file_name="magmom_init.in"):
 #
 #     Author: Colin Dickens
 #     """
-#     #| - compare_magmoms
+#     # | - compare_magmoms
 #     def nearest_atom(atoms, position):
 #         """Returns atom nearest to position."""
-#         #| - nearest_atom
+#         # | - nearest_atom
 #         position = np.array(position)
 #         dist_list = []
 #         for atom in atoms:
@@ -850,7 +850,7 @@ def read_magmoms_from_file(file_name="magmom_init.in"):
 #             dist_list.append(dist)
 #
 #         return atoms[np.argmin(dist_list)]
-#         #__|
+#         # __|
 #
 #     if len(self.ads_atoms) >= len(self.slab_atoms):
 #         ads = self.ads_atoms
@@ -900,13 +900,13 @@ def read_magmoms_from_file(file_name="magmom_init.in"):
 #     print(common)
 #     print("Magnetic moments only present in %s" % not_indexed_by)
 #     print(uncommon + "\n")
-#     #__|
-#__|
+#     # __|
+# __|
 
 
-#__| **************************************************************************
+# __| **************************************************************************
 
-#| - Density of States ********************************************************
+# | - Density of States ********************************************************
 def an_pdos(
     atoms,
     # calc,
@@ -922,7 +922,7 @@ def an_pdos(
         dos_kpts:
         espresso_params:
     """
-    #| - an_pdos
+    # | - an_pdos
     from espresso import espresso
 
     mess = "Running PDOS Analysis "
@@ -987,7 +987,7 @@ def an_pdos(
 
     atoms.write(outdir + "/out_pdos.traj")
     update_FINISHED("an_pdos")
-    #__|
+    # __|
 
 def spin_pdos(
     atoms,
@@ -1021,14 +1021,14 @@ def spin_pdos(
         write_charges:
         kwargs:
     """
-    #| - spin_pdos
+    # | - spin_pdos
     valence_dict = {
         "Cu": 11, "C": 4, "O": 6, "H": 1, "Li": 1,
         "Rh": 17, "Co": 9, "Pd": 10, "Pt": 10,
         "Ni": 1, "Fe": 16, "N": 5, "Ru": 16,
         }
 
-    #| - Reading PDOS File, Otherwise Creates It
+    # | - Reading PDOS File, Otherwise Creates It
     # FIXME I don't like that it can create PDOS file, this is handled by my
     # an_pdos method.
 
@@ -1051,31 +1051,31 @@ def spin_pdos(
         else:  # no single point calc, should take 1 or 2 minutes
             print("spin_pdos | TEMP2")
             pdos = atoms.calc.calc_pdos(**kwargs)
-    #__|
+    # __|
 
-    #| - Finding Index of Fermi Level
+    # | - Finding Index of Fermi Level
     for i_ind, e_i in enumerate(pdos[0]):
         if e_i > 0:
             fi = i_ind  # index of fermi level
             break
-    #__|
+    # __|
 
-    #| - Analysing PDOS For Magnetic Moments and Charge of All Atoms
+    # | - Analysing PDOS For Magnetic Moments and Charge of All Atoms
     if spinpol:
-        #| - Spin Polarlized Calculation
+        # | - Spin Polarlized Calculation
         magmom_list = []
         charge_list = []
         for i, atom in enumerate(atoms):
 
-            #| - Integrating Up and Down Spin PDOS
+            # | - Integrating Up and Down Spin PDOS
             spin_up = 0; spin_down = 0
             for sym in pdos[2][i]:
                 spin_up += np.trapz(pdos[2][i][sym][0][:fi], x=pdos[0][:fi])
                 spin_down += np.trapz(pdos[2][i][sym][1][:fi], x=pdos[0][:fi])
 
-            #__|
+            # __|
 
-            #| - Update Atoms Magmom and Charge Properties
+            # | - Update Atoms Magmom and Charge Properties
             ##Update magmom
             if np.abs(spin_up - spin_down) > 1e-4:
                 magmom_i = spin_up - spin_down
@@ -1098,7 +1098,7 @@ def spin_pdos(
                 atom.charge = charge_i
 
             charge_list.append(charge_i)
-            #__|
+            # __|
 
         print("PDOS MAGMOMS: " + str(atoms.get_initial_magnetic_moments()))
         reduce_magmoms(atoms)
@@ -1111,7 +1111,7 @@ def spin_pdos(
         pickle.dump(charge_list, open("%s/charge_list.pickle" % outdir, "w"))
 
 
-        #| - Writing atom objects with magmom and charges written to them
+        # | - Writing atom objects with magmom and charges written to them
         # Charges written to init_charges
         atoms_cpy1 = copy.deepcopy(atoms)
         atoms_cpy1.set_initial_charges(charge_list)
@@ -1131,29 +1131,29 @@ def spin_pdos(
                 "pdos_magmoms.traj",
                 ),
             )
-        #__|
+        # __|
 
-        #__|
+        # __|
 
     else:
-        #| - Non-Spin Polarized Calculation
+        # | - Non-Spin Polarized Calculation
         charge_list = []
         for i, atom in enumerate(atoms):
 
-            #| - Integrating PDOS For Charges
+            # | - Integrating PDOS For Charges
             charge = 0
             for sym in pdos[2][i]:
                 charge += np.trapz(pdos[2][i][sym][0][:fi], x=pdos[0][:fi])
-            #__|
+            # __|
 
-            #| - Update Atoms Charges
+            # | - Update Atoms Charges
             # Update charge
             charge_i = nvalence_dict.get(atom.symbol, 0.) - (charge)
             if write_charges:
                 # atom.charge = nvalence_dict[atom.symbol] - (charge)
                 atom.charge = charge_i
             charge_list.append(charge_i)
-            #__|
+            # __|
 
             atoms.info.update({"pdos_charges": charge_list})
 
@@ -1165,7 +1165,7 @@ def spin_pdos(
                     )
                 )
 
-        #| - Writing atom objects with magmom and charges written to them
+        # | - Writing atom objects with magmom and charges written to them
         # Charges written to init_charges
         atoms_cpy1 = copy.deepcopy(atoms)
         atoms_cpy1.set_initial_charges(charge_list)
@@ -1175,14 +1175,14 @@ def spin_pdos(
                 "pdos_charges.traj",
                 ),
             )
-        #__|
+        # __|
 
-        #__|
+        # __|
 
     print("PDOS CHARGES: " + str(atoms.get_initial_charges()))
-    #__|
+    # __|
 
-    #| - Writing Output To File
+    # | - Writing Output To File
     if outdir and not single_point_calc:
         #Save only the Lowdin charges in the pdos log file
         light_lines = []
@@ -1210,13 +1210,13 @@ def spin_pdos(
 
     if save_pkl:
         pickle.dump(pdos, open("pdos.pkl", "w"))
-    #__|
+    # __|
 
-    #__|
+    # __|
 
-#__| **************************************************************************
+# __| **************************************************************************
 
-#| - Band Structure ***********************************************************
+# | - Band Structure ***********************************************************
 
 def an_bands(atoms, bands_kpts, espresso_params):
     """Perform band analysis on atoms object.
@@ -1230,7 +1230,7 @@ def an_bands(atoms, bands_kpts, espresso_params):
         bands_kpts:
         espresso_params:
     """
-    #| - an_bands
+    # | - an_bands
     from espresso import espresso
 
     mess = "Executing Band Structure Analysis "
@@ -1245,7 +1245,7 @@ def an_bands(atoms, bands_kpts, espresso_params):
         atoms.set_initial_magnetic_moments(np.zeros(len(atoms)))
         # set_mag_mom_to_0(atoms)  # COMBAK Remove this if working
 
-    #| - Running initial single-point calculation
+    # | - Running initial single-point calculation
     params_bands = {
         "output": {
             "avoidio": False,
@@ -1276,7 +1276,7 @@ def an_bands(atoms, bands_kpts, espresso_params):
     print(mess); sys.stdout.flush()
     atoms.get_potential_energy()
     print("finished single-point"); sys.stdout.flush()
-    #__|
+    # __|
 
     # # calc_spinpol(atoms)  # COMBAK I don't think this is doing anything
     # espresso_params.update(
@@ -1318,11 +1318,11 @@ def an_bands(atoms, bands_kpts, espresso_params):
     atoms.write("dir_bands/out_bands.traj")
 
     update_FINISHED("an_bands")
-    #__|
+    # __|
 
-#__| **************************************************************************
+# __| **************************************************************************
 
-#| - Beef Ensemble of Energies ************************************************
+# | - Beef Ensemble of Energies ************************************************
 # def an_beef_ensemble(atoms, xc):  # COMBAK
 def an_beef_ensemble(atoms):
     """Perform BEEF ensemble of enery analysis.
@@ -1336,7 +1336,7 @@ def an_beef_ensemble(atoms):
         atoms:
         xc:
     """
-    #| - an_beef_ensemble
+    # | - an_beef_ensemble
     mess = "Executing BEEF Ensemble Analysis "
     mess += "*********************************************"
     print(mess); sys.stdout.flush()
@@ -1375,7 +1375,7 @@ def an_beef_ensemble(atoms):
         pickle.dump(ens_e, fle)
 
     update_FINISHED("an_beef_ensemble")
-    #__|
+    # __|
 
 def plot_beef_ensemble(
     folder_dir="dir_beef_ensemble",
@@ -1389,7 +1389,7 @@ def plot_beef_ensemble(
         file_name:
         file_out:
     """
-    #| - plot_beef_ensemble
+    # | - plot_beef_ensemble
     file_loc = folder_dir + "/" + file_name
 
     data = pickle.load(open(file_loc, "r"))
@@ -1407,11 +1407,11 @@ def plot_beef_ensemble(
     out_file = folder_dir + "/" + file_out
     plt.savefig(out_file)
     # plt.show()
-    #__|
+    # __|
 
-#__| **************************************************************************
+# __| **************************************************************************
 
-#| - Vibrational Analysis *****************************************************
+# | - Vibrational Analysis *****************************************************
 def an_ads_vib(
     atoms,
     espresso_params=None,
@@ -1436,7 +1436,7 @@ def an_ads_vib(
         thermochem_corrections:
         remove_imag_modes: Removes imaginary modes
     """
-    #| - an_ads_vib
+    # | - an_ads_vib
     # from espresso import espresso
     from espresso.vibespresso import vibespresso
 
@@ -1444,7 +1444,7 @@ def an_ads_vib(
     mess += "************************************************"
     print(mess); sys.stdout.flush()
 
-    #| - Setting Adsorbate Index List
+    # | - Setting Adsorbate Index List
     if ads_index_list is not None:
         pass
     elif "adsorbates" in atoms.info.keys():
@@ -1454,23 +1454,23 @@ def an_ads_vib(
         print("an_ads_vib | Adsorbate index info couldn't be parsed from atoms")
         print("an_ads_vib | Will vibrate all atoms!!!!!!!! (Probably not good)")
         pass
-    #__|
+    # __|
 
-    #| - Removing Empty Pickle Files
+    # | - Removing Empty Pickle Files
     pckl_file_list = glob.glob("dir_vib/*.pckl*") + glob.glob("*.pckl*")
     for pckl_file in pckl_file_list:
         if os.stat(pckl_file).st_size == 0:
             os.remove(pckl_file)
             print("an_ads_vib | " + pckl_file + " empty, so removed")
-    #__|
+    # __|
 
-    #| - Copy vib.pckl files back to root dir (For restarting)
+    # | - Copy vib.pckl files back to root dir (For restarting)
     for fle in glob.glob("dir_vib/*.pckl*"):
         fle_name = fle.split("/")[-1]
         shutil.move(fle, fle_name)
-    #__|
+    # __|
 
-    #| - Running initial single-point calculation
+    # | - Running initial single-point calculation
     params_vib = {
         "output": {
             "avoidio": False,
@@ -1502,7 +1502,7 @@ def an_ads_vib(
     # print(mess); sys.stdout.flush()
     # atoms.get_potential_energy()
     # print("finished single-point"); sys.stdout.flush()
-    #__|
+    # __|
 
     set_init_mag_moms(
         atoms,
@@ -1520,7 +1520,7 @@ def an_ads_vib(
 
     vib.summary(log="vib_summ.out")
 
-    #| - Copy Files to dir_vib Folder
+    # | - Copy Files to dir_vib Folder
     if not os.path.exists("dir_vib"):
         os.makedirs("dir_vib")
     shutil.move("vib_summ.out", "dir_vib/vib_summ.out")
@@ -1532,14 +1532,14 @@ def an_ads_vib(
 
     for fle in glob.glob(r'*out_vib*'):
         shutil.move(fle, dest_dir + "/" + fle)
-    #__|
+    # __|
 
-    #| - Remove Imaginary Modes
+    # | - Remove Imaginary Modes
     # Removes them, not just making them 0
     if remove_imag_modes:
         vib_e_list = vib_e_list.real
         vib_e_list = [vib_i for vib_i in vib_e_list if vib_i != 0.]
-    #__|
+    # __|
 
     if thermochem_corrections == "harmonic":
         thermochem_harm_corr(vib_e_list)
@@ -1560,7 +1560,7 @@ def an_ads_vib(
     with open("dir_vib/vib_modes.pickle", "w") as fle:
         pickle.dump(vib_e_list, fle)
 
-    #| - Saving Vibrations Class Instance
+    # | - Saving Vibrations Class Instance
     file_name = "dir_vib/vib_inst.pickle"
     if not os.path.exists(file_name):
         pass
@@ -1572,13 +1572,13 @@ def an_ads_vib(
 
     with open(file_name, "w") as fle:
         pickle.dump(vib, fle)
-    #__|
+    # __|
 
     update_FINISHED("an_ads_vib")
 
     # return(vib_e_list)
     return(vib)
-    #__|
+    # __|
 
 def thermochem_harm_corr(
     vib_e_list,
@@ -1591,7 +1591,7 @@ def thermochem_harm_corr(
             List of vibrational modes in eV
         Temperature:
     """
-    #| - thermochem_harm_corr
+    # | - thermochem_harm_corr
     mess = "Starting thermochemical harmonic energy contributions "
     mess += "***********************"
     print(mess); sys.stdout.flush()
@@ -1613,7 +1613,7 @@ def thermochem_harm_corr(
     with open("dir_vib/gibbs_corr.out", "w") as fle:
         fle.write(str(F_energy))
         fle.write("\n")
-    #__|
+    # __|
 
 def thermochem_IG_corr(
     vib_energies,
@@ -1636,7 +1636,7 @@ def thermochem_IG_corr(
         spin=None:
         atoms=None:
     """
-    #| - thermochem_IG_corr
+    # | - thermochem_IG_corr
     mess = "Starting thermochemical ideal gas energy contributions "
     mess += "***********************"
     print(mess); sys.stdout.flush()
@@ -1677,18 +1677,18 @@ def thermochem_IG_corr(
 
     with open("dir_vib/g_energy.out", "w") as fle:
         fle.write(str(G))
-    #__|
+    # __|
 
 
-#__| **************************************************************************
+# __| **************************************************************************
 
-#| - Job Cleanup
+# | - Job Cleanup
 def clean_up_dft():
     """Clean up files after DFT job.
 
     I'm using a lot of try statement because I dont want this to break anywhere
     """
-    #| - clean_up_dft
+    # | - clean_up_dft
     with open(".FINISHED", "w") as fle:
         fle.write("\n")
 
@@ -1699,7 +1699,7 @@ def clean_up_dft():
     if not os.path.exists("__misc__"):
         os.makedirs("__misc__")
 
-    #| - Moving Sherlock Node Files to __misc__ folder
+    # | - Moving Sherlock Node Files to __misc__ folder
     # Sherlock didn't like this:
     # Open RTE was unable to open the hostfile:
     #     /scratch/users/flores12/03_graph_N_Fe/01_opt_struct/N_doped_graph_Fe/1-att/__test__/1-att/_5/uniqnodefile.21286552
@@ -1715,9 +1715,9 @@ def clean_up_dft():
     #
     # except:
     #     pass
-    #__|
+    # __|
 
-    #| - Moving DFT Parameter Files to dir_dft_params
+    # | - Moving DFT Parameter Files to dir_dft_params
     try:
         if not os.path.exists("dir_dft_params"):
             os.makedirs("dir_dft_params")
@@ -1728,13 +1728,13 @@ def clean_up_dft():
 
     except:
         pass
-    #__|
+    # __|
 
-    #__|
+    # __|
 
-#__|
+# __|
 
-#| - Atoms File Operations ****************************************************
+# | - Atoms File Operations ****************************************************
 def read_atoms_from_file(filename=None, try_restart=True):
     """Read atoms object from file.
 
@@ -1746,7 +1746,7 @@ def read_atoms_from_file(filename=None, try_restart=True):
         filename: optional atoms file, will attempt to read first.
         try_restart: Restart job by reading output atoms/trajectory object
     """
-    #| - read_atoms_from_file
+    # | - read_atoms_from_file
     mess = "Reading Atoms Object From File "
     mess += "***********************************************"
     print(mess)
@@ -1754,7 +1754,7 @@ def read_atoms_from_file(filename=None, try_restart=True):
     atoms = None
     traj = None
 
-    #| - Restart From Output Atoms Object
+    # | - Restart From Output Atoms Object
     restart_file_name_list = [
         "out.traj",
         "out_opt.traj",
@@ -1777,9 +1777,9 @@ def read_atoms_from_file(filename=None, try_restart=True):
 
                 except:
                     pass
-    #__|
+    # __|
 
-    #| - Starting From Fresh Atoms Object
+    # | - Starting From Fresh Atoms Object
     file_name_list = [
         "init.traj",
         "init.POSCAR",
@@ -1803,13 +1803,13 @@ def read_atoms_from_file(filename=None, try_restart=True):
                 print(mess); sys.stdout.flush()
 
                 break
-    #__|
+    # __|
 
     if atoms is None:
         raise IOError("No atoms file found")
 
     return(atoms, traj)
-    #__|
+    # __|
 
 def convert_atoms_object(atoms_filename, out_file):
     """Convert atoms objects to new file format.
@@ -1818,26 +1818,26 @@ def convert_atoms_object(atoms_filename, out_file):
         atoms_filename:
         out_file:
     """
-    #| - convert_atoms_object
+    # | - convert_atoms_object
     atoms = read(atoms_filename)
 
-    #| - Convert to New Trajectory File Format
+    # | - Convert to New Trajectory File Format
     if out_file.split(".")[-1] == "traj":
         write(out_file, atoms)
 
-        #| - Using Trajectory Class Directly (Not Right?)
+        # | - Using Trajectory Class Directly (Not Right?)
         # traj = Trajectory(out_file, mode="w", atoms=atoms)
         # traj.set_description({"author": "Created by Raul Flores"})
         # traj.write()
-        #__|
+        # __|
 
-    #__|
+    # __|
 
-    #__|
+    # __|
 
-#__| **************************************************************************
+# __| **************************************************************************
 
-#| - Atoms Geometry Methods ***************************************************
+# | - Atoms Geometry Methods ***************************************************
 def angle_between_lattice_vectors(atoms, vector_0=0, vector_1=1):
     """Calculate angle between cell lattice vectors.
 
@@ -1849,7 +1849,7 @@ def angle_between_lattice_vectors(atoms, vector_0=0, vector_1=1):
         vector_0:
         vector_1:
     """
-    #| - angle_between_lattice_vectors
+    # | - angle_between_lattice_vectors
     v1 = atoms.cell[vector_0]
     v2 = atoms.cell[vector_1]
 
@@ -1857,7 +1857,7 @@ def angle_between_lattice_vectors(atoms, vector_0=0, vector_1=1):
     angle = math.degrees(angle)
 
     return(angle)
-    #__|
+    # __|
 
 def magnitude_of_lattice_vectors(atoms):
     """Return magnitude of three lattice vectors.
@@ -1865,7 +1865,7 @@ def magnitude_of_lattice_vectors(atoms):
     Args:
         atoms:
     """
-    #| - magnitude_of_lattice_vectors
+    # | - magnitude_of_lattice_vectors
     v1 = atoms.cell[0]
     v2 = atoms.cell[1]
     v3 = atoms.cell[2]
@@ -1877,7 +1877,7 @@ def magnitude_of_lattice_vectors(atoms):
     out_tup = (mag1, mag2, mag3)
 
     return(out_tup)
-    #__|
+    # __|
 
 def find_diff_between_atoms_objects(atoms_A, atoms_B):
     """Find indices of atoms that are unique to atoms_A and atoms_B.
@@ -1898,27 +1898,27 @@ def find_diff_between_atoms_objects(atoms_A, atoms_B):
         atoms_A:
         atoms_B:
     """
-    #| - find_diff_between_atoms_objects
+    # | - find_diff_between_atoms_objects
 
-    #| - __old__
+    # | - __old__
 
-    # #| - Import Modules
+    # # | - Import Modules
     # from ase import io
-    # #__|
+    # # __|
     #
-    # #| - Script Inputs
+    # # | - Script Inputs
     # atoms_A_filename = "A.traj"
     # atoms_B_filename = "B.traj"
-    # #__|
+    # # __|
     #
-    # #| - Reading Atoms Objects
+    # # | - Reading Atoms Objects
     # atoms_A = io.read(atoms_A_filename)
     # atoms_B = io.read(atoms_B_filename)
-    # #__|
+    # # __|
 
-    #__|
+    # __|
 
-    #| - Building the Identical Atom Index List for Both Atoms Objects
+    # | - Building the Identical Atom Index List for Both Atoms Objects
     atoms_A_ind_list = []
     atoms_B_ind_list = []
     for atom_A in atoms_A:
@@ -1937,7 +1937,7 @@ def find_diff_between_atoms_objects(atoms_A, atoms_B):
             if all(pos_AB_comp) is True and elem_AB_comp is True:
                 atoms_A_ind_list.append(atom_A.index)
                 atoms_B_ind_list.append(atom_B.index)
-    #__|
+    # __|
 
     atoms_A_unique_ind_list = []
     for atom_A in atoms_A:
@@ -1951,11 +1951,11 @@ def find_diff_between_atoms_objects(atoms_A, atoms_B):
 
     return(atoms_A_unique_ind_list, atoms_B_unique_ind_list)
 
-    #__|
+    # __|
 
-#__| **************************************************************************
+# __| **************************************************************************
 
-#| - Modify Atoms Object ******************************************************
+# | - Modify Atoms Object ******************************************************
 
 def move_atoms_of_element_i(atoms, element, new_position, dim="z"):
     """Modify positions of all atoms of certain element.
@@ -1966,20 +1966,20 @@ def move_atoms_of_element_i(atoms, element, new_position, dim="z"):
         new_position:
         dim:
     """
-    #| - move_atoms_of_element_i
+    # | - move_atoms_of_element_i
     if type(atoms) == str:
         atoms = read(atoms)
     else:
         pass
 
-    #| - Converting Input Dimension to Integer Index
+    # | - Converting Input Dimension to Integer Index
     if dim == "x":
         dim = 0
     elif dim == "y":
         dim = 1
     elif dim == "z":
         dim = 2
-    #__|
+    # __|
 
     elem_i_list = []
     for atom in atoms:
@@ -1989,7 +1989,7 @@ def move_atoms_of_element_i(atoms, element, new_position, dim="z"):
             elem_i_list.append(atom)
 
     # return(atoms)
-    #__|
+    # __|
 
 def displace_overlayer(
     atoms,
@@ -2010,7 +2010,7 @@ def displace_overlayer(
         element:
         save_file:
     """
-    #| - displace_overlayer
+    # | - displace_overlayer
     atoms = copy.deepcopy(atoms)
 
     x_frac = 1. * x_ind / mesh_size_x
@@ -2035,7 +2035,7 @@ def displace_overlayer(
         atoms.write(fle_name)
 
     return(atoms)
-    #__|
+    # __|
 
 def change_vacuum(atoms, vacuum):
     """Change the amount of vacuum in a slab.
@@ -2047,7 +2047,7 @@ def change_vacuum(atoms, vacuum):
         atoms:
         vacuum:
     """
-    #| - change_vacuum
+    # | - change_vacuum
     if type(atoms) == str:
         atoms = read(atoms)
     else:
@@ -2061,11 +2061,11 @@ def change_vacuum(atoms, vacuum):
     atoms.center()
 
     return(atoms)
-    #__|
+    # __|
 
-#__| **************************************************************************
+# __| **************************************************************************
 
-#| - Atoms Information Methods ************************************************
+# | - Atoms Information Methods ************************************************
 
 
 def number_of_constrained_atoms(atoms):
@@ -2074,7 +2074,7 @@ def number_of_constrained_atoms(atoms):
     Args:
         atoms:
     """
-    #| - number_of_constrained_atoms
+    # | - number_of_constrained_atoms
     if type(atoms) == str:
         atoms = read(atoms)
     else:
@@ -2083,7 +2083,7 @@ def number_of_constrained_atoms(atoms):
     N_constraints = len(atoms.constraints)
 
     return(N_constraints)
-    #__|
+    # __|
 
 def highest_position_of_element(atoms, element_symbol):
     """Return highest z-value for given element type.
@@ -2092,13 +2092,13 @@ def highest_position_of_element(atoms, element_symbol):
         atoms:
         element_symbol
     """
-    #| - highest_position_of_element
+    # | - highest_position_of_element
 
-    #| - SCRIPT INPUTS
+    # | - SCRIPT INPUTS
     # element_symbol
     element_name = element_symbol
     # atoms_file_name = atoms
-    #__|
+    # __|
 
     if type(atoms) == str:
         atoms = read(atoms)
@@ -2115,7 +2115,7 @@ def highest_position_of_element(atoms, element_symbol):
     highest_z_pos = elem_atom_list[-1]
 
     return(highest_z_pos)
-    #__|
+    # __|
 
 def number_of_atoms(atoms):
     """Return atom count dictionary.
@@ -2126,7 +2126,7 @@ def number_of_atoms(atoms):
     Args:
         atoms
     """
-    #| - number_of_atoms
+    # | - number_of_atoms
     atoms_sym_list = atoms.get_chemical_symbols()
     unique_atom_symbols = list(set(atoms_sym_list))
 
@@ -2142,7 +2142,7 @@ def number_of_atoms(atoms):
     print("THIS HAS BEEN DEPRECATED to create_species_element_dict")
 
     # return(atom_dict)
-    #__|
+    # __|
 
 def create_species_element_dict(
     atoms,
@@ -2167,7 +2167,7 @@ def create_species_element_dict(
             the elements present in the atoms object.
 
     """
-    #| - create_species_element_dict
+    # | - create_species_element_dict
     from misc_modules.misc_methods import merge_two_dicts
 
     all_elements = list(periodic_table_dict)
@@ -2181,7 +2181,7 @@ def create_species_element_dict(
 
         species_elem_dict[elem_i] = num_elem_i
 
-    #| - Include All Elements in the periodic table
+    # | - Include All Elements in the periodic table
     if include_all_elems or elems_to_always_include is not None:
         all_non_occuring_elements = list(
             filter(
@@ -2215,14 +2215,14 @@ def create_species_element_dict(
             non_occuring_species_elem_dict,
             species_elem_dict,
             )
-    #__|
+    # __|
 
     return(species_elem_dict)
-    #__|
+    # __|
 
-#__| **************************************************************************
+# __| **************************************************************************
 
-#| - Visualization ************************************************************
+# | - Visualization ************************************************************
 
 
 def view_in_vesta(
@@ -2240,7 +2240,7 @@ def view_in_vesta(
           Optional list of names for cif files, easier to id structures when
           opened in VESTA
     """
-    #| - view_in_vesta
+    # | - view_in_vesta
     def randomString(stringLength=10):
         """Generate a random string of fixed length """
         letters = string.ascii_lowercase
@@ -2283,7 +2283,7 @@ def view_in_vesta(
 
 
     # shutil.rmtree(dirpath)
-    #__|
+    # __|
 
 
 
@@ -2303,14 +2303,14 @@ def create_gif_from_traj(
         delay:
 
     """
-    #| - create_gif_from_traj
+    # | - create_gif_from_traj
 
-    #| - Method  Parameters
+    # | - Method  Parameters
     atoms_file_name = "out_movie"
     fold_name = "images"
-    #__|
+    # __|
 
-    #| - Creating png *********************************************************
+    # | - Creating png *********************************************************
     if image_range == "all":
         ind_range = ":"
     else:
@@ -2341,9 +2341,9 @@ def create_gif_from_traj(
 
         os.remove(path_i + "/" + name_i + ".pov")
         os.remove(path_i + "/" + name_i + ".ini")
-    #__| **********************************************************************
+    # __| **********************************************************************
 
-    #| - Converting Images to GIF *********************************************
+    # | - Converting Images to GIF *********************************************
     root_dir = os.getcwd()
     os.chdir(path_i + "/" + fold_name)
 
@@ -2357,9 +2357,9 @@ def create_gif_from_traj(
     os.system(bash_command)
     os.system("mv *.gif ..")
     os.chdir(root_dir)
-    #__| **********************************************************************
+    # __| **********************************************************************
 
-    #__|
+    # __|
 
 def create_gif_from_atoms_movies(
     atoms_file="Default",
@@ -2376,13 +2376,13 @@ def create_gif_from_atoms_movies(
         path_i:
         delay:
     """
-    #| - create_images_from_atoms_movies
+    # | - create_images_from_atoms_movies
 
-    #| - SCRIPT PARAMETERS
+    # | - SCRIPT PARAMETERS
     fold_name = "images"
-    #__|
+    # __|
 
-    #| - Read Atoms File with *.traj File Name
+    # | - Read Atoms File with *.traj File Name
 
     if atoms_file == "Default":
         filenames = next(os.walk(path_i))[2]
@@ -2405,7 +2405,7 @@ def create_gif_from_atoms_movies(
     atoms_file_name = ".".join(atoms_file_name)
 
     alist[atoms_file] = read(atoms_file_path, index=":")
-    #__|
+    # __|
 
     folder_i = fold_name
     if not os.path.isdir(path_i + folder_i):
@@ -2440,7 +2440,7 @@ def create_gif_from_atoms_movies(
             os.remove(path_i + "/" + name_i + ".ini")
 
 
-    #| - Converting Images to GIF
+    # | - Converting Images to GIF
     root_dir = os.getcwd()
 
     os.chdir(path_i + "/" + fold_name)
@@ -2457,14 +2457,14 @@ def create_gif_from_atoms_movies(
     os.system("mv *.gif ..")
 
     os.chdir(root_dir)
-    #__|
+    # __|
 
     # TODO - Remove png files after creating gif !!!!!
-    #__|
+    # __|
 
-#__| **************************************************************************
+# __| **************************************************************************
 
-#| - MISC
+# | - MISC
 
 def max_force(atoms):
     """Return largest force on any atom.
@@ -2473,7 +2473,7 @@ def max_force(atoms):
         atoms:
 
     """
-    #| - max_force
+    # | - max_force
     from ase import Atoms
     from numpy import ndarray
 
@@ -2505,6 +2505,6 @@ def max_force(atoms):
             largest = force
 
     return(largest, sum)
-    #__|
+    # __|
 
-#__|
+# __|

@@ -8,7 +8,7 @@ Development Notes:
     TODO Include the atoms object so that I can reference atom types
 """
 
-#| - Import Modules
+# | - Import Modules
 import copy
 from itertools import compress
 
@@ -17,9 +17,9 @@ import pandas as pd
 import plotly.graph_objs as go
 
 from misc_modules.numpy_methods import make_filter_list
-#__|
+# __|
 
-#| - Methods
+# | - Methods
 def plot_dos_series(
     x_data,
     y_data,
@@ -31,7 +31,7 @@ def plot_dos_series(
     Args:
 
     """
-    #| - plot_dos_series
+    # | - plot_dos_series
     trace = go.Scatter(
         x=x_data,
         y=y_data,
@@ -43,9 +43,9 @@ def plot_dos_series(
         )
 
     return(trace)
-    #__|
+    # __|
 
-#__|
+# __|
 
 def filter_pdos_data(pdos_data, percent_keep=0.4):
     """Filter dos and pdos data series to lower memory cost.
@@ -55,7 +55,7 @@ def filter_pdos_data(pdos_data, percent_keep=0.4):
         percent_keep:
             Fraction of data to keep, the rest is discarded
     """
-    #| - filter_pdos_data
+    # | - filter_pdos_data
     len_data = len(pdos_data[0])
     filter_list = make_filter_list(len_data, percent_keep)
 
@@ -99,7 +99,7 @@ def filter_pdos_data(pdos_data, percent_keep=0.4):
 
 
     return(new_pdos_data)
-    #__|
+    # __|
 
 def plot_pdos_dos(
     pdos_data,
@@ -116,19 +116,19 @@ def plot_pdos_dos(
         filter_dict:
         atoms:
     """
-    #| - plot_pdos_dos
+    # | - plot_pdos_dos
     energies, dos, pdos = pdos_data
 
-    #| - Determing Whether Calclation Is Spin Polarized
+    # | - Determing Whether Calclation Is Spin Polarized
     if len(dos) != 2:
         spinpol = False
     elif len(dos) == 2:
         spinpol = True
-    #__|
+    # __|
 
-    #| - Data Processing
+    # | - Data Processing
 
-    #| - Total Density of State
+    # | - Total Density of State
     dos_data = []
     if spinpol:
         dos_tot_u = dos[0]
@@ -169,18 +169,18 @@ def plot_pdos_dos(
 
         dos_data.append(trace)
 
-    #__|
+    # __|
 
-    #| - Atomic Projected Density of State
+    # | - Atomic Projected Density of State
     pdos_master_data = []
 
     if spinpol:
-        #| - Spinpol: True
+        # | - Spinpol: True
         for pdos_i, atom_i in zip(pdos, atoms):
             elem_i = atom_i.symbol
             ind_i = atom_i.index
 
-            #| - Data Format Type Dict
+            # | - Data Format Type Dict
             type_dict = {}
 
             type_dict["p"] = [
@@ -224,7 +224,7 @@ def plot_pdos_dos(
                 "dxy up",
                 "dxy down",
                 ]
-            #__|
+            # __|
 
             # for band_j, dos_j in pdos_i.iteritems():
             for band_j, dos_j in pdos_i.items():
@@ -240,12 +240,12 @@ def plot_pdos_dos(
                         }
 
                     pdos_master_data.append(row_i)
-        #__|
+        # __|
 
     else:
-        #| - Spinpol: False
+        # | - Spinpol: False
 
-        #| - Data Format Type Dict
+        # | - Data Format Type Dict
         type_dict = {}
         type_dict["p"] = [
             "sum",
@@ -267,7 +267,7 @@ def plot_pdos_dos(
             "dx2-y2",
             "dxy",
             ]
-        #__|
+        # __|
 
         pdos_master_data = []
         for pdos_i, atom_i in zip(pdos, atoms):
@@ -286,14 +286,14 @@ def plot_pdos_dos(
                         }
 
                     pdos_master_data.append(row_i)
-        #__|
+        # __|
 
-    #__|
+    # __|
 
     df = pd.DataFrame(pdos_master_data)
-    #__|
+    # __|
 
-    #| - Data Analysis
+    # | - Data Analysis
     df["name"] = df["element"] + df["atom_ind"].astype(str) + " | " + \
         df["band"] + df["type"]
 
@@ -307,9 +307,9 @@ def plot_pdos_dos(
     for key, value in filter_dict.items():
         df = df[df[key].isin(value)]
 
-    #__|
+    # __|
 
-    #| - Plotly Scatter Plot Creation
+    # | - Plotly Scatter Plot Creation
     data = []
     for index, row in df.iterrows():
         if group is not None:
@@ -327,20 +327,20 @@ def plot_pdos_dos(
         data.append(data_i)
 
     pdos_data_out = data
-    #__|
+    # __|
 
 
 
-    #| - Plotting
+    # | - Plotting
 
-    #| - Plot Settings
+    # | - Plot Settings
     plot_title_size = 20
     tick_lab_size = 16
     axes_lab_size = 18
     legend_size = 18
-    #__|
+    # __|
 
-    #| - Plot Layout
+    # | - Plot Layout
     layout = {
         "title": plot_title,
         "font": {
@@ -349,7 +349,7 @@ def plot_pdos_dos(
             "color": "black",
             },
 
-        #| - Axes -------------------------------------------------------------
+        # | - Axes -------------------------------------------------------------
         "yaxis": {
             "title": "E - E<sub>fermi</sub> [eV]",
             "zeroline": True,
@@ -374,25 +374,25 @@ def plot_pdos_dos(
             "showticklabels": False,
             "range": [0, max_dens],
             },
-        #__| ------------------------------------------------------------------
+        # __| ------------------------------------------------------------------
 
-        #| - Legend -----------------------------------------------------------
+        # | - Legend -----------------------------------------------------------
         "legend": {
             "traceorder": "normal",
             "font": dict(size=legend_size)
             },
 
-        #__| ------------------------------------------------------------------
+        # __| ------------------------------------------------------------------
 
-        #| - Plot Size
+        # | - Plot Size
         # "width": 200 * 4.,
         # "height": 200 * 3.,
-        #__|
+        # __|
 
         }
-    #__|
+    # __|
 
-    #__|
+    # __|
 
     return(dos_data, pdos_data_out, layout)
-    #__|
+    # __|

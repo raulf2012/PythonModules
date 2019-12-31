@@ -6,7 +6,7 @@ class ElementList(object):
 	Args:
 	    N/A
 	"""
-	#| -  - ElementList
+	# | -  - ElementList
 	def __init__(self, atom_num_lst=[[]]):
 		self.atom_num_lst = atom_num_lst
 		if not atom_num_lst==[[]]:
@@ -47,12 +47,12 @@ class ElementList(object):
 			elements.append(element)
 		return elements
 
-	#__|
+	# __|
 
 class ElemList_mod(object):
 	"""
 	"""
-	#| -  - ElemList_mod
+	# | -  - ElemList_mod
 	def __init__(self,elem_lst):
 		self.elem_lst = elem_lst
 	@property
@@ -70,14 +70,14 @@ class ElemList_mod(object):
 			elem_lst_sorted.sort(key=lambda x: x.group)
 			return elem_lst_sorted
 
-		#| -  - d-band filling
+		# | -  - d-band filling
 		if srt_type == 'd-band': #COMBAK
 			tmp = 7
 
 
 
 
-		#__|
+		# __|
 
 	def remove(self,element):
 		"""
@@ -108,7 +108,7 @@ class ElemList_mod(object):
 			elem_0 = next((x for x in self.elem_lst if x.number == element), None)
 			elem_lst_new = [x for x in self.elem_lst if not x.number == element]
 			return elem_lst_new
-	#__|
+	# __|
 
 def elem_str_mke(elem_lst):
 	"""
@@ -116,10 +116,10 @@ def elem_str_mke(elem_lst):
 	Args:
 		elem_lst:
 	"""
-	#| -  - elem_str_mke
+	# | -  - elem_str_mke
 	elem_str=[]
 	for i in elem_lst:
 		elem_str.append(i.symbol)
 	return elem_str
 
-	#__|
+	# __|

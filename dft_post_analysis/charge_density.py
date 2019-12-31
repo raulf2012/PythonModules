@@ -5,7 +5,7 @@
 Author: Raul A. Flores
 """
 
-#| - Import Modules
+# | - Import Modules
 # import os
 # import sys
 import random
@@ -19,12 +19,12 @@ from ase.io.cube import read_cube
 
 # import plotly as py
 import plotly.graph_objs as go
-#__|
+# __|
 
 class ChargeDensity(object):
     """docstring for ChargeDensity."""
 
-    #| - ChargeDensity ********************************************************
+    # | - ChargeDensity ********************************************************
     def __init__(self,
         cube_filename,
         master_data_filter=0.98,
@@ -43,15 +43,15 @@ class ChargeDensity(object):
                 Lower bound of normalized density value to be discarded
             working_dir:
         """
-        #| - __init__
+        # | - __init__
 
-        #| - Define User Attributes
+        # | - Define User Attributes
         self.cube_filename = cube_filename
         self.master_data_filter = master_data_filter
         self.lower_bound_density_filter = lower_bound_density_filter
         self.wrap_atoms = wrap_atoms
         self.working_dir = working_dir
-        #__|
+        # __|
 
         (
             self.atoms,
@@ -70,11 +70,11 @@ class ChargeDensity(object):
         self.__norm_electron_density__()
         self.__filter_low_density__()
         # self.__keep_only_edges__()
-        #__|
+        # __|
 
     def __load_cube_file__(self):
         """Load charge density cube file."""
-        #| - __load_cube_file__
+        # | - __load_cube_file__
         filename = self.cube_filename
 
         with open(filename, "r") as fle:
@@ -88,11 +88,11 @@ class ChargeDensity(object):
             atoms.wrap(pbc=True)
 
         return(atoms, cd_data, origin)
-        #__|
+        # __|
 
     def __process_data__(self):
         """Create dataframe from charge density data grid."""
-        #| - __process_data__
+        # | - __process_data__
         cd_data = self.cd_data
         atoms = self.atoms
 
@@ -142,21 +142,21 @@ class ChargeDensity(object):
             ) = zip(*df.apply(multiply_by_unit_cell, axis=1, atoms=atoms))
 
         return(df)
-        #__|
+        # __|
 
     def __number_of_data_points__(self):
         """Return the number of individual density data points."""
-        #| - __number_of_data_points__
+        # | - __number_of_data_points__
         master_data_df = self.master_data_df
 
         num_data_points = len(master_data_df)
 
         return(num_data_points)
-        #__|
+        # __|
 
     def __filter_data__(self):
         """Filter data randomly to decrease the data set size."""
-        #| - __filter_data__
+        # | - __filter_data__
         master_data_df = self.master_data_df
         num_data_points = self.num_data_points
         master_data_filter = self.master_data_filter
@@ -172,31 +172,31 @@ class ChargeDensity(object):
         df_filtered = master_data_df[bool_list]
 
         self.master_data_df = df_filtered
-        #__|
+        # __|
 
     def __norm_electron_density__(self):
         """Normalize electron density from 0 to 1."""
-        #| - __norm_electron_density__
+        # | - __norm_electron_density__
         df = self.master_data_df
 
         max_density = df.density.max()
         df["norm_dens"] = df["density"] / max_density
-        #__|
+        # __|
 
     def __filter_low_density__(self):
         """Filter low density entries from the data."""
-        #| - __filter_low_density__
+        # | - __filter_low_density__
         df = self.master_data_df
         lower_bound_density_filter = self.lower_bound_density_filter
 
         df = df[df["norm_dens"] > lower_bound_density_filter]
 
         self.master_data_df = df
-        #__|
+        # __|
 
     def __keep_only_edges__(self):
         """Only keep the outer surface points for clarity."""
-        #| - __keep_only_edges__
+        # | - __keep_only_edges__
         df = self.master_data_df
 
         df_a = df[df["x_ind"] == df.x_ind.max()]
@@ -215,30 +215,30 @@ class ChargeDensity(object):
             )
 
         self.master_data_df = df_surf
-        #__|
+        # __|
 
     def __save_dataframe__(self):
         """Save dataframe to pickle file.
 
         COMBAK impliment this to save time
         """
-        #| - __save_dataframe__
+        # | - __save_dataframe__
         df = self.master_data_df
         working_dir = self.working_dir
 
         with open(working_dir + "/dataframe.pickle", "w") as fle:
             pickle.dump(df, fle)
-        #__|
+        # __|
 
     def __load_dataframe__(self):
         """Load dataframe from pickle file.
 
         COMBAK and finish this
         """
-        #| - __load_dataframe__
+        # | - __load_dataframe__
         tmp = 42
 
-        #__|
+        # __|
 
     def create_charge_density_plotting_trace(self,
         opacity=0.4,
@@ -255,7 +255,7 @@ class ChargeDensity(object):
                 "variable", to scale individual marker size with charge density
 
         """
-        #| - create_charge_density_plotting_trace
+        # | - create_charge_density_plotting_trace
         df = self.master_data_df
 
         if size == "variable":
@@ -290,7 +290,7 @@ class ChargeDensity(object):
             )
 
         return(trace1)
-        #__|
+        # __|
 
     def create_unit_cell_plotting_trace(self,
         color="red",
@@ -301,7 +301,7 @@ class ChargeDensity(object):
         Args:
             color
         """
-        #| - create_unit_cell_plotting_trace
+        # | - create_unit_cell_plotting_trace
         atoms = self.atoms
 
         def unit_cell_leg_trace(
@@ -318,7 +318,7 @@ class ChargeDensity(object):
                 color:
                 width:
             """
-            #| - unit_cell_leg_trace
+            # | - unit_cell_leg_trace
             line_i = np.array([
                 point_0,
                 point_1,
@@ -334,11 +334,11 @@ class ChargeDensity(object):
                 )
 
             return(trace_i)
-            #__|
+            # __|
 
         line_trace_list = [
 
-            #| - Origin to 3 adjacent corners
+            # | - Origin to 3 adjacent corners
             unit_cell_leg_trace(
                 np.array([0., 0., 0.]),
                 atoms.cell[0],
@@ -353,9 +353,9 @@ class ChargeDensity(object):
                 np.array([0., 0., 0.]),
                 atoms.cell[2],
                 ),
-            #__|
+            # __|
 
-            #| - Farthest corner and 3 adjacent cornerse
+            # | - Farthest corner and 3 adjacent cornerse
             unit_cell_leg_trace(
                 atoms.cell[0] + atoms.cell[1] + atoms.cell[2],
                 atoms.cell[0] + atoms.cell[2]
@@ -370,9 +370,9 @@ class ChargeDensity(object):
                 atoms.cell[0] + atoms.cell[1] + atoms.cell[2],
                 atoms.cell[0] + atoms.cell[1]
                 ),
-            #__|
+            # __|
 
-            #| - TEMP
+            # | - TEMP
             unit_cell_leg_trace(
                 atoms.cell[1] + atoms.cell[2],
                 atoms.cell[1],
@@ -384,9 +384,9 @@ class ChargeDensity(object):
                 atoms.cell[0],
                 color=color,
                 ),
-            #__|
+            # __|
 
-            #| - TEMP
+            # | - TEMP
             unit_cell_leg_trace(
                 atoms.cell[2],
                 atoms.cell[0] + atoms.cell[2],
@@ -399,9 +399,9 @@ class ChargeDensity(object):
                 atoms.cell[1] + atoms.cell[2],
                 color=color,
                 ),
-            #__|
+            # __|
 
-            #| - TEMP
+            # | - TEMP
             unit_cell_leg_trace(
                 atoms.cell[0] + atoms.cell[1],
                 atoms.cell[0],
@@ -413,12 +413,12 @@ class ChargeDensity(object):
                 atoms.cell[1],
                 color=color,
                 ),
-            #__|
+            # __|
 
             ]
 
         return(line_trace_list)
-        #__|
+        # __|
 
     def create_atoms_plotting_trace(self,
         size=12,
@@ -428,7 +428,7 @@ class ChargeDensity(object):
         Args:
             size:
         """
-        #| - create_atoms_plotting_trace
+        # | - create_atoms_plotting_trace
         atoms = self.atoms
 
         element_color_dict = {}
@@ -454,6 +454,6 @@ class ChargeDensity(object):
             )
 
         return(trace_i)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************

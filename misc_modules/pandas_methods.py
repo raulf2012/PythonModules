@@ -14,9 +14,9 @@ __date__ = "181115"
 def reorder_df_columns(col_order_list, df):
     """
     """
-    #| - show
+    # | - show
 
-    #| - __old__
+    # | - __old__
     # col_order_list = [
     #     # Main system variables
     #     "bulk_system",
@@ -70,7 +70,7 @@ def reorder_df_columns(col_order_list, df):
     #     "Job",
     #     "layers",
     #     ]
-    #__|
+    # __|
 
     col_order_list.reverse()
 
@@ -86,14 +86,14 @@ def reorder_df_columns(col_order_list, df):
     df = df[df_col_list]
 
     return(df)
-    #__|
+    # __|
 
 
 
 def drop_columns(df=None, columns=None, keep_or_drop="keep"):
     """
     """
-    #| - drop_columns
+    # | - drop_columns
     if keep_or_drop == "keep":
         cols_to_keep = columns
 
@@ -113,4 +113,4 @@ def drop_columns(df=None, columns=None, keep_or_drop="keep"):
         raise ValueError('BAD BAD BAD')
 
     return(df_out)
-    #__|
+    # __|

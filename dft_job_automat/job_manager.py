@@ -6,7 +6,7 @@
 Author: Raul A. Flores
 """
 
-#| - Import Modules
+# | - Import Modules
 import os
 import sys
 
@@ -19,7 +19,7 @@ import pickle as pickle
 # My Modules
 from dft_job_automat.job_analysis import DFT_Jobs_Analysis
 # from aws.aws_class import AWS_Queues
-#__|
+# __|
 
 class DFT_Jobs_Manager(DFT_Jobs_Analysis):
     """
@@ -28,7 +28,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
     Manages job submission, resubmission, revision managmnet, job status, etc.
     """
 
-    #| - DFT_Jobs_Manager *****************************************************
+    # | - DFT_Jobs_Manager *****************************************************
     def __init__(self,
         tree_level=None,
         level_entries=None,
@@ -58,9 +58,9 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
 
         TEMP TEMP
         """
-        #| - __init__
+        # | - __init__
 
-        #| - __old__
+        # | - __old__
         # tree_level=None,
         # level_entries=None,
         # skip_dirs_lst=None,
@@ -75,7 +75,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         # methods_to_run=methods_to_run,
         # folders_exist=folders_exist,
         # parse_all_revisions=parse_all_revisions,
-        #__|
+        # __|
 
         DFT_Jobs_Analysis.__init__(self,
             tree_level=tree_level,
@@ -95,7 +95,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             parse_all_revisions=parse_all_revisions,
             )
 
-            #| - __old__
+            # | - __old__
             # # system=system,
             # tree_level=tree_level,
             # level_entries=level_entries,
@@ -105,9 +105,9 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             # dataframe_dir=None,
             # job_type_class=None,
             # folders_exist=None,
-            #__|
+            # __|
 
-        #__|
+        # __|
 
     def restart_job(self,
         job_i,
@@ -129,7 +129,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             file_list:
             job_i
         """
-        #| - restart_job
+        # | - restart_job
         # FIXME I've defined this in many places.
         def copy_if_not_in_dest(source, dest_file):
             """
@@ -138,7 +138,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             Args:
                 dest_file:
             """
-            #| - copy_if_not_in_dest
+            # | - copy_if_not_in_dest
             if not os.path.isfile(dest_file):
 
                 shutil.copy(source, dest_file)
@@ -147,7 +147,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
                 print("File " + str(source_fle) + " copied")
             else:
                 pass
-            #__|
+            # __|
 
         self.create_job_dir(job_i, revision="Auto")
         self.copy_files_from_last_revision(
@@ -168,7 +168,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
                 )
 
             for file_i in file_list:
-                #| - Copy Files from Root Dir to New Job Folder
+                # | - Copy Files from Root Dir to New Job Folder
                 if type(file_i) == str:
                     copy_if_not_in_dest(
                         source_dir + "/" + file_i,
@@ -180,7 +180,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
                         source_dir + "/" + file_i[0],
                         dest_dir + "/" + file_i[1],
                         )
-                #__|
+                # __|
 
         path_i = self.var_lst_to_path(
             job_i,
@@ -200,7 +200,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             self.submit_job(**params_dict)
         else:
             pass
-        #__|
+        # __|
 
     def copy_files_from_last_revision(self,
         files_list,
@@ -223,7 +223,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
                 If system is AWS, decidedes whether the previous jobs' files
                 are obtained from the /simulation folder or the origial job dir.
         """
-        #| - copy_files_from_last_revision
+        # | - copy_files_from_last_revision
 
         # COMBAK
         def copy_if_not_in_dest(source, dest_file):
@@ -233,7 +233,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             Args:
                 dest_file:
             """
-            #| - copy_if_not_in_dest
+            # | - copy_if_not_in_dest
             if not os.path.isfile(dest_file):
 
                 shutil.copy(source, dest_file)
@@ -242,7 +242,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
                 print("File " + str(source_fle) + " copied")
             else:
                 pass
-            #__|
+            # __|
 
         job_path = self.var_lst_to_path(
             job_i,
@@ -268,7 +268,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
 
         for file_i in files_list:
 
-            #| - Copy Files to Directory in New Step
+            # | - Copy Files to Directory in New Step
 
             if from_simulation_folder is True:
                 data_d = self.cluster.cluster.job_data_dir
@@ -286,9 +286,9 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
                     source_dir + data_d + "/" + file_i[0],
                     dest_dir + "/" + file_i[1],
                     )
-            #__|
+            # __|
 
-        #__|
+        # __|
 
     def submit_job(self, **kwargs):
         """Submit job to appropriate cluster.
@@ -296,11 +296,11 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         Args:
             **kwargs:
         """
-        #| - submit_job
+        # | - submit_job
         # path_i = kwargs["path_i"]
 
         self.cluster.submit_job(**kwargs)
-        #__|
+        # __|
 
     def remove_rev_folder(self, revision_number):
         """Remove revision job folder in all jobs directories.
@@ -308,14 +308,14 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         Args:
             revision_number:
         """
-        #| - remove_rev_folder
+        # | - remove_rev_folder
         print("Removing job revision folder " + str(revision_number))
 
         for job in self.job_var_lst:
             path = self.var_lst_to_path(job)
 
             shutil.rmtree(path + "_" + str(revision_number))
-        #__|
+        # __|
 
     def restart_job_2(self, prev_rev_file_list=[], root_dir_file_list=[]):
         """
@@ -325,10 +325,10 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             prev_rev_file_list:
             root_dir_file_list:
         """
-        #| - restart_job_2
+        # | - restart_job_2
         for index, row in self.data_frame.iterrows():
             if row["job_state"] == "error":
-                #| - Body
+                # | - Body
                 job = row["variable_list"]
                 path = row["path"]
                 rev_n = self.job_revision_number(job)
@@ -369,10 +369,10 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
                 os.system(bash_command)
 
                 os.chdir(self.root_dir)
-                #__|
+                # __|
             else:
                 continue
-        #__|
+        # __|
 
     def copy_files_jd(self, file_list, variable_lst, revision="Auto"):
         """Copy files to job directory.
@@ -382,14 +382,14 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             variable_lst:
             revision:
         """
-        #| - copy_files_jd
+        # | - copy_files_jd
         path = self.var_lst_to_path(variable_lst)
         path += "_" + str(self.job_revision_number(variable_lst))
 
         for file in file_list:
             shutil.copyfile(self.root_dir + "/" + file, path + "/" + file)
 
-        #__|
+        # __|
 
     def create_job_dir(self, variable_lst, revision="Auto"):
         """
@@ -399,7 +399,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
             variable_lst:
             revision:
         """
-        #| - create_job_dir
+        # | - create_job_dir
         path = self.var_lst_to_path(
             variable_lst,
             job_rev="False",
@@ -421,7 +421,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
                 if not os.path.exists(path):
                     os.makedirs(path)
 
-        #__|
+        # __|
 
     #                     path variable not needed/used DELETE #NOTE
     def submit_jobs(self, path=None, queue="medium", copy_PythonModules=True):
@@ -433,16 +433,16 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         1. Copies the current model.py into the "model_version" folder
         2. Goes through
         """
-        #| - submit_jobs
+        # | - submit_jobs
 
-        #| - OLD
+        # | - OLD
         # def submit_folder_job(folder_dir, bash_command):
         #     """
         #     """
-        #     #| - submit_folder_job
+        #     # | - submit_folder_job
         #
         #
-        #     #| - Submtting Job
+        #     # | - Submtting Job
         #     try:
         #         os.chdir(folder_dir)
         #
@@ -460,10 +460,10 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         #         os.chdir(self.root_dir)
         #         print("JOB SKIPPED: " + folder_dir)
         #         return(None)
-        #     #__|
+        #     # __|
         #
         #
-        #     #| - Parsing Submission for Job ID
+        #     # | - Parsing Submission for Job ID
         #     output = output.splitlines()
         #     for line in output:
         #         if "jobId" in line:
@@ -476,7 +476,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         #             lst = line.split('"')
         #             job_name_ind = (lst.index("jobName") + 2)
         #             jobName = lst[job_name_ind]
-        #     #__|
+        #     # __|
         #
         #
         #     file = open(".submitted", "w")
@@ -484,7 +484,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         #
         #     os.chdir(self.root_dir)
         #
-        #     #| - Querying AWS For Job Info
+        #     # | - Querying AWS For Job Info
         #     job_queue_dict = AWS_Queues(jobId).job_info_batch()
         #     job_queue_dict["submit_time"] = sub_time
         #
@@ -498,15 +498,15 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         #         df = df_new
         #
         #     df.to_csv(jobs_file_path, index=False)
-        #     #__|
+        #     # __|
         #
         #     return job_queue_dict
         #
-        #     #__|
-        #__|
+        #     # __|
+        # __|
 
 
-        #| - Create Models Directoy
+        # | - Create Models Directoy
         models_dir = "model_versions"
         if not os.path.exists(models_dir):
             os.makedirs(models_dir)
@@ -526,7 +526,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
 
         elif not filecmp.cmp("model.py", rev_file_path_prev):
             shutil.copyfile("model.py", rev_file_path)
-        #__|
+        # __|
 
         for job in self.job_var_lst:
             rev_num = self.job_revision_number(job)
@@ -536,7 +536,7 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
 
             # AWS_Queues().submit_job(path=path_i, queue=queue)
 
-        #__|
+        # __|
 
     def cancel_jobs(self, state="RUNNABLE"):
         """
@@ -545,14 +545,14 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
         Args:
             state:
         """
-        #| - cancel_jobs
+        # | - cancel_jobs
         jobs_file_path = self.job_queue_dir + "/jobs.csv"
         df = pd.read_csv(jobs_file_path)
 
         df_proj = df[df["job_path"].str.contains(self.root_dir_short)]
 
         return(df_proj)
-        #__|
+        # __|
 
     def update_jobs_queue_file(self):
         """
@@ -560,9 +560,9 @@ class DFT_Jobs_Manager(DFT_Jobs_Analysis):
 
         TMP
         """
-        #| - update_jobs_queue_file
+        # | - update_jobs_queue_file
         tmp = 42
         print(tmp)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************

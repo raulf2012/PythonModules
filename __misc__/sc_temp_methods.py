@@ -14,7 +14,7 @@ def color_scale_interp(
     ):
     """
     """
-    #| - color_scale_interp
+    # | - color_scale_interp
 #     cl.scales["8"]["seq"]["Purples"]
 
     black_white_cs = [
@@ -69,4 +69,4 @@ def color_scale_interp(
 
     return(color_out)
 
-    #__|
+    # __|

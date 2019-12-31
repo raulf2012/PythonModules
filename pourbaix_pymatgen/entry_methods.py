@@ -12,14 +12,14 @@ def get_entries_MP(material_name):
 	Args:
 		material_name: Material's formula unit
 	"""
-	#| -  - get_entries_MP
+	# | -  - get_entries_MP
 	from pymatgen.matproj.rest import MPRester # MP API key to access species in MP
 	import warnings
 	warnings.filterwarnings('ignore')
 	mpr = MPRester('ZJhfHmMTTwbW29Sr')
 
 	# entries = mpr.get_entries
-	#__|
+	# __|
 
 def get_entry_MP(entry_s):
 	"""
@@ -27,7 +27,7 @@ def get_entry_MP(entry_s):
 	Args:
 		ent:
 	"""
-	#| -  - get_entry_MP
+	# | -  - get_entry_MP
 	from pymatgen.matproj.rest import MPRester # MP API key to access species in MP
 	import warnings
 	warnings.filterwarnings('ignore')
@@ -43,7 +43,7 @@ def get_entry_MP(entry_s):
 	else:
 		out = mpr.get_entries(entry_s)
 	return out
-	#__|
+	# __|
 
 def norm_e(entry, correction=True):
 	"""
@@ -52,7 +52,7 @@ def norm_e(entry, correction=True):
 		entry:
 		correction: Apply default MP corrections
 	"""
-	#| -  - norm_e
+	# | -  - norm_e
 	if correction==True:
 		e_raw = entry.energy
 	elif correction==False:
@@ -63,7 +63,7 @@ def norm_e(entry, correction=True):
 	e_norm = e_raw/stoich_fact
 
 	return e_norm
-	#__|
+	# __|
 
 def return_entry(entry_list, entryid):
 	"""
@@ -73,7 +73,7 @@ def return_entry(entry_list, entryid):
 		entry_list: List of pymatgen entries
 		entryid: Materials Project id (ex. mp-715572) or entry name
 	"""
-	#| -  - return_entry
+	# | -  - return_entry
 	entryid_prefix = entryid[:3]
 	if entryid_prefix=='mp-':
 		for ent in entry_list:
@@ -86,7 +86,7 @@ def return_entry(entry_list, entryid):
 				out_lst.append(ent)
 		return out_lst
 
-	#__|
+	# __|
 
 
 def entry_remove(entries, entry_to_remove):
@@ -97,7 +97,7 @@ def entry_remove(entries, entry_to_remove):
 		entries: List of entries to be processed
 		entry_to_remove: Name of entry to be removed from the entries list
 	"""
-	#| -  - entry_remove
+	# | -  - entry_remove
 	import numpy as np
 
 	index_lst = []
@@ -112,7 +112,7 @@ def entry_remove(entries, entry_to_remove):
 	entries_copy = np.delete(entries_copy, index_lst).tolist()
 
 	return entries_copy
-	#__|
+	# __|
 
 def base_atom(entries):
 	"""
@@ -122,7 +122,7 @@ def base_atom(entries):
 	Args:
 	    entries: List of entries
 	"""
-	#| -  - base_atom
+	# | -  - base_atom
 	from pymatgen import Element
 
 	elem_lst = []
@@ -149,7 +149,7 @@ def base_atom(entries):
 	elem_lst = elem_lst_nme
 
 	return elem_lst
-	#__|
+	# __|
 
 def pure_atoms_remove(entries):
 	"""
@@ -160,7 +160,7 @@ def pure_atoms_remove(entries):
 	Args:
 		entries: List of entries
 	"""
-	#| -  - pure_atoms_remove
+	# | -  - pure_atoms_remove
 	from pymatgen import Element
 	from entry_methods import base_atom
 
@@ -177,12 +177,12 @@ def pure_atoms_remove(entries):
 	for entry in pure_met_lst:
 		entries.remove(entry)
 	return entries
-	#__|
+	# __|
 
 def pure_atoms_return(entries):
 	"""
 	"""
-	#| -  - pure_atoms_return
+	# | -  - pure_atoms_return
 	from pymatgen import Element
 	from entry_methods import base_atom
 
@@ -196,18 +196,18 @@ def pure_atoms_return(entries):
 		if 	len(entr_elem_lst)==1 and entr_elem_lst[0].name in base_atoms:
 			pure_met_lst.append(entry)
 
-	#| -  - If there are more pure atomic species than there are base atoms return an error
+	# | -  - If there are more pure atomic species than there are base atoms return an error
 	if len(pure_met_lst)>len(base_atoms):
 		tmp = 4
 		# print 'entry_methods.pure_atoms_return - There is more than one option for the reference metallic atom'
-	#__|
+	# __|
 
 	# for i in pure_met_lst:
 	# 	print norm_e(i)
 	# 	print ''
 
 	return pure_met_lst
-	#__|
+	# __|
 
 
 	# ████████ ███████ ███    ███ ██████
@@ -223,7 +223,7 @@ def alloy_entries(entries):
 	Args:
 	    entries: List of entries
 	"""
-	#| -  - alloy_entries
+	# | -  - alloy_entries
 	from pymatgen import Element
 	from entry_methods import base_atom
 
@@ -249,7 +249,7 @@ def alloy_entries(entries):
 	x.composition.fractional_composition.get_atomic_fraction(elem_0))
 
 	return alloy_lst
-	#__|
+	# __|
 
 
 def contains_element(entries,element_symbol):
@@ -259,20 +259,20 @@ def contains_element(entries,element_symbol):
 	Args:
 		entries: List of pymatgen objects
 	"""
-	#| -  - contains_element
+	# | -  - contains_element
 
 	from pymatgen import Element
 
 
-	#| -  - Get rid of entries without oxygen
+	# | -  - Get rid of entries without oxygen
 	element = Element(element_symbol)
 
 	lst = [entry for entry in entries if element in entry.composition.elements]
 	# for i in entries:
 	return lst
-	#__|
+	# __|
 
-	#__|
+	# __|
 
 
 def number_of_elem_in_entry(entry,element):
@@ -284,8 +284,8 @@ def number_of_elem_in_entry(entry,element):
 		entry: entry/species to be processes
 		element: element to be counted in the target entry
 	"""
-	#| -  - number_of_elem_in_entry
-	#__|
+	# | -  - number_of_elem_in_entry
+	# __|
 
 
 def element_formula_list(entry):
@@ -295,10 +295,10 @@ def element_formula_list(entry):
 	Args:
 		entry: entry to be proccessed
 	"""
-	#| -  - element_formula_list
+	# | -  - element_formula_list
 	formula_list = []
 	for element in entry.composition.get_el_amt_dict():
 		elem_coef = entry.composition.get_el_amt_dict()[element]/entry.composition.get_integer_formula_and_factor()[1]
 		formula_list.append(str(element)+str(elem_coef)[:1])
 	return formula_list
-	#__|
+	# __|

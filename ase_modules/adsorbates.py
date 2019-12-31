@@ -2,23 +2,23 @@
 
 """Adsorbate related methods."""
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 from ase import Atoms
 from ase.build import molecule
 
 import numpy as np
-#__|
+# __|
 
 class Adsorbate:
     """Adsorbate atoms object class."""
 
-    #| - Adsorbate ************************************************************
+    # | - Adsorbate ************************************************************
 
     def __init__(self):
         """Initialize Adsorbate class instance."""
-        #| - __init__
+        # | - __init__
         self.tmp = 42
-        #__|
+        # __|
 
     def ooh(self,
         OO_bl=1.359,
@@ -36,7 +36,7 @@ class Adsorbate:
             OO_angle:
             H_up_down:
         """
-        #| - ooh
+        # | - ooh
         O_1_x = OO_bl * np.sin(np.radians(OO_angle))
         O_1_y = OO_bl * np.cos(np.radians(OO_angle))
 
@@ -62,11 +62,11 @@ class Adsorbate:
             )
 
         return(ooh_mol)
-        #__|
+        # __|
 
     def o(self):
         """*O adsorbate."""
-        #| - o
+        # | - o
         o_mol = Atoms(['O'],
             positions=[
                 (0, 0, 0),
@@ -74,7 +74,7 @@ class Adsorbate:
             )
 
         return(o_mol)
-        #__|
+        # __|
 
     def oh(self,
         OH_bl=0.978,
@@ -85,7 +85,7 @@ class Adsorbate:
             OH_bl:
                 O-H bond length
         """
-        #| - oh
+        # | - oh
         oh_mol = Atoms(["O", "H"],
             positions=[
                 (0, 0, 0),
@@ -93,7 +93,7 @@ class Adsorbate:
                 ]
             )
         return(oh_mol)
-        #__|
+        # __|
 
     def h2o(self,
         H_up_down="up",
@@ -104,7 +104,7 @@ class Adsorbate:
             H_up_down:
                 Hydrogen atom pointing up or down
         """
-        #| - h2o
+        # | - h2o
         h2o_mol = molecule("H2O")
 
         if H_up_down == "up":
@@ -113,7 +113,7 @@ class Adsorbate:
             pass
 
         return(h2o_mol)
-        #__|
+        # __|
 
     def get_adsorbate(self, adsorbate, **kwargs):
         """
@@ -123,10 +123,10 @@ class Adsorbate:
             adsorbate:
             kwargs:
         """
-        #| - get_adsorbate
+        # | - get_adsorbate
         ads = getattr(self, adsorbate)(**kwargs)
 
         return(ads)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************

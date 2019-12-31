@@ -5,7 +5,7 @@
     jagt@stanford.edu  &  bajdich@slac.stanford.edu
 """
 
-#| - Import Modules
+# | - Import Modules
 import numpy as np
 from ase import io
 import re
@@ -14,7 +14,7 @@ import os
 # __|
 
 
-#| - Script Inputs
+# | - Script Inputs
 # data_folder = "/home/raulf2012/__temp__/irox_bulk_systems/IrO2/_1"
 #
 # out_folder = "out_data"
@@ -26,10 +26,10 @@ import os
 # URL: http://theory.cm.utexas.edu/vtsttools/scripts.html
 ##############################################################################
 
-#| - Methods
+# | - Methods
 # ### READ DOSCAR ###
 def read_dosfile(data_folder):
-    #| - read_dosfile
+    # | - read_dosfile
     f = open(os.path.join(data_folder, "DOSCAR"), 'r')
     lines = f.readlines()
     f.close()
@@ -41,11 +41,11 @@ def read_dosfile(data_folder):
     print(natoms, nedos, efermi)
 
     return lines, index, natoms, nedos, efermi
-    #__|
+    # __|
 
 # ### READ POSCAR or CONTCAR and save pos
 def read_posfile(data_folder):
-    #| - read_posfile
+    # | - read_posfile
     from ase.io import read
 
     try:
@@ -55,11 +55,11 @@ def read_posfile(data_folder):
         atoms = []
 
     return atoms
-    #__|
+    # __|
 
 # ### WRITE DOS0 CONTAINING TOTAL DOS ###
 def write_dos0(lines, index, nedos, efermi, out_folder):
-    #| - write_dos0
+    # | - write_dos0
     fdos = open(os.path.join(out_folder, "DOS0"), 'w')
     line = lines[index + 1].strip().split()
     ncols = int(len(line))
@@ -76,11 +76,11 @@ def write_dos0(lines, index, nedos, efermi, out_folder):
             fdos.write('%15.8f ' % (dos))
         fdos.write('\n')
     return index
-    #__|
+    # __|
 
 # ### LOOP OVER SETS OF DOS, NATOMS ###
 def write_nospin(lines, index, nedos, natoms, ncols, efermi, data_folder, out_folder):
-    #| - write_nospin
+    # | - write_nospin
     atoms = read_posfile(data_folder)
     if len(atoms) < natoms:
         pos = np.zeros((natoms, 3))
@@ -109,10 +109,10 @@ def write_nospin(lines, index, nedos, natoms, ncols, efermi, data_folder, out_fo
                 fdos.write('%15.8f ' % (dos))
             fdos.write('\n')
     fdos.close()
-    #__|
+    # __|
 
 def write_spin(lines, index, nedos, natoms, ncols, efermi, data_folder, out_folder):
-    #| - write_spin
+    # | - write_spin
     #pos=[]
     atoms = read_posfile(data_folder)
     if len(atoms) < natoms:
@@ -144,11 +144,11 @@ def write_spin(lines, index, nedos, natoms, ncols, efermi, data_folder, out_fold
                 fdos.write('%15.8f %15.8f ' % (dos_up, dos_down))
             fdos.write('\n')
         fdos.close()
-    #__|
+    # __|
 
 
 def get_bandgap(total_dos):
-    #| - get_bandgap
+    # | - get_bandgap
     arg_fermi = np.where(total_dos[:, 0] > 0)[0][0]
     arg_fermi_upper = arg_fermi
     arg_fermi_lower = arg_fermi
@@ -174,7 +174,7 @@ def get_bandgap(total_dos):
 
     print("Approx. band gap: ", np.abs(band_gap), "eVv")
     return [e_lower, e_upper, band_gap]
-    #__|
+    # __|
 
 # __|
 
@@ -186,7 +186,7 @@ def rapiDOS(
     ):
     """
     """
-    #| - __main__ *************************************************************
+    # | - __main__ *************************************************************
     if data_folder is None:
         data_folder = "."
 
@@ -373,4 +373,4 @@ def rapiDOS(
     #use the second to run it without a browser
     #os.system('jupyter nbconvert --to notebook --execute rapiDOS_analysis.ipynb')
 
-    #__|
+    # __|

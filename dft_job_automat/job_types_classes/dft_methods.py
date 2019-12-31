@@ -7,7 +7,7 @@ Development Notes:
     Make methods work for VASP and QE by using teh DFT_code attribute
 """
 
-#| - Import Modules
+# | - Import Modules
 import os
 import pickle as pickle
 import json
@@ -20,12 +20,12 @@ from ase import io
 from ase_modules.ase_methods import create_species_element_dict
 
 from quantum_espresso.qe_methods import magmom_charge_data
-#__|
+# __|
 
 class DFT_Methods():
     """Methods and analysis to perform within DFT jobs folders."""
 
-    #| - DFT_Methods **********************************************************
+    # | - DFT_Methods **********************************************************
     def __init__(self,
         methods_to_run=[],
         DFT_code="QE",  # VASP
@@ -35,10 +35,10 @@ class DFT_Methods():
         Args:
             methods_to_run:
         """
-        #| - __init__
+        # | - __init__
         self.methods_to_run = methods_to_run
         self.DFT_code = DFT_code
-        #__|
+        # __|
 
     def pdos_data(self, path_i):
         """Read pdos.pickle file and return data.
@@ -46,7 +46,7 @@ class DFT_Methods():
         Args:
             path_i:
         """
-        #| - pdos_data
+        # | - pdos_data
         fle_name = "dir_pdos/dos.pickle"
         if os.path.exists(path_i + "/" + fle_name):
             # with open(path_i + "/" + fle_name, "r") as fle:
@@ -55,7 +55,7 @@ class DFT_Methods():
                 data = pickle.load(fle, encoding="latin1")
 
         return(data)
-        #__|
+        # __|
 
     def bands_data(self, path_i):
         """Read band_disp.pickle file and return data.
@@ -63,7 +63,7 @@ class DFT_Methods():
         Args:
             path_i:
         """
-        #| - bands_data
+        # | - bands_data
         fle_name = "dir_bands/band_disp.pickle"
         # print(path_i + "/" + fle_name)
         if os.path.exists(path_i + "/" + fle_name):
@@ -71,7 +71,7 @@ class DFT_Methods():
                 data = pickle.load(fle, encoding="latin1")
 
         return(data)
-        #__|
+        # __|
 
     def magmom_charge_history(self, path_i, log="calcdir/log"):
         """Return atomic charges and magmoms thourgh SCF convergence history.
@@ -79,7 +79,7 @@ class DFT_Methods():
         Args:
             path_i
         """
-        #| - magmom_charge_history
+        # | - magmom_charge_history
         df = magmom_charge_data(path_i=path_i, log=log)
         imp_col = ["atom_num", "iteration", "element"]
 
@@ -91,7 +91,7 @@ class DFT_Methods():
         out_dict["charge_history"] = charge_history_df
 
         return(out_dict)
-        #__|
+        # __|
 
     def gibbs_energy(self, path_i):
         """Read gibbs free energy from file.
@@ -101,7 +101,7 @@ class DFT_Methods():
         Args:
             path_i
         """
-        #| - gibbs_energy
+        # | - gibbs_energy
         gibbs_e = None
 
         fle_name = "g_energy.out"
@@ -110,7 +110,7 @@ class DFT_Methods():
                 gibbs_e = float(fle.read().strip())
 
         return(gibbs_e)
-        #__|
+        # __|
 
     def gibbs_correction(self, path_i):
         """Return gibbs free energy correction.
@@ -118,7 +118,7 @@ class DFT_Methods():
         Args:
             path_i
         """
-        #| - gibbs_correction
+        # | - gibbs_correction
         gibbs_corr = 0.
 
         fle_name = "dir_vib/gibbs_corr.out"
@@ -127,7 +127,7 @@ class DFT_Methods():
                 gibbs_corr = float(fle.read().strip())
 
         return(gibbs_corr)
-        #__|
+        # __|
 
     def elec_energy(self, path_i, atoms_file="out_opt.traj"):
         """Read electronic energy from ASE atoms object.
@@ -136,7 +136,7 @@ class DFT_Methods():
             path_i:
             atoms_file:
         """
-        #| - elec_energy
+        # | - elec_energy
         energy = None
 
         try:
@@ -150,7 +150,7 @@ class DFT_Methods():
             pass
 
 
-        #| - Non-favored methods
+        # | - Non-favored methods
         try:
             atoms = self.atoms_object(path_i)[-1]
             energy = atoms.get_potential_energy()
@@ -162,10 +162,10 @@ class DFT_Methods():
             energy = atoms.get_potential_energy()
         except:
             pass
-        #__|
+        # __|
 
         return(energy)
-        #__|
+        # __|
 
     def atoms_object(self, path_i):
         """Attempt to read and return atoms object.
@@ -173,7 +173,7 @@ class DFT_Methods():
         Args:
             path_i:
         """
-        #| - atoms_object
+        # | - atoms_object
         # atoms_file_names = ["out_opt.traj", "out.traj"]
         # 'out.traj' should be read first
 
@@ -186,7 +186,7 @@ class DFT_Methods():
         for file_name in atoms_file_names:
             try:
 
-                #| - try to read atoms
+                # | - try to read atoms
                 if self.DFT_code == "VASP":
 
                     cwd = os.getcwd()
@@ -207,13 +207,13 @@ class DFT_Methods():
                         )
 
                 break
-                #__|
+                # __|
 
             except:
                 traj = None
 
         return(traj)
-        #__|
+        # __|
 
 
     def outcar(self, path_i):
@@ -222,7 +222,7 @@ class DFT_Methods():
         Args:
             path_i:
         """
-        #| - atoms_object
+        # | - atoms_object
         line_list = []
         with open(os.path.join(path_i, "OUTCAR")) as fle:
             for line in fle:
@@ -231,11 +231,11 @@ class DFT_Methods():
 
         return(line_list)
 
-        #| - __old__
+        # | - __old__
         # for file_name in atoms_file_names:
         #     try:
         #
-        #         #| - try to read atoms
+        #         # | - try to read atoms
         #         if self.DFT_code == "VASP":
         #
         #             cwd = os.getcwd()
@@ -255,21 +255,21 @@ class DFT_Methods():
         #                 )
         #
         #         break
-        #         #__|
+        #         # __|
         #
         #     except:
         #         traj = None
         #
         # return(traj)
-        #__|
+        # __|
 
-        #__|
+        # __|
 
 
     def incar(self, path_i):
         """
         """
-        #| - incar
+        # | - incar
         line_list = []
         with open(os.path.join(path_i, "INCAR")) as fle:
             for line in fle:
@@ -277,7 +277,7 @@ class DFT_Methods():
                 line_list.append(line)
 
         return(line_list)
-        #__|
+        # __|
 
     def init_atoms(self, path_i):
         """Attempt to read and return initial atoms object.
@@ -285,7 +285,7 @@ class DFT_Methods():
         Args:
             path_i:
         """
-        #| - init_atoms
+        # | - init_atoms
         traj = None
 
         atoms_file_names = [
@@ -304,7 +304,7 @@ class DFT_Methods():
                 pass
 
         return(traj)
-        #__|
+        # __|
 
     def parse_error_file(self, path_i):
         """Parse QE ase-espresso error file for keywords indicating failure.
@@ -315,10 +315,10 @@ class DFT_Methods():
         Args:
             path_i:
         """
-        #| - parse_error_file
+        # | - parse_error_file
         tmp = 42
         print(tmp)
-        #__|
+        # __|
 
     def atom_type_num_dict(self, path_i):
         """Return dictionary containing atomic count for each element.
@@ -326,7 +326,7 @@ class DFT_Methods():
         Args:
             path_i:
         """
-        #| - atom_type_num_dict
+        # | - atom_type_num_dict
         atoms = None
         atoms_file_names = ["out_opt.traj", "out.traj"]
         for file_name in atoms_file_names:
@@ -353,7 +353,7 @@ class DFT_Methods():
         # out_dict = number_of_atoms(atoms)
 
         return([out_dict])
-        #__|
+        # __|
 
 
     # def dft_params(path_i):
@@ -369,7 +369,7 @@ class DFT_Methods():
         Args:
             path_i
         """
-        #| - dft_params
+        # | - dft_params
         file_path_1 = os.path.join(
             path_i,
             path_i,
@@ -388,6 +388,6 @@ class DFT_Methods():
             dft_params_dict = json.load(open(file_path_2, "r"))
 
         return(dft_params_dict)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************

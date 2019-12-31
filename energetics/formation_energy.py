@@ -5,11 +5,11 @@
 Author: Raul A. Flores
 """
 
-#| - Import Modules
+# | - Import Modules
 import numpy as np
 
 from ase_modules.ase_methods import create_species_element_dict
-#__|
+# __|
 
 def calc_formation_energy(
     atoms,
@@ -36,7 +36,7 @@ def calc_formation_energy(
         reference_dict:
         normalize_per_atom:
     """
-    #| - calc_formation_energy
+    # | - calc_formation_energy
     atoms.info["element_dict"] = create_species_element_dict(atoms)
 
     num_atoms = atoms.get_number_of_atoms()
@@ -45,7 +45,7 @@ def calc_formation_energy(
     # ordered_elems.sort()
 
 
-    #| - Finding List of Unique Elements Defined by reference_states list
+    # | - Finding List of Unique Elements Defined by reference_states list
     ref_state_elem_list = []
     for i in reference_states:
         ref_i_elems = list(i["element_dict"])
@@ -53,10 +53,10 @@ def calc_formation_energy(
 
     ordered_elems = list(set(ref_state_elem_list))
     ordered_elems.sort()
-    #__|
+    # __|
 
 
-    #| - Constructing the A matrix
+    # | - Constructing the A matrix
     a_matrix = []
     for ref_state_i in reference_states:
         ref_i_comp_vect = []
@@ -69,9 +69,9 @@ def calc_formation_energy(
 
         a_matrix.append(np.array(ref_i_comp_vect))
     a_matrix = np.array(a_matrix).transpose()
-    #__|
+    # __|
 
-    #| - Constructing the b vector
+    # | - Constructing the b vector
     # phi = 1.
     b_vect = []
     for elem_i in ordered_elems:
@@ -82,16 +82,16 @@ def calc_formation_energy(
             b_vect.append(0.)
 
     b_vect = np.array(b_vect)
-    #__|
+    # __|
 
-    #| - Solve linear system of equations
+    # | - Solve linear system of equations
     x = np.linalg.solve(
         a_matrix,
         b_vect,
         )
-    #__|
+    # __|
 
-    #| - Calculate Formation Energy
+    # | - Calculate Formation Energy
     ref_e_sum = 0.
     for coeff_i, ref_i in zip(x, reference_states):
         ref_i_contribution = coeff_i * ref_i["elec_e"]
@@ -101,8 +101,8 @@ def calc_formation_energy(
 
     if normalize_per_atom:
         form_e = form_e / num_atoms
-    #__|
+    # __|
 
 
     return(form_e)
-    #__|
+    # __|

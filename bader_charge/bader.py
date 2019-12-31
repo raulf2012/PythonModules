@@ -5,7 +5,7 @@
 Author(s): Colin Dickins wrote most of this; Raul A. Flores
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import sys
 import os
 
@@ -15,7 +15,7 @@ import copy
 import numpy as np
 # from ase.io import write
 from ase import io
-#__|
+# __|
 
 
 def bader(
@@ -42,12 +42,12 @@ def bader(
         run_exec: Whether to run bader executable or just create preliminary
         file (some clusters don't/can't have the bader fortran code)
     """
-    #| - bader
+    # | - bader
     mess = "Executing Bader Analysis "
     mess += "*****************************************************"
     print(mess); sys.stdout.flush()
 
-    #| - Don't Run Bader Executable on AWS
+    # | - Don't Run Bader Executable on AWS
     if "COMPENV" not in os.environ:
         print("COMPENV env. var. doesn't exits, probably in AWS?")
         print("Bader executable turned off")
@@ -55,17 +55,17 @@ def bader(
         run_exec = False
     else:
         pass
-    #__|
+    # __|
 
     if not os.path.exists("dir_bader"):
         os.makedirs("dir_bader")
 
     calc = atoms.calc
 
-    #| - Using Spin Polarization
+    # | - Using Spin Polarization
     if spinpol:
 
-        #| - Spin up
+        # | - Spin up
         if convert_charge_den:
             cd2cube(atoms, spin="up")
         if run_exec:
@@ -77,9 +77,9 @@ def bader(
                 dft_code=dft_code,
                 )
 
-        #__|
+        # __|
 
-        #| - Spin down
+        # | - Spin down
         if convert_charge_den:
             cd2cube(atoms, spin="down")
         if run_exec:
@@ -90,13 +90,13 @@ def bader(
                 clean_up=cleanup,
                 dft_code=dft_code,
                 )
-        #__|
+        # __|
 
         print("BADER MAGMOMS: " + str(atoms.get_initial_magnetic_moments()))
 
-    #__|
+    # __|
 
-    #| - Not Spin Polarized
+    # | - Not Spin Polarized
     else:
         if convert_charge_den:
             cd2cube(atoms)
@@ -108,7 +108,7 @@ def bader(
                 execute_bader=run_exec_2,
                 dft_code=dft_code,
                 )
-    #__|
+    # __|
 
     print("BADER CHARGES: " + str(atoms.get_initial_charges()))
 
@@ -118,7 +118,7 @@ def bader(
     if outdir:
         os.system("rm %s/charge.log" % outdir)
 
-    #| - Writing 2 Atoms Objects with mogmoms and charges written
+    # | - Writing 2 Atoms Objects with mogmoms and charges written
 
     if run_exec:
         # Charges written to init_charges
@@ -135,9 +135,9 @@ def bader(
 
         # atoms.set_calculator(calc=calc)
         atoms.write("dir_bader/out.traj")
-    #__|
+    # __|
 
-    #__|
+    # __|
 
 
 def cd2cube(atoms, spin=""):
@@ -150,7 +150,7 @@ def cd2cube(atoms, spin=""):
         atoms:
         spin:
     """
-    #| - cd2cube
+    # | - cd2cube
     # cd2cube(atoms.calc.extract_charge_density(spin="up")[2], atoms)
 
     if spin == "":
@@ -195,7 +195,7 @@ def cd2cube(atoms, spin=""):
     f = open(file_name, "w")
     f.writelines(lines)
     f.close()
-    #__|
+    # __|
 
 def cleanup(suffix="", save_cube=True):
     """Cleanup unnecessary and/or large file after routine completes.
@@ -204,7 +204,7 @@ def cleanup(suffix="", save_cube=True):
         suffix:
         save_cube:
     """
-    #| - cleanup
+    # | - cleanup
     if not os.path.exists("dir_bader"):
         os.makedirs("dir_bader")
 
@@ -220,7 +220,7 @@ def cleanup(suffix="", save_cube=True):
 
     os.system("mv AVF.dat dir_bader/AVF.dat")
     os.system("mv BCF.dat dir_bader/BCF.dat")
-    #__|
+    # __|
 
 def bader_exec(
     atoms,
@@ -237,7 +237,7 @@ def bader_exec(
             Spin component to process | "", "up", "down"
 
     """
-    #| - bader_exec
+    # | - bader_exec
     if execute_bader:
         bash_comm = "bader density" + spin + ".cube >> bader.out"
         os.system(bash_comm)
@@ -249,7 +249,7 @@ def bader_exec(
             bash_comm = "bader CHGCAR -ref CHGCAR_sum"
             os.system(bash_comm)
 
-    #| - Spin Polarlized Calculation
+    # | - Spin Polarlized Calculation
     if spin == "up":
         f = open("ACF.dat"); lines = f.readlines(); f.close()
         for i, line in enumerate(lines[2:-4]):
@@ -268,7 +268,7 @@ def bader_exec(
             line = line.split()
             atoms[i].magmom -= float(line[4])
 
-            #| - Getting number of valence electrons
+            # | - Getting number of valence electrons
             calc_has_get_nvalence = getattr(atoms.calc, "get_nvalence", None)
             if calc_has_get_nvalence:
                 val_i = atoms.calc.get_nvalence()[1][atoms[i].symbol]
@@ -276,7 +276,7 @@ def bader_exec(
                 val_i = valence_dict.get(atoms[i].symbol, None)
 
             assert val_i is not None, "Can't find # of valence electrons!!"
-            #__|
+            # __|
 
             atoms[i].charge -= float(line[4]) - val_i
 
@@ -287,26 +287,26 @@ def bader_exec(
         atoms.info.update({"bader_magmoms": magmom_list})
         atoms.info.update({"bader_charges": charge_list})
 
-        #| - Write data to file
+        # | - Write data to file
         with open("dir_bader/bader_charges_magmoms.pickle", "w") as fle:
             pickle.dump(
                 {"charge_list": charge_list, "magmom_list": magmom_list},
                 fle,
                 )
-        #__|
+        # __|
 
         if clean_up:
             cleanup(suffix=spin)
-    #__|
+    # __|
 
-    #| - Non-Spin Polarized Calculation
+    # | - Non-Spin Polarized Calculation
     elif spin == "":
         charge_list = []
         f = open("ACF.dat"); lines = f.readlines(); f.close()
         for i, line in enumerate(lines[2:-4]):
             line = line.split()
 
-            #| - Getting number of valence electrons
+            # | - Getting number of valence electrons
             calc_has_get_nvalence = getattr(atoms.calc, "get_nvalence", None)
             if calc_has_get_nvalence:
                 charge_i = atoms.calc.get_nvalence()[1][atoms[i].symbol]
@@ -314,7 +314,7 @@ def bader_exec(
                 charge_i = valence_dict.get(atoms[i].symbol, None)
 
             assert charge_i is not None, "Can't find # of valence electrons!!"
-            #__|
+            # __|
 
             # charge_i = atoms.calc.get_nvalence()[1][atoms[i].symbol]
 
@@ -323,18 +323,18 @@ def bader_exec(
 
         atoms.info.update({"bader_charges": charge_list})
 
-        #| - Write data to file
+        # | - Write data to file
         with open("dir_bader/bader_charges_magmoms.pickle", "w") as fle:
             pickle.dump(
                 {"charge_list": charge_list, "magmom_list": None},
                 fle,
                 )
-        #__|
+        # __|
 
         cleanup()
-    #__|
+    # __|
 
-    #__|
+    # __|
 
 
 # From VASP PBE

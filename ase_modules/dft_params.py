@@ -13,27 +13,27 @@ Development Notes:
 
 """
 
-#| - Import Modules
+# | - Import Modules
 import os
 import json
 
 # My Modules
 from dft_job_automat.compute_env import ComputerCluster
-#__|
+# __|
 
 class DFT_Params:
     """Base class for DFT parameters encapsulation."""
 
-    #| - DFT_Params ************************************************************
+    # | - DFT_Params ************************************************************
 
     def __init__(self):
         """Initialize base class."""
-        #| - __init__
+        # | - __init__
         self.file_name = "dft-params"
         self.compute_env = os.environ.get("COMPENV")
 
         self.submission_params = self.load_submission_params()
-        #__|
+        # __|
 
     # def load_submission_params(self, filename=".submission_params.json"):
     def load_submission_params(self, filename=".submission_params_2.json"):
@@ -46,7 +46,7 @@ class DFT_Params:
                 comp_env module when used in conjuction with the job
                 submission script.
         """
-        #| - load_submission_params
+        # | - load_submission_params
         bkp_filename = ".submission_params.json"
 
         submission_params = None
@@ -61,7 +61,7 @@ class DFT_Params:
             print("Couldn't read submission_params file")
 
         return(submission_params)
-        #__|
+        # __|
 
     def load_params(self, dir=".", update_params=True):
         """Import JSON file containing parameters in dictionary.
@@ -70,7 +70,7 @@ class DFT_Params:
             dir:
             update_params:
         """
-        #| - load_params
+        # | - load_params
         try:
             data = open(os.path.join(dir, "dft-params.json")).read()
             data = json.loads(data)
@@ -84,14 +84,14 @@ class DFT_Params:
             print("ase_modules/dft_params.py")
             print("    Couldn't read dft-params.json file")
             pass
-        #__|
+        # __|
 
     def PythonPath(self):
         """Return PYTHONPATH system variable_lst.
 
         Checks dir is checked for default_espresso_params file
         """
-        #| - PythonPath
+        # | - PythonPath
         pyth_paths = os.environ["PYTHONPATH"].split(os.pathsep)
 
 
@@ -104,7 +104,7 @@ class DFT_Params:
 
         return pyth_path[0]
 
-        #__|
+        # __|
 
     def update_params(self, new_params, user_update=True):
         """Update parameter dict with new keys or new values for old keys.
@@ -113,13 +113,13 @@ class DFT_Params:
             new_params:
             user_update:
         """
-        #| - update_params
+        # | - update_params
         self.params.update(new_params)
 
         if user_update:
             mod_d_new = {x: True for x in new_params}
             self.mod_dict.update(mod_d_new)
-        #__|
+        # __|
 
     def write_params(self, path_i=".", overwrite=False):
         """Write parameters to file in getcwd.
@@ -130,12 +130,12 @@ class DFT_Params:
             path:
             overwrite:s
         """
-        #| - write_params
+        # | - write_params
 
         def json_dump_command(params, file):
-            #| - json_dump_command
+            # | - json_dump_command
             json.dump(params, file, indent=2, skipkeys=True)
-            #__|
+            # __|
 
         num_files = [fle for fle in os.listdir(path_i) if "dft-params" in fle]
         num_files = len(num_files)
@@ -152,21 +152,21 @@ class DFT_Params:
         else:
             with open(path_i + "/" + self.file_name + ".json", "w+") as fle:
                 json_dump_command(self.params, fle)
-        #__|
+        # __|
 
-    #__| ***********************************************************************
+    # __| ***********************************************************************
 
 class VASP_Params(DFT_Params):
     """Useful method to define VASP parameters for DFT job."""
 
-    #| - VASP_Params ***********************************************************
+    # | - VASP_Params ***********************************************************
     def __init__(self, load_defaults=True):
         """Class encapsulating VASP job parameters.
 
         Args:
             load_defaults:
         """
-        #| - __init__
+        # | - __init__
         # self.pymoddir = self.PythonPath()
         DFT_Params.__init__(self)
 
@@ -179,11 +179,11 @@ class VASP_Params(DFT_Params):
 
         # self.params = self.load_params(self.pymoddir,
         # "default_espresso_params.json")
-        #__|
+        # __|
 
     def default_params(self):
         """User-defined default DFT parameters."""
-        #| - default_params
+        # | - default_params
 
         # Do calculation
         my_encut = 500
@@ -271,7 +271,7 @@ class VASP_Params(DFT_Params):
         params["lepsilon"] = False
 
         return(params)
-        #__|
+        # __|
 
     def create_mod_dict(self):
         """
@@ -281,27 +281,27 @@ class VASP_Params(DFT_Params):
         externally in script or if it kept at its default value.
         This is useful to know for the dependent-parameters.
         """
-        #| - create_mod_dict
+        # | - create_mod_dict
         param_keys = list(self.params.keys())
         mod_dict = dict((key, False) for key in param_keys)
 
         return(mod_dict)
-        #__|
+        # __|
 
 
-    #__| ***********************************************************************
+    # __| ***********************************************************************
 
 class Espresso_Params(DFT_Params):
     """Useful method to define quantum espresso parameters for DFT job."""
 
-    #| - Espresso_Params *******************************************************
+    # | - Espresso_Params *******************************************************
     def __init__(self, load_defaults=True):
         """Class encapsulating quantum espresso job parameters.
 
         Args:
             load_defaults:
         """
-        #| - __init__
+        # | - __init__
         DFT_Params.__init__(self)
 
         if load_defaults:
@@ -310,11 +310,11 @@ class Espresso_Params(DFT_Params):
             self.params = {}
 
         self.mod_dict = self.create_mod_dict()
-        #__|
+        # __|
 
     def default_params(self):  # **********************************************
         """User-defined default DFT parameters."""
-        #| - default_params
+        # | - default_params
         params = {}
 
         params["pw"] = 500  # plane-wave cutoff
@@ -326,13 +326,13 @@ class Espresso_Params(DFT_Params):
         # TODO Scale number of bands with system size
         params["nbands"] = -50
 
-        #| - Spin & Magnitism
+        # | - Spin & Magnitism
         # Spin-polarized calculation
         params["spinpol"] = False
 
         # Non-collinear magnetism, magnetization in generic direction
         params["noncollinear"] = False
-        #__|
+        # __|
 
         params["sigma"] = 0.1  # Should be low for spin calculations
 
@@ -341,7 +341,7 @@ class Espresso_Params(DFT_Params):
         # Parallelization <----------------------------------------------------
         params["parflags"] = None
 
-        #| - Convergence Parameters
+        # | - Convergence Parameters
         params["convergence"] = {
             "energy": 1e-5,  # convergence parameters
 
@@ -352,9 +352,9 @@ class Espresso_Params(DFT_Params):
             "maxsteps": 500,
             "diag": "david",
             }
-        #__|
+        # __|
 
-        #| - File Output <-----------------------------------------------------
+        # | - File Output <-----------------------------------------------------
         params["output"] = {
             "avoidio": True,
             "removesave": True,
@@ -363,10 +363,10 @@ class Espresso_Params(DFT_Params):
             }
 
         params["outdir"] = "calcdir"
-        #__|
+        # __|
 
         return(params)
-        #__|
+        # __|
 
     def create_mod_dict(self):
         """Create modification book-keepig dictionary.
@@ -375,12 +375,12 @@ class Espresso_Params(DFT_Params):
         externally in script or if it kept at its default value.
         This is useful to know for the dependent-parameters.
         """
-        #| - create_mod_dict
+        # | - create_mod_dict
         param_keys = list(self.params.keys())
         mod_dict = dict((key, False) for key in param_keys)
 
         return(mod_dict)
-        #__|
+        # __|
 
     def test_check(self):
         """Attempts to set params based on other dependent parameters.
@@ -391,24 +391,24 @@ class Espresso_Params(DFT_Params):
         Only set this dependent param if the user has not explicitly done so,
         is what the condition for setting a parameter automatically is.
         """
-        #| - test_check
+        # | - test_check
 
-        #| - Setting dw to 10 * pw
+        # | - Setting dw to 10 * pw
         if self.mod_dict["dw"] is False:
             dw_i = 10. * self.params["pw"]
             self.update_params({"dw": dw_i}, user_update=False)
-        #__|
+        # __|
 
-        #| - Decreasing Sigma for Spin Polarization Calculations
+        # | - Decreasing Sigma for Spin Polarization Calculations
         if self.mod_dict["sigma"] is False:
             if self.params["spinpol"] is True:
                 sigma_i = 0.02
                 self.update_params({"sigma": sigma_i}, user_update=False)
-        #__|
+        # __|
 
-        #| - BEEF Ensemble of Energies =========================================
+        # | - BEEF Ensemble of Energies =========================================
 
-        #| - Removing Beef-Ensemble if XC-Functional Not BEEF
+        # | - Removing Beef-Ensemble if XC-Functional Not BEEF
         xc_list = self.params["xc"]
         if "beefensemble" in self.params:
             if self.params["beefensemble"] is True and "BEEF" not in xc_list:
@@ -417,9 +417,9 @@ class Espresso_Params(DFT_Params):
                 self.update_params({"printensemble": False}, user_update=False)
         else:
             pass
-        #__|
+        # __|
 
-        #| - Turn on printensemble Parameter for BEEF Ensemble of Energies
+        # | - Turn on printensemble Parameter for BEEF Ensemble of Energies
         xc_list = self.params["xc"]
         if "beefensemble" in self.params:
             if self.params["beefensemble"] is True and "BEEF" in xc_list:
@@ -430,9 +430,9 @@ class Espresso_Params(DFT_Params):
         else:
             pass
 
-        #__|
+        # __|
 
-        #| - Turn off BEEF on AWS
+        # | - Turn off BEEF on AWS
         # NOTE This is new (180412 - RF), check that it works
         CC = ComputerCluster()
         if CC.cluster_sys == "aws":
@@ -454,11 +454,11 @@ class Espresso_Params(DFT_Params):
                         user_update=False,
                         )
 
-        #__|
+        # __|
 
-        #__| ==================================================================
+        # __| ==================================================================
 
-        #| - Parallelization
+        # | - Parallelization
         if self.mod_dict["parflags"] is False:
             if type(self.submission_params) == dict:
                 if "nodes" in self.submission_params:
@@ -472,17 +472,17 @@ class Espresso_Params(DFT_Params):
                     #  TEMP_PRINT
                     print("098sddfkfs--s-s-__-_")
                     print("-npool " + str(int(num_nodes)))
-        #__|
+        # __|
 
-        #__|
+        # __|
 
-    #__| **********************************************************************
-
-
+    # __| **********************************************************************
 
 
 
-#| - __old__ | default_params with all the commented lines
+
+
+# | - __old__ | default_params with all the commented lines
 # params = {}
 #
 # # params["mode"] = "ase3"
@@ -498,13 +498,13 @@ class Espresso_Params(DFT_Params):
 # # TODO Scale number of bands with system size
 # params["nbands"] = -50
 #
-# #| - Spin & Magnitism
+# # | - Spin & Magnitism
 # # Spin-polarized calculation
 # params["spinpol"] = False
 #
 # # Non-collinear magnetism, magnetization in generic direction
 # params["noncollinear"] = False
-# #__|
+# # __|
 #
 # params["sigma"] = 0.1  # Should be low for spin calculations
 #
@@ -517,7 +517,7 @@ class Espresso_Params(DFT_Params):
 # # params["parflags"] = "-npool "
 # params["parflags"] = None
 #
-# #| - Convergence Parameters
+# # | - Convergence Parameters
 # params["convergence"] = {
 #     "energy": 1e-5,  # convergence parameters
 #
@@ -528,9 +528,9 @@ class Espresso_Params(DFT_Params):
 #     "maxsteps": 500,
 #     "diag": "david",
 #     }
-# #__|
+# # __|
 #
-# #| - File Output <-----------------------------------------------------
+# # | - File Output <-----------------------------------------------------
 #
 #  # output = {'disk_io':'default',  # how often espresso writes wavefunctions to disk
 #  #           'avoidio':False,  # will overwrite disk_io parameter if True
@@ -555,4 +555,4 @@ class Espresso_Params(DFT_Params):
 #
 # params["outdir"] = "calcdir"
 # return(params)
-#__|
+# __|

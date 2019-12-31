@@ -5,7 +5,7 @@
 Author: Raul A. Flores
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import numpy as np
 import pandas as pd
 import copy
@@ -18,7 +18,7 @@ pd.options.mode.chained_assignment = None
 
 from oxr_reaction.oxr_series import ORR_Free_E_Series
 from oxr_reaction.adsorbate_scaling import lim_U_i
-#__|
+# __|
 
 
 # ███████ ███████         ██████  ██       ██████  ████████
@@ -33,7 +33,7 @@ class Free_Energy_Plot():
         Take the FED methods out of the ORR_Free_E_Plot class and into this one
     """
 
-    #| - Free_Energy_Plot *****************************************************
+    # | - Free_Energy_Plot *****************************************************
 
     def __init__(self,
         ORR_Free_E_Plot,
@@ -57,7 +57,7 @@ class Free_Energy_Plot():
             mode:
                 "all", "ooh_vs_oh", "o_vs_oh"
         """
-        #| - __init__
+        # | - __init__
         self.bias = bias
         self.opt_name = opt_name
         self.properties = properties
@@ -84,14 +84,14 @@ class Free_Energy_Plot():
             )
 
         self.mid_state_x_array = self.create_mid_state_x_array()
-        #__|
+        # __|
 
     def create_fed_plot(self,
 
         ):
         """
         """
-        #| - create_fed_plot
+        # | - create_fed_plot
         plot_data = []
         for series_i in self.ORR_Free_E_Plot.series_list:
 
@@ -112,12 +112,12 @@ class Free_Energy_Plot():
             plot_data += data_i
 
         return(plot_data)
-        #__|
+        # __|
 
     def ideal_ORR_series(self):
         """
         """
-        #| - ideal_ORR_series
+        # | - ideal_ORR_series
         # self.ideal_energy = [4.92, 3.69, 2.46, 1.23, 0]
 
         ideal_data_list = [
@@ -156,7 +156,7 @@ class Free_Energy_Plot():
             color=None,
             )
 
-        #__|
+        # __|
 
     def create_rxn_coord_array(self,
         rxn_steps,
@@ -176,7 +176,7 @@ class Free_Energy_Plot():
                 Spacing inbetween the energy levels. The default of 0 creates
                 a free energy diagram that looks like steps
         """
-        #| - create_rxn_coord_array
+        # | - create_rxn_coord_array
         lst = []
         for i in range(1, rxn_steps):
             if i == 1:
@@ -190,7 +190,7 @@ class Free_Energy_Plot():
         lst.append(lst[-1] + step_size)
 
         return(lst)
-        #__|
+        # __|
 
 
     def plot_fed_series(self,
@@ -220,7 +220,7 @@ class Free_Energy_Plot():
 
         #FIXME | This is  fairly rough as of right now
         """
-        #| - plot_fed_series
+        # | - plot_fed_series
         e_list = series_i.energy_lst
         e_list = series_i.apply_bias(bias, e_list)
 
@@ -234,7 +234,7 @@ class Free_Energy_Plot():
         # name_i = self.series_name
         name_i = series_i.series_name
 
-        #| - Hover Text
+        # | - Hover Text
         if hover_text_col is not None:
             if type(hover_text_col) is not list:
                 hover_text_list = self.property_list(hover_text_col)
@@ -261,14 +261,14 @@ class Free_Energy_Plot():
 
         else:
             hover_text_list = [np.nan for j_cnt in list(range(5))]
-        #__|
+        # __|
 
-        #| - TEMP Picking color from "color_list" or "color" variable
+        # | - TEMP Picking color from "color_list" or "color" variable
         if series_i.color is not None:
             color_i = self.color
         else:
             color_i = color_list[i_cnt - 1]
-        #__|
+        # __|
 
         dat_lst = self.__create_plotly_series__(
             series_i,
@@ -284,7 +284,7 @@ class Free_Energy_Plot():
 
         return(dat_lst)
 
-        #__|
+        # __|
 
 
     def __create_plotly_series__(self,
@@ -310,23 +310,23 @@ class Free_Energy_Plot():
                 "states_only"
                 "full_lines"
         """
-        #| - create_plotly_series
+        # | - create_plotly_series
         y_dat = self.__convert_to_plotting_list__(energy_lst)
 
         if hover_text is None:
             hover_text = [np.nan for i_ind in range(5)]
 
 
-        #| - Parameters
+        # | - Parameters
         if plot_mode == "all":
             show_leg_2 = False
         elif plot_mode == "states_only":
             show_leg_2 = False
         elif plot_mode == "full_lines":
             show_leg_2 = True
-        #__|
+        # __|
 
-        #| - Adding Breaks in Data
+        # | - Adding Breaks in Data
         x_dat = self.rxn_x_coord_array
 
         new_x_dat = copy.copy(x_dat)
@@ -338,9 +338,9 @@ class Free_Energy_Plot():
             new_x_dat.insert(cnt, fill)
             new_y_dat.insert(cnt, None)
             cnt += 3
-        #__|
+        # __|
 
-        #| - Creating x-data in middle of states
+        # | - Creating x-data in middle of states
         short_y = np.array(y_dat)[::2]
 
         xdat = list(set(new_x_dat))
@@ -351,11 +351,11 @@ class Free_Energy_Plot():
         for i_ind in range(int(len(xdat) / 2)):
             short_x.append(xdat[cnt] + 0.5)  # FIXME Replace 0.5 with variable
             cnt += 2
-        #__|
+        # __|
 
-        #| - Smart Format Dict ************************************************
+        # | - Smart Format Dict ************************************************
 
-        #| - DICTS
+        # | - DICTS
         plot_parameter_dict = {
             "dash": None,
             }
@@ -389,7 +389,7 @@ class Free_Energy_Plot():
         #
         #     ]
 
-        #__|
+        # __|
 
         # if self.fe_df is not None and smart_format is not None:
         if series_i.fe_df is not None and smart_format is not None:
@@ -418,23 +418,23 @@ class Free_Energy_Plot():
                 else:
                     print("Dataframe column " + df_col_name + " not present")
 
-        #__| ******************************************************************
+        # __| ******************************************************************
 
-        #| - Series Color
+        # | - Series Color
         if "color" in list(plot_parameter_dict):
             color_out = plot_parameter_dict["color"]
         else:
             plot_parameter_dict["color"] = color
-        #__|
+        # __|
 
         if series_i.format_dict:
             format_i = series_i.format_dict
         else:
             format_i = plot_parameter_dict
 
-        #| - Plotly Scatter Plot Instances ************************************
+        # | - Plotly Scatter Plot Instances ************************************
 
-        #| - Thick horizontal state lines
+        # | - Thick horizontal state lines
         data_1 = go.Scatter(
             x=new_x_dat,
             y=new_y_dat,
@@ -461,9 +461,9 @@ class Free_Energy_Plot():
                 ),
             mode="lines",
             )
-        #__|
+        # __|
 
-        #| - Full, thin line
+        # | - Full, thin line
         data_2 = go.Scatter(
             x=new_x_dat,
             y=new_y_dat,
@@ -479,9 +479,9 @@ class Free_Energy_Plot():
                 ),
             mode="lines",
             )
-        #__|
+        # __|
 
-        #| - Points in middle of energy states (For convienient hover)
+        # | - Points in middle of energy states (For convienient hover)
 
         data_3 = go.Scatter(
             x=short_x,
@@ -510,9 +510,9 @@ class Free_Energy_Plot():
                 ),
             mode="markers",
             )
-        #__|
+        # __|
 
-        #| - Points in middle of RDS states
+        # | - Points in middle of RDS states
         # HACK
         if series_i.limiting_step == ["ooh", "bulk"]:
             ind_i = 3
@@ -590,11 +590,11 @@ class Free_Energy_Plot():
                 ),
             mode="markers",
             )
-        #__|
+        # __|
 
-        #__| ******************************************************************
+        # __| ******************************************************************
 
-        #| - Plot Mode (which data series to plot)
+        # | - Plot Mode (which data series to plot)
         if plot_mode == "all":
             data_lst = [
                 rds_data,
@@ -614,10 +614,10 @@ class Free_Energy_Plot():
                 data_2,
                 data_3,
                 ]
-        #__|
+        # __|
 
         return(data_lst)
-        #__|
+        # __|
 
     def __convert_to_plotting_list__(self,
         energy_lst,
@@ -634,7 +634,7 @@ class Free_Energy_Plot():
             spacing:
             step_size:
         """
-        #| - __convert_to_plotting_list__
+        # | - __convert_to_plotting_list__
         tmp_list = range(len(energy_lst) * 2)
         energy_dupl_lst = [energy_lst[i // 2] for i in tmp_list]
 
@@ -646,12 +646,12 @@ class Free_Energy_Plot():
         # out_list = [rxn_coord_steps, energy_dupl_lst]
 
         return(energy_dupl_lst)
-        #__|
+        # __|
 
     def max_y_value_per_step(self):
         """
         """
-        #| - max_y_value_per_step
+        # | - max_y_value_per_step
         fe_matrix = []
 
         # for series_i in self.series_list:
@@ -670,7 +670,7 @@ class Free_Energy_Plot():
             max_y_val_list.append(fe_matrix[:, step_i].max())
 
         return(max_y_val_list)
-        #__|
+        # __|
 
 
     def H_e_pairs_annotations(self,
@@ -681,7 +681,7 @@ class Free_Energy_Plot():
         Args:
             font_size:
         """
-        #| - H_e_pairs_annotations
+        # | - H_e_pairs_annotations
         mid_state_x_array = self.mid_state_x_array
 
         rxn_x_array = self.rxn_x_coord_array
@@ -708,7 +708,7 @@ class Free_Energy_Plot():
                 font_size:
                 text:
             """
-            #| - add_annot
+            # | - add_annot
             ann_i = dict(
                 # x=(rxn_x_array[ind] + rxn_x_array[ind + step]) / 2.,
                 x=mid_state_x_array[ind],
@@ -723,7 +723,7 @@ class Free_Energy_Plot():
                     ),
                 ),
             annotations += ann_i
-            #__|
+            # __|
 
         annotations = []
 
@@ -766,13 +766,13 @@ class Free_Energy_Plot():
             )
 
         return(annotations)
-        #__|
+        # __|
 
 
     def create_mid_state_x_array(self):
         """
         """
-        #| - create_mid_state_x_array
+        # | - create_mid_state_x_array
         x_array_data = self.rxn_x_coord_array
         state_width = self.plot_states_width
 
@@ -786,19 +786,19 @@ class Free_Energy_Plot():
             cnt += 2
 
         return(short_x)
-        #__|
+        # __|
 
 
     def get_plotly_layout(self, layout_dict=None):
         """
         """
-        #| - plotly_fed_layout
+        # | - plotly_fed_layout
         tick_lab_size = 16
         axes_lab_size = 18
         legend_size=18
         annotation_size = 12
 
-        #| - OER vs ORR Settings
+        # | - OER vs ORR Settings
         if self.rxn_type == "ORR":
             xax_labels = [
                 "O<sub>2</sub>",
@@ -817,30 +817,30 @@ class Free_Energy_Plot():
                 "*OOH",
                 "O<sub>2</sub>",
                 ]
-        #__|
+        # __|
 
-        #| - Layout
+        # | - Layout
         layout = {
 
             "title": None,
 
-            #| - Font Settings
+            # | - Font Settings
             "font": {
                 "family": "Arial",  # "Courier New, monospace"
                 "color": "black",
                 },
-            #__|
+            # __|
 
-            #| - Margins ------------------------------------------------------
+            # | - Margins ------------------------------------------------------
             "margin": go.layout.Margin(
                 b=50.,
                 l=50.,
                 r=30.,
                 t=30.,
                 ),
-            #__|
+            # __|
 
-            #| - Axes ---------------------------------------------------------
+            # | - Axes ---------------------------------------------------------
             "yaxis": {
                 "title": "Free Energy (eV)",
                 "zeroline": False,
@@ -888,9 +888,9 @@ class Free_Energy_Plot():
                     size=tick_lab_size,
                     ),
                 },
-            #__| --------------------------------------------------------------
+            # __| --------------------------------------------------------------
 
-            #| - Legend -------------------------------------------------------
+            # | - Legend -------------------------------------------------------
 
             "legend": go.layout.Legend(
                 x=1.1,
@@ -915,22 +915,22 @@ class Free_Energy_Plot():
 
             "showlegend": self.show_legend,
 
-            #__| --------------------------------------------------------------
+            # __| --------------------------------------------------------------
 
             "paper_bgcolor": 'rgba(240,240,240,0.9)',
 
             }
 
-        #__|
+        # __|
 
-        #| - H/e Count Annotations
+        # | - H/e Count Annotations
         if self.show_H_e_pairs_annotations:
             annotations = self.H_e_pairs_annotations(font_size=annotation_size)
             if "annotations" in list(layout):
                 layout["annotations"] += annotations
             else:
                 layout["annotations"] = annotations
-        #__|
+        # __|
 
         layout = go.Layout(**layout)
 
@@ -938,6 +938,6 @@ class Free_Energy_Plot():
             layout.update(layout_dict)
 
         return(layout)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************

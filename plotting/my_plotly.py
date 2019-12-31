@@ -5,7 +5,7 @@
 Author: Raul A. Flores
 """
 
-#| - Import Modules
+# | - Import Modules
 import os
 
 import copy
@@ -17,12 +17,12 @@ import chart_studio.plotly as py
 import plotly.graph_objs as go
 
 from plotly import io as pyio
-#__|
+# __|
 
 def get_xy_axis_info(fig):
     """
     """
-    #| - get_xy_axis_info
+    # | - get_xy_axis_info
     xy_axis_list = [i for i in fig.layout._props if "axis" in i]
 
     x_axis_list = [i for i in xy_axis_list if i[0] == "x"]
@@ -67,7 +67,7 @@ def get_xy_axis_info(fig):
         )
 
     return(out_dict)
-    #__|
+    # __|
 
 
 
@@ -79,7 +79,7 @@ def add_duplicate_axes(
     ):
     """
     """
-    #| - add_duplicate_axes
+    # | - add_duplicate_axes
 
     # This is necessary to make sure that the original traces are still visible after adding the new traces
     fig.update_layout(
@@ -134,10 +134,10 @@ def add_duplicate_axes(
                 axis_type + "axis": axis_type + str(new_index)
                 }).to_plotly_json())
 
-    #__|
+    # __|
 
 
-#| - OLD | add_duplicate_axes
+# | - OLD | add_duplicate_axes
 # def add_duplicate_axes(
 #     fig,
 #     axis_type="x",  # 'x' or 'y'
@@ -145,7 +145,7 @@ def add_duplicate_axes(
 #     ):
 #     """
 #     """
-#     #| - add_duplicate_axes
+#     # | - add_duplicate_axes
 #
 #     # This is necessary to make sure that the original traces are still visible after adding the new traces
 #     fig.update_layout(
@@ -189,8 +189,8 @@ def add_duplicate_axes(
 #             **go.Scatter({
 #                 axis_type + "axis": axis_type + str(new_index)
 #                 }).to_plotly_json())
-#     #__|
-#__|
+#     # __|
+# __|
 
 
 def add_minor_ticks(
@@ -201,7 +201,7 @@ def add_minor_ticks(
     ):
     """
     """
-    #| - add_minor_ticks
+    # | - add_minor_ticks
     dummy_trace = go.Scatter(
         x=[0],
         y=[0],
@@ -288,7 +288,7 @@ def add_minor_ticks(
 
     return(fig)
 
-    #__|
+    # __|
 
 
 def my_plotly_plot(
@@ -323,7 +323,7 @@ def my_plotly_plot(
       plotly data object
 
     """
-    #| - my_plotly_plot
+    # | - my_plotly_plot
     assert figure is not None, "Must pass a plot.ly figure object"
     fig = figure
 
@@ -334,7 +334,7 @@ def my_plotly_plot(
         os.makedirs(plot_dir)
 
 
-    #| - Local write to HTML
+    # | - Local write to HTML
     if write_html:
         pyio.write_html(
             fig,
@@ -351,9 +351,9 @@ def my_plotly_plot(
             # default_height='100%',
             # auto_open=False,
             )
-    #__|
+    # __|
 
-    #| - Write pdf and svg (if ORCA is installed and working)
+    # | - Write pdf and svg (if ORCA is installed and working)
     # Getting the hostname of computer
     import socket
     hostname = socket.gethostbyaddr(socket.gethostname())[0]
@@ -388,11 +388,11 @@ def my_plotly_plot(
             except:
                 print("Couldn't write png")
 
-    #__|
+    # __|
 
 
     # return(fig)
-    #__|
+    # __|
 
 
 
@@ -405,7 +405,7 @@ def reapply_colors(data):
     Args:
         plotly data series (list of graph objects to be plotted)
     """
-    #| - reapply_colors
+    # | - reapply_colors
     from colors.colors import generate_color_palette
 
     dat_lst_master = data
@@ -436,23 +436,23 @@ def reapply_colors(data):
         series_i.line["color"] = tmp
 
     return(dat_lst_master)
-    #__|
+    # __|
 
 def plot_layout(
     # xax_labels =
     ):
     """
     """
-    #| - plot_layout
+    # | - plot_layout
 
-    #| - Plot Settings
+    # | - Plot Settings
     plot_title_size = 18
     tick_lab_size = 16
     axes_lab_size = 18
     legend_size = 18
-    #__|
+    # __|
 
-    #| - Plot Layout
+    # | - Plot Layout
     xax_labels = ["O2", "OOH", "O", "OH", "H2O"]
     layout = {
 
@@ -464,7 +464,7 @@ def plot_layout(
             "color": "black",
             },
 
-        #| - Axes --------------------------------------------------------------
+        # | - Axes --------------------------------------------------------------
         "yaxis": {
             "title": "Free Energy [eV]",
             "zeroline": True,
@@ -490,22 +490,22 @@ def plot_layout(
                 size=tick_lab_size,
                 ),
             },
-        #__| -------------------------------------------------------------------
+        # __| -------------------------------------------------------------------
 
-        #| - Legend ------------------------------------------------------------
+        # | - Legend ------------------------------------------------------------
         "legend": {
             "traceorder": "normal",
             "font": dict(size=legend_size)
             },
-        #__| -------------------------------------------------------------------
+        # __| -------------------------------------------------------------------
 
-        #| - Plot Size
+        # | - Plot Size
         "width": 200 * 4.,
         "height": 200 * 3.,
-        #__|
+        # __|
 
         }
-    #__|
+    # __|
 
     fig = Figure(data=dat_lst, layout=layout)
     # plotly.plotly.image.save_as(fig, filename="pl_hab_opda_raman.png")
@@ -522,4 +522,4 @@ def plot_layout(
 
     return(layout)
 
-    #__|
+    # __|

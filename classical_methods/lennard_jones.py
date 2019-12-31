@@ -6,14 +6,14 @@
 Author: Raul A. Flores
 """
 
-#| - Import Modules
+# | - Import Modules
 import gc
 import math
 import numpy as np  # import pandas as pd
 import collections
 from pymatgen.core.periodic_table import Element
 from asap3 import LennardJones
-#__|
+# __|
 
 def lennard_jones_sp(
     epsilon,
@@ -36,7 +36,7 @@ def lennard_jones_sp(
         modified_lj:
         return:
     """
-    #| - lennard_jones_sp
+    # | - lennard_jones_sp
     atomic_num_list = atoms.get_atomic_numbers()
     atomic_num_list = list(set(atomic_num_list))
     atomic_num_list.sort()
@@ -45,7 +45,7 @@ def lennard_jones_sp(
 
     orig_num_of_atoms = atoms.get_number_of_atoms()
 
-    #| - Filter Relevant LJ Parameters
+    # | - Filter Relevant LJ Parameters
     row_col_to_keep = [
         Element.from_Z(atomic_num).name
         for
@@ -62,7 +62,7 @@ def lennard_jones_sp(
 
     # epsilon = epsilon.values
     # sigma = sigma.values
-    #__|
+    # __|
 
     calc = LennardJones(
         list(atomic_type_num_dict),
@@ -72,15 +72,15 @@ def lennard_jones_sp(
         modified=modified_lj,
         )
 
-    #| - Repeat Unit Cell
+    # | - Repeat Unit Cell
     repeat_unit_cell = repeat_unit_cell_ASAP(atoms, sigma)
 
     atoms = atoms.repeat(repeat_unit_cell)
-    #__|
+    # __|
 
     atoms.set_calculator(calc)
 
-    #| - Energy
+    # | - Energy
     lj_energy = atoms.get_potential_energy()
     lj_energy_per_atom = lj_energy / atoms.get_number_of_atoms()
 
@@ -93,14 +93,14 @@ def lennard_jones_sp(
 
     else:
         lj_energy = lj_total_energy
-    #__|
+    # __|
 
-    #| - Forces -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    # | - Forces -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     # COMBAK
     # Find a way to decrease the number of atoms again
     lj_forces = atoms.get_forces()
 
-    #__|
+    # __|
 
     if return_quantity == "energy":
         out = lj_energy
@@ -110,7 +110,7 @@ def lennard_jones_sp(
         out = (lj_energy, lj_forces)
 
     return(out)
-    #__|
+    # __|
 
 def repeat_unit_cell_ASAP(atoms, sigma):
     """Return repeat array such that ASAP doesn't complain about r_cut.
@@ -118,7 +118,7 @@ def repeat_unit_cell_ASAP(atoms, sigma):
     Args:
         atoms
     """
-    #| - repeat_unit_cell_ASAP
+    # | - repeat_unit_cell_ASAP
 
     def calc_cell_heights(unit_cell):
         """Calculate heights of cell.
@@ -129,7 +129,7 @@ def repeat_unit_cell_ASAP(atoms, sigma):
             unit_cell:
             sigma:
         """
-        #| - calc_cell_heights
+        # | - calc_cell_heights
         determinant = np.cross(
             unit_cell[0],
             unit_cell[1],
@@ -148,7 +148,7 @@ def repeat_unit_cell_ASAP(atoms, sigma):
             heights.append(height_i)
 
         return(heights)
-        #__|
+        # __|
 
     heights = calc_cell_heights(atoms.cell)
 
@@ -159,7 +159,7 @@ def repeat_unit_cell_ASAP(atoms, sigma):
 
     cut_off_length = 3 * 2 * max_sigma
 
-    #| - Repeat Unit Cell
+    # | - Repeat Unit Cell
     repeat_unit_cell = []
     for i_ind, height_i in enumerate(heights):
         if height_i < cut_off_length:
@@ -168,7 +168,7 @@ def repeat_unit_cell_ASAP(atoms, sigma):
             repeat_unit_cell.append(cell_repeat_fact)
         else:
             repeat_unit_cell.append(1)
-    #__|
+    # __|
 
     return(repeat_unit_cell)
-    #__|
+    # __|

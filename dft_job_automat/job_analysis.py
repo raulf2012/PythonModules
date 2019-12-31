@@ -9,7 +9,7 @@ Development Notes:
     TODO Delete the duplicate methods for job_status
 """
 
-#| - Import Modules
+# | - Import Modules
 import os
 import sys
 
@@ -28,7 +28,7 @@ from ase.visualize import view
 
 # My Modules
 from dft_job_automat.job_setup import DFT_Jobs_Setup
-#__|
+# __|
 
 class DFT_Jobs_Analysis(DFT_Jobs_Setup):
     """Analysis methods for jobs in tree structure.
@@ -39,11 +39,11 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
     Parent class to DFT_Jobs_Setup
     """
 
-    #| - DFT_Jobs_Analysis ****************************************************
+    # | - DFT_Jobs_Analysis ****************************************************
 
-    #| - Class Variables
+    # | - Class Variables
     finished_fle = ".FINISHED.new"
-    #__|
+    # __|
 
     def __init__(self,
         tree_level=None,
@@ -83,9 +83,9 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 Additional methods to run on each job dir and return value to
                 populate data column with.
         """
-        #| - __init__
+        # | - __init__
 
-        #| - Instantiate DFT_Jobs_Setup
+        # | - Instantiate DFT_Jobs_Setup
         DFT_Jobs_Setup.__init__(self,
             tree_level=tree_level,
             level_entries=level_entries,
@@ -100,14 +100,14 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             parse_all_revisions=parse_all_revisions,
             )
 
-        #__|
+        # __|
 
-        #| - Class Attributes
+        # | - Class Attributes
         self.dataframe_dir = dataframe_dir
         self.parallel_exec = parallel_exec
-        #__|
+        # __|
 
-        #| - General Methods
+        # | - General Methods
         if update_job_state is True:
             print("update_job_state == True")
             self.add_data_column(
@@ -120,9 +120,9 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 column_name="N/A",
                 parallel_exec=self.parallel_exec,
                 )
-        #__|
+        # __|
 
-        #| - Job Type Specific Methods
+        # | - Job Type Specific Methods
         # method = DFT_Methods().atom_type_num_dict
         # self.add_data_column(method, column_name="TEMP", allow_failure=False)
 
@@ -134,7 +134,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
         else:
 
-            #| - job_type_class instance attached methods
+            # | - job_type_class instance attached methods
             if job_type_class is not None:
                 job_type_inst = job_type_class
 
@@ -152,9 +152,9 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                         )
 
                     write_data_frame = True
-            #__|
+            # __|
 
-            #| - methods_to_run
+            # | - methods_to_run
             if methods_to_run is not None:
                 for method in methods_to_run:
 
@@ -171,23 +171,23 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                         )
 
                 write_data_frame = True
-            #__|
+            # __|
 
             if write_data_frame:
                 self.__write_dataframe__()
 
         self.add_all_columns_from_file()
-        #__|
+        # __|
 
-        #__|
+        # __|
 
-    #| - Job Log **************************************************************
+    # | - Job Log **************************************************************
 
     def add_jobs_queue_data(self):
         """Add jobs queue data to jobs.csv file."""
-        #| - add_jobs_queue_data
+        # | - add_jobs_queue_data
         # COMBAK Not finished
-        #__|
+        # __|
 
     def job_queue_info(self, path_i):
         """
@@ -198,7 +198,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             path_i:
         """
-        #| - job_queue_info
+        # | - job_queue_info
         jobs_file_path = self.job_queue_dir + "/jobs.csv"
         df = pd.read_csv(jobs_file_path)
 
@@ -211,13 +211,13 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         job_info = df.iloc[index].to_dict()
 
         return(job_info)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************
 
     def __load_dataframe__(self):
         """Attempt to load dataframe."""
-        #| - __load_dataframe__
+        # | - __load_dataframe__
         if self.dataframe_dir is not None:
             fle_name = self.dataframe_dir + "/job_dataframe.pickle"
         else:
@@ -231,7 +231,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 df = pickle.load(fle)
 
         self.data_frame = df
-        #__|
+        # __|
 
     def __write_dataframe__(self):
         """
@@ -239,7 +239,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
         Writes dataframe in csv and pickle format. CSV is easily human readable
         """
-        #| - __write_dataframe__
+        # | - __write_dataframe__
         df = self.data_frame
 
         # df.to_csv(self.root_dir + "/jobs_bin/job_dataframe.csv", index=False)
@@ -253,7 +253,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
         with open(df_pickle_fle, "wb") as fle:
             pickle.dump(df, fle)
-        #__|
+        # __|
 
     def add_all_columns_from_file(self):
         """
@@ -264,7 +264,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             Columns are separated by the "|" character
             File name must end with ".col" extension.
         """
-        #| - add_all_columns_from_file
+        # | - add_all_columns_from_file
         # print("lksajkfls0sd7fsdfsd98")
         # print(self.root_dir + "/jobs_bin/data_columns")
         # print(self.working_dir)
@@ -281,7 +281,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
 
         for col_file in col_data_file_list:
             self.__add_data_column_from_file__(col_file)
-        #__|
+        # __|
 
     def __add_data_column_from_file__(self,
         file_name,
@@ -292,13 +292,13 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             file_name:
         """
-        #| - __add_data_column_from_file__
+        # | - __add_data_column_from_file__
 
-        #| - Extracting Column Name From File Name
+        # | - Extracting Column Name From File Name
         col_name = file_name.split(".")[0]
-        #__|
+        # __|
 
-        #| - Reading Column Data File - NEW
+        # | - Reading Column Data File - NEW
         # column_file = self.root_dir + "/jobs_bin/data_columns/" + file_name
         column_file = os.path.join(
             self.working_dir,
@@ -319,9 +319,9 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             line_new["path"] = line[2].strip()
 
             content_new.append(line_new)
-        #__|
+        # __|
 
-        #| - Matching Dataframe with New Data Column
+        # | - Matching Dataframe with New Data Column
         df = self.data_frame
 
         df["full_path"] = df["path"].astype(str) + "_" + \
@@ -345,9 +345,9 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         df.drop("full_path", axis=1)
 
         df[col_name] = column_data_list
-        #__|
+        # __|
 
-        #__|
+        # __|
 
 
 
@@ -394,7 +394,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             allow_failure: <True or False>
                 If True, a failed method call will result in NaN
         """
-        #| - __add_data_coumn__
+        # | - __add_data_coumn__
         startTime = datetime.now()
 
         print("Adding " + str(column_name))
@@ -402,7 +402,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         def process_entry(entry):
             """
             """
-            #| - process_entry
+            # | - process_entry
             path = entry.full_path
             path = path + self.cluster.cluster.job_data_dir
 
@@ -418,11 +418,11 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             # new_data_col.append(out)
 
             return(out)
-            #__|
+            # __|
 
         if parallel_exec:
 
-            #| - Parallized Execution *****************************************
+            # | - Parallized Execution *****************************************
             from joblib import Parallel, delayed
             import multiprocessing
 
@@ -433,16 +433,16 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             new_data_col = Parallel(n_jobs=int(num_cores / 2))(
                 delayed(process_entry)(i) for i in self.data_frame["Job"]
                 )
-            #__| **************************************************************
+            # __| **************************************************************
 
         else:
 
-            #| - Serial Execution *********************************************
+            # | - Serial Execution *********************************************
             new_data_col = []
             for entry in self.data_frame["Job"]:
                 out = process_entry(entry)
                 new_data_col.append(out)
-            #__| **************************************************************
+            # __| **************************************************************
 
 
         data_type_list = [type(x) for x in new_data_col]
@@ -469,7 +469,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         print("Run time ", str(datetime.now() - startTime))
         print("__________________________________"); print("")
 
-        #__|
+        # __|
 
 
 
@@ -498,7 +498,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             path:
         """
-        #| - job_state_file
+        # | - job_state_file
         file_path = path_i + "/.QUEUESTATE"
         if os.path.isfile(file_path):
             with open(file_path, "r") as fle:
@@ -507,10 +507,10 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             job_state = None
 
         return(job_state)
-        #__|
+        # __|
 
 
-    #| - Data Frame Methods
+    # | - Data Frame Methods
 
     # COMBAK Move this to dataframe methods
     def create_data_sets(self, data_frame, free_variable):
@@ -527,7 +527,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         k-points and pw-cutoff where each set contains the full range of
         latt-const.
         """
-        #| - create_data_sets
+        # | - create_data_sets
         # df = copy.deepcopy(self.data_frame)
         df = data_frame
 
@@ -541,7 +541,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         for index in indices:
             df_tmp = df_unique_params.ix[[index]]
 
-            #| - Data Labels
+            # | - Data Labels
             data_label_full = ""
             for column in df_tmp:
                 col_i = df_tmp[column]
@@ -554,7 +554,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 data_label_full += data_label_i + " | "
 
             data_label_full = data_label_full[:-3]
-            #__|
+            # __|
 
             i1 = df.set_index(var_lst).index
             i2 = df_tmp.set_index(var_lst).index
@@ -564,7 +564,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             data_lst.append({"label": data_label_full, "data": df_i})
 
         return(data_lst)
-        #__|
+        # __|
 
     def filter_early_revisions(self, dataframe):
         """Remove all entries (rows) which aren't the highest revision number.
@@ -572,18 +572,18 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             dataframe:
         """
-        #| - filter_early_revisions
+        # | - filter_early_revisions
         max_rev = dataframe["revision_number"] == dataframe["max_revision"]
         data_series_maxrev = dataframe[max_rev]
 
         return(data_series_maxrev)
-        #__|
+        # __|
 
-    #__|
+    # __|
 
-    #| - Query Job Status *****************************************************
+    # | - Query Job Status *****************************************************
 
-    #| - __old__
+    # | - __old__
     def job_state(self, path_i):
         """
         Return job state.
@@ -593,12 +593,12 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             path_i
         """
-        #| - job_state
+        # | - job_state
         job_state = self.cluster.cluster.job_state(path_i=path_i)
 
         return(job_state)
 
-        #| - OLD
+        # | - OLD
         # if not os.path.isdir(path + "/simulation"):
         #     return("no_sim_folder")
         #
@@ -610,9 +610,9 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         #     return("running")
         # else:
         #     return("error")
-        #__|
+        # __|
 
-        #__|
+        # __|
 
     def job_state_2(self, path):
         """
@@ -625,18 +625,18 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             path_i
         """
-        #| - job_state_2
+        # | - job_state_2
         #
-        # #| - Formatting path Depending on Whether It is Full or Relative
+        # # | - Formatting path Depending on Whether It is Full or Relative
         # if self.root_dir in path:
         #     ind = path.find(self.root_dir_short)
         #     # path = path[ind:]
         #     full_path = path[ind:]
         # else:
         #     full_path = self.root_dir_short + "/" + path
-        # #__|
+        # # __|
         #
-        # #| - Finding job in jobs.csv file
+        # # | - Finding job in jobs.csv file
         # jobs_file_path = self.job_queue_dir + "/jobs.csv"
         # df = pd.read_csv(jobs_file_path)
         #
@@ -645,25 +645,25 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         #     index = df[df["job_path"] == full_path].index.tolist()[0]
         # except:
         #     job_in_csv = False
-        # #__|
+        # # __|
         #
         # try:
         #
-        #     #| - Attempting to read job_id from file
+        #     # | - Attempting to read job_id from file
         #     with open(path + "/job_id") as fle:
         #         job_id = fle.read().rstrip()
-        #     #__|
+        #     # __|
         #
         # except:
         #
-        #     #| - Attempting to read job_id from jobs.csv by matching paths
+        #     # | - Attempting to read job_id from jobs.csv by matching paths
         #     if job_in_csv:
         #         job_id = df.iloc[index]["job_id"]
-        #     #__|
+        #     # __|
         #
         # job_queue_dict = AWS_Queues().job_info_batch(job_id)
         #
-        # #| - Handling Case Where Job ID Is Not In Batch System
+        # # | - Handling Case Where Job ID Is Not In Batch System
         # if job_queue_dict == "job not in batch system":
         #
         #     if job_in_csv:
@@ -675,25 +675,25 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         #             job_status = fle.readline().rstrip()
         #
         #             job_queue_dict = {"job_status": job_status}
-        # #__|
+        # # __|
         #
         # job_status = job_queue_dict["job_status"]
         #
-        # #| - Writing Job Status to File
+        # # | - Writing Job Status to File
         # with open(path + "/.STATUS", "w+") as fle:
         #     fle.write(job_status + "\n")
-        # #__|
+        # # __|
         #
-        # #| - Writing Job Status to Master Jobs Queue File
+        # # | - Writing Job Status to Master Jobs Queue File
         # if job_in_csv:
         #     df.at[index, "job_status"] = job_status
         #     df.to_csv(jobs_file_path, index=False)
-        # #__|
+        # # __|
         #
         # return(job_status)
-        #__|
+        # __|
 
-    #__|
+    # __|
 
     def job_state_3(self, path_i):
         """
@@ -702,7 +702,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             path_i
         """
-        #| - job_state_3
+        # | - job_state_3
         out_dict = {
             "job_ready": self._job_ready(path_i),
             "job_pending": self._job_pending(path_i),
@@ -713,9 +713,9 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             }
 
         return(out_dict)
-        #__|
+        # __|
 
-    #| - OLD Methods That Use job_i
+    # | - OLD Methods That Use job_i
 
     def job_ready(self, job_i, require_READY_tag=True):
         """
@@ -726,7 +726,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             require_READY_tag:
                 Require a ".READY" file start job
         """
-        #| - job_ready
+        # | - job_ready
         path_i = self.var_lst_to_path(
             job_i,
             job_rev="Auto",
@@ -743,11 +743,11 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         if not os.path.isfile(path_i + "/.SUBMITTED"):
             crit_1 = True
 
-        #| - Having trouble with AWS .READY files not being copied over
+        # | - Having trouble with AWS .READY files not being copied over
         # if self.cluster.cluster_sys == "aws":
         #     crit_
         #
-        #__|
+        # __|
 
         crit_list = [crit_0, crit_1]
 
@@ -755,7 +755,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             return(True)
         else:
             return(False)
-        #__|
+        # __|
 
     def job_pending(self, job_i):
         """
@@ -764,7 +764,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             job_i:
         """
-        #| - job_pending
+        # | - job_pending
         path_i = self.var_lst_to_path(job_i,
             job_rev="Auto",
             relative_path=False,
@@ -800,7 +800,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         #     return(True)
         # else:
         #     return(False)
-        #__|
+        # __|
 
     def job_running(self, job_i):
         """
@@ -809,7 +809,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             job_i:
         """
-        #| - job_running
+        # | - job_running
         path_i = self.var_lst_to_path(job_i,
             job_rev="Auto",
             relative_path=False,
@@ -839,7 +839,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             return(True)
         else:
             return(False)
-        #__|
+        # __|
 
     def job_succeeded(self, job_i):
         """
@@ -848,7 +848,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             job_i:
         """
-        #| - job_succeeded
+        # | - job_succeeded
         path_i = self.var_lst_to_path(job_i,
             job_rev="Auto",
             relative_path=False,
@@ -872,13 +872,13 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 if "job_completed" in lines:
                     crit_2_1 = True
 
-        #| - DELETE THIS
+        # | - DELETE THIS
         # TEMP COMBAK FIXME Delete this after migration to new FINISHED file
         # format is done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         fle_name = path_i + "/" + DFT_Jobs_Analysis.finished_fle
         if os.path.isfile(fle_name):
             crit_2_1 = True
-        #__|
+        # __|
 
 
         crit_2_2 = False
@@ -896,7 +896,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             return(True)
         else:
             return(False)
-        #__|
+        # __|
 
     def job_failed(self, job_i):
         """
@@ -905,7 +905,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             job_i:
         """
-        #| - job_failed
+        # | - job_failed
         path_i = self.var_lst_to_path(job_i,
             job_rev="Auto",
             relative_path=False,
@@ -925,12 +925,12 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         if not os.path.isfile(path_i + "/." + DFT_Jobs_Analysis.finished_fle):
             crit_2 = True
 
-        #| - Parsing Error File for "Error" (Sherlock only for now)
+        # | - Parsing Error File for "Error" (Sherlock only for now)
         if self.cluster.cluster_sys == "sherlock":
             error = self.parse_job_error_file(path_i)
             if error:
                 crit_0 = True
-        #__|
+        # __|
 
         crit_list = [crit_0, crit_1, crit_2]
 
@@ -938,7 +938,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             return(True)
         else:
             return(False)
-        #__|
+        # __|
 
     def job_submitted(self, path_i):
         """
@@ -947,7 +947,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             path_i
         """
-        #| - job_submitted
+        # | - job_submitted
         try:
             if os.path.isfile(path_i + "/.SUBMITTED"):
                 return(True)
@@ -955,11 +955,11 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 return(False)
         except:
             return(False)
-        #__|
+        # __|
 
-    #__|
+    # __|
 
-    #| - NEW Methods That Use path_i Instead of job_i (Create col in df!!)
+    # | - NEW Methods That Use path_i Instead of job_i (Create col in df!!)
     def _job_ready(self, path_i, require_READY_tag=True):
         """
         Return whether job_i is in READY state.
@@ -969,7 +969,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             require_READY_tag:
                 Require a ".READY" file start job
         """
-        #| - job_ready
+        # | - job_ready
         # path_i = self.var_lst_to_path(job_i,
         #     ob_rev="Auto",
         #     relative_path=False,
@@ -985,10 +985,10 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         if not os.path.isfile(path_i + "/.SUBMITTED"):
             crit_1 = True
 
-        #| - Having trouble with AWS .READY files not being copied over
+        # | - Having trouble with AWS .READY files not being copied over
         # if self.cluster.cluster_sys == "aws":
         #     crit_
-        #__|
+        # __|
 
         crit_list = [crit_0, crit_1]
 
@@ -996,7 +996,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             return(True)
         else:
             return(False)
-        #__|
+        # __|
 
     def _job_pending(self, path_i):
         """
@@ -1005,7 +1005,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             path_i:
         """
-        #| - job_pending
+        # | - job_pending
         # path_i = self.var_lst_to_path(job_i, job_rev="Auto",
         # relative_path=False)
 
@@ -1032,7 +1032,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             return(True)
         else:
             return(False)
-        #__|
+        # __|
 
     def _job_running(self, path_i):
         """
@@ -1041,7 +1041,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             path_i:
         """
-        #| - job_running
+        # | - job_running
         crit_0 = True
         if os.path.isfile(path_i + "/.READY"):
             crit_0 = True
@@ -1065,7 +1065,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             return(True)
         else:
             return(False)
-        #__|
+        # __|
 
     def _job_succeeded(self, path_i):
         """
@@ -1074,7 +1074,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             path_i:
         """
-        #| - job_succeeded
+        # | - job_succeeded
         crit_0 = True
         if os.path.isfile(path_i + "/.READY"):
             crit_0 = True
@@ -1104,7 +1104,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             return(True)
         else:
             return(False)
-        #__|
+        # __|
 
     def _job_failed(self, path_i):
         """
@@ -1113,7 +1113,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             path_i:
         """
-        #| - job_failed
+        # | - job_failed
         crit_0 = False
         job_state = self.cluster.job_state(path_i=path_i)
         if job_state == "FAILED":
@@ -1128,7 +1128,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             crit_2 = True
 
 
-        #| - Parsing Error File for "Error" (Sherlock only for now)
+        # | - Parsing Error File for "Error" (Sherlock only for now)
 
         if self.cluster.cluster_sys == "sherlock":
             error = self.parse_job_error_file(path_i)
@@ -1138,7 +1138,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         # if error and self.cluster.cluster_sys == "sherlock":
         #     # print(error)
         #     crit_0 = True
-        #__|
+        # __|
 
         crit_list = [crit_0, crit_1, crit_2]
 
@@ -1146,7 +1146,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             return(True)
         else:
             return(False)
-        #__|
+        # __|
 
     def _job_submitted(self, path_i):
         """
@@ -1155,7 +1155,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             path_i:
         """
-        #| - job_submitted
+        # | - job_submitted
         try:
             if os.path.isfile(path_i + "/.SUBMITTED"):
                 return(True)
@@ -1163,9 +1163,9 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
                 return(False)
         except:
             return(False)
-        #__|
+        # __|
 
-    #__|
+    # __|
 
     def parse_job_error_file(self, path_i):
         """
@@ -1176,7 +1176,7 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
         Args:
             path_i
         """
-        #| - parse_job_error_file
+        # | - parse_job_error_file
         err_file = self.cluster.cluster.error_file
         err_file = os.path.join(path_i, err_file)
 
@@ -1209,11 +1209,11 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             error = False
 
         return(error)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************
 
-#__| **************************************************************************
+# __| **************************************************************************
 
 
 def parse_job_dirs(dirs_to_parse):
@@ -1222,25 +1222,25 @@ def parse_job_dirs(dirs_to_parse):
     Args:
         dirs_to_parse
     """
-    #| - parse_job_dirs
+    # | - parse_job_dirs
 
-    #| - Import Modules
+    # | - Import Modules
     # import os
     # import sys
     #
     # import pickle as pickle
-    #__|
+    # __|
 
-    #| - Script Input
+    # | - Script Input
     # dirs_to_parse = [
     #     "01_surface_calcs",
     #     "02_surface_coverage",
     #     "03_OER_Calc",
     #     "07_diff_coverages_term",
     #     ]
-    #__|
+    # __|
 
-    #| - MASTER Loop
+    # | - MASTER Loop
     master_path_list = []
     for dir_j in dirs_to_parse:
         # path_j = os.path.join(os.getcwd(), dir_j)
@@ -1252,7 +1252,7 @@ def parse_job_dirs(dirs_to_parse):
                 dir_root = os.path.join(*name_i.split("/")[0:-1])
                 dir_leaf = name_i.split("/")[-1]
 
-                #| - Test that terminal dir name has _1 format
+                # | - Test that terminal dir name has _1 format
                 condition_0 = False
                 if dir_leaf[0] == "_":
                     condition_0 = True
@@ -1265,7 +1265,7 @@ def parse_job_dirs(dirs_to_parse):
                 condition_2 = False
                 if numeric_part.isdigit():
                     condition_2 = True
-                #__|
+                # __|
 
                 condition_3 = False
                 if "__old__" not in name_i:
@@ -1284,13 +1284,13 @@ def parse_job_dirs(dirs_to_parse):
                     ]):
                     master_path_list.append("/" + dir_root)
 
-    #__|
+    # __|
 
     master_path_list_unique = list(set(master_path_list))
 
     # for i in master_path_list_unique: print(i)
 
-    #| - NEW | Check that paths contain job_params.json file
+    # | - NEW | Check that paths contain job_params.json file
     for path_i in master_path_list_unique:
         if "job_params.json" not in os.listdir(path_i):
             print("job_params not in: ", path_i)
@@ -1300,7 +1300,7 @@ def parse_job_dirs(dirs_to_parse):
         files_i = os.listdir(path_i)
         for file_j in files_i:
 
-            #| - TEMP
+            # | - TEMP
             condition_list = []
 
             # Make sure that 'run' is in the dir name (ex. 3-run)
@@ -1323,26 +1323,26 @@ def parse_job_dirs(dirs_to_parse):
             else:
                 condition_list.append(False)
 
-            #__|
+            # __|
 
             if all(condition_list):
                 print("Found a #-run folder: ", path_i)
 
-    #__|
+    # __|
 
     return(master_path_list_unique)
 
-    #| - Saving List to Pickle
+    # | - Saving List to Pickle
     # with open("181016_jobs_dir_list.pickle", "w") as fle:
     #     pickle.dump(master_path_list_unique ,fle)
-    #__|
+    # __|
 
-    #__|
+    # __|
 
 def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
     """
     """
-    #| - compare_parsed_and_user_job_dirs
+    # | - compare_parsed_and_user_job_dirs
 
     print(" ")
     print(" ")
@@ -1357,17 +1357,17 @@ def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
     print("Dirs that are in the user list but not in the parsed list")
     print(set(user_dirs).difference(set(parsed_dirs)))
 
-    #__|
+    # __|
 
 
 
-#| - __old__
+# | - __old__
 
 
 
-    #| - __old__
+    # | - __old__
 
-                #| - Picking Revision Number(s) To Query
+                # | - Picking Revision Number(s) To Query
                 # largest_rev = self.job_revision_number(entry)
                 #
                 # if revision == "auto":
@@ -1381,7 +1381,7 @@ def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
                 #     rev = range(self.job_revision_number(entry) + 1)
                 # else:
                 #     rev = [revision]
-                #__|
+                # __|
 
     # def add_data_column(self,
     #     function,
@@ -1414,7 +1414,7 @@ def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
     #         allow_failure: <True or False>
     #             If True, a failed method call will result in NaN
     #     """
-    #     #| - __add_data_coumn__
+    #     # | - __add_data_coumn__
     #     new_data_col = []
     #     job_rev_lst = []
     #
@@ -1428,7 +1428,7 @@ def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
     #             job_rev="False",
     #             )
     #
-    #         #| - Picking Revision Number(s) To Query
+    #         # | - Picking Revision Number(s) To Query
     #         largest_rev = self.job_revision_number(entry)
     #
     #         if revision == "auto":
@@ -1442,11 +1442,11 @@ def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
     #             rev = range(self.job_revision_number(entry) + 1)
     #         else:
     #             rev = [revision]
-    #         #__|
+    #         # __|
     #
     #         for rev_num in rev:
     #
-    #             #| - Run Function
+    #             # | - Run Function
     #             path += "_" + str(rev_num)
     #
     #             path = path + self.cluster.cluster.job_data_dir
@@ -1461,7 +1461,7 @@ def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
     #
     #             new_data_col.append(out)
     #             job_rev_lst.append(rev_num)
-    #             #__|
+    #             # __|
     #
     #     data_type_list = [type(x) for x in new_data_col]
     #     dict_in_list = any(item == dict for item in data_type_list)
@@ -1484,10 +1484,10 @@ def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
     #
     #     else:
     #         self.data_frame[column_name] = new_data_col
-    #     #__|
+    #     # __|
     #
 
-    #__|
+    # __|
 
 
 
@@ -1500,7 +1500,7 @@ def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
             ind:
                 Index of dataframe corresponding to entry of interest.
         """
-        #| - view_atoms
+        # | - view_atoms
         df = self.data_frame
 
         path_i = df.iloc[ind]["path"]
@@ -1514,7 +1514,7 @@ def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
             view(atoms)
         except:
             print("Couldn't read atoms object")
-        #__|
+        # __|
 
 
     # DEPR
@@ -1525,13 +1525,13 @@ def compare_parsed_and_user_job_dirs(parsed_dirs, user_dirs):
         Args:
             path:
         """
-        #| - job_revisions
+        # | - job_revisions
         path = "/".join(path.split("/")[0:-1]) + "/"
 
         # Attempting to remove duplicate job folders (usually have spaces)
         dir_list = [x for x in os.walk(path).next()[1] if " " not in x]
 
         return(len(dir_list))
-        #__|
+        # __|
 
-#__|
+# __|

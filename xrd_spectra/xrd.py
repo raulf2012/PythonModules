@@ -15,7 +15,7 @@
 Author: Raul A. Flores
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import os
 import math
 
@@ -37,14 +37,14 @@ import plotly.graph_objs as go
 from plotly import io as pyio
 
 from scipy.signal import find_peaks
-#__|
+# __|
 
 
 class XRD_Spectra:
     """TEMP.
     """
 
-    #| - XRD_Spectra ******************************************************
+    # | - XRD_Spectra ******************************************************
     _SAVE_FOLDER_NAME = ".xrd_save_dir"
     _SAVE_FILE_NAME = "xrd_save_state.pickle"
     _SAVE_ATTRIBUTES = ["df_peaks", "temp_0"]
@@ -71,20 +71,20 @@ class XRD_Spectra:
           peak_broadening: float
             Dictates the broadness of peaks (smaller is thinner)
         """
-        #| - __init__
+        # | - __init__
         self.temp_0 = "TEMP TEMP TEMP TEMP"
 
-        #| - Setting Argument Instance Attributes
+        # | - Setting Argument Instance Attributes
         self.reflections_table_path = reflections_table_path
         self.theta_range = theta_range
         self.theta_spacing = theta_spacing
         self.load_from_saved_state = load_from_saved_state
         self.peak_broadening = peak_broadening
-        #__|
+        # __|
 
-        #| - Initializing Internal Instance Attributes
+        # | - Initializing Internal Instance Attributes
         self.df_peaks = None
-        #__|
+        # __|
 
         # Try to load previous saved state
         self.loaded_state_data = self.__load_state__()
@@ -100,13 +100,13 @@ class XRD_Spectra:
         self.summed_lorentz = self.__create_summed_lorentz_function__()
 
         self.spectrum = self.__create_total_spectrum__()
-        #__|
+        # __|
 
 
     def __read_reflections_table__(self):
         """
         """
-        #| - __read_reflections_table__
+        # | - __read_reflections_table__
         file_path_i = self.reflections_table_path
         # file_path_i = "/home/raulf2012/Dropbox/01_norskov/00_projects/columbite_iro2_oer/workflow/01_latt_const_opt/an_xrd_pattern/vesta_xrd_gen/optimized_bulk.txt"
 
@@ -144,27 +144,27 @@ class XRD_Spectra:
         # df.columns = column_headers
         # df = pd.read_csv("../vesta_xrd_gen/reflections_table.csv")
         # df = df.sort_values("I", ascending=False)
-        #__|
+        # __|
 
 
     def __process_reflections_table__(self):
         """
         """
-        #| - __process_reflections_table__
+        # | - __process_reflections_table__
         self.__create_simplified_facet_string__()
 
-        #__|
+        # __|
 
 
     def __create_simplified_facet_string__(self):
         """
         """
-        #| - __create_simplified_facet_string__
+        # | - __create_simplified_facet_string__
         df = self.df
 
         # Create string facet representation
         df["facet_mine"] = abs(df["h"]).astype("str") + abs(df["k"]).astype("str") + abs(df["l"]).astype("str")
-        #__|
+        # __|
 
 
     def __create_lorentz_for_all_signals__(self):
@@ -172,7 +172,7 @@ class XRD_Spectra:
 
         Adds column to df
         """
-        #| - __create_lorentz_for_all_signals__
+        # | - __create_lorentz_for_all_signals__
         df = self.df
         peak_broadening = self.peak_broadening
 
@@ -195,25 +195,25 @@ class XRD_Spectra:
             funct_list.append(funct_i)
 
         df["function"] = funct_list
-        #__|
+        # __|
 
 
     def __create_summed_lorentz_function__(self):
         """
         """
-        #| - __create_summed_lorentz_function__
+        # | - __create_summed_lorentz_function__
         df = self.df
 
         sum_funct = np.sum(df["function"].tolist())
 
         return(sum_funct)
-        #__|
+        # __|
 
 
     def __create_theta_array__(self):
         """
         """
-        #| - __create_theta_array__
+        # | - __create_theta_array__
         # Compute Signal
         theta_range = self.theta_range
         theta_spacing = self.theta_spacing
@@ -227,13 +227,13 @@ class XRD_Spectra:
         x_range = np.arange(min_theta, max_theta, theta_spacing)
 
         return(x_range)
-        #__|
+        # __|
 
 
     def __create_total_spectrum__(self):
         """
         """
-        #| - __create_total_spectrum__
+        # | - __create_total_spectrum__
         summed_lorentz = self.summed_lorentz
         # theta_range = self.theta_range
         theta_array = self.theta_array
@@ -246,15 +246,15 @@ class XRD_Spectra:
         spectrum = 100 * (spectrum / spectrum.max())
 
         return(spectrum)
-        #__|
+        # __|
 
 
     def compute_peak_positions(self):
         """
         """
-        #| - compute_peak_positions
+        # | - compute_peak_positions
 
-        #| - Class Attributes
+        # | - Class Attributes
         spectrum = self.spectrum
         df = self.df
         theta_array = self.theta_array
@@ -262,7 +262,7 @@ class XRD_Spectra:
         theta_range = self.theta_range
 
         loaded_state_data = self.loaded_state_data
-        #__|
+        # __|
 
 
         bool_0 = (loaded_state_data is not None)
@@ -282,7 +282,7 @@ class XRD_Spectra:
 
             x = Symbol("x")
 
-            #| -  Computing Peak Positions
+            # | -  Computing Peak Positions
             # Used for peak_finder to set width
             grid_to_theta = len(theta_array) / (max_theta - min_theta)
 
@@ -294,10 +294,10 @@ class XRD_Spectra:
                 distance=grid_to_theta * 1.)
 
             peaks_x = [theta_array[i] for i in peaks[0]]
-            #__|
+            # __|
 
 
-            #| - Computing the Main Facets for the Prominant Peaks
+            # | - Computing the Main Facets for the Prominant Peaks
             main_facets_list = []
             peaks_x_tqdm = tqdm(peaks_x)
             for peak_x_i in peaks_x_tqdm:
@@ -328,7 +328,7 @@ class XRD_Spectra:
                 main_facets_i = "_".join(major_facets)
 
                 main_facets_list.append(main_facets_i)
-            #__|
+            # __|
 
             df_peaks = pd.DataFrame()
             df_peaks["main_facets"] = main_facets_list
@@ -346,23 +346,23 @@ class XRD_Spectra:
         #
         # df[df[peak_x_i].isin(highest_contributions)].sort_values(
         #     peak_x_i, ascending=False)
-    #__|
+    # __|
 
 
     def __create_save_dir__(self):
         """
         """
-        #| - __create_save_dir__
+        # | - __create_save_dir__
         save_folder_name = self._SAVE_FOLDER_NAME
         if not os.path.exists(save_folder_name):
             os.makedirs(save_folder_name)
-        #__|
+        # __|
 
 
     def __save_state__(self):
         """
         """
-        #| - __save_states__
+        # | - __save_states__
         save_folder_name = self._SAVE_FOLDER_NAME
         save_file_name = self._SAVE_FILE_NAME
 
@@ -376,13 +376,13 @@ class XRD_Spectra:
 
         with open(os.path.join(save_folder_name, save_file_name), "wb") as fle:
             pickle.dump(save_attributes, fle)
-        #__|
+        # __|
 
 
     def __load_state__(self):
         """
         """
-        #| - __load_state__
+        # | - __load_state__
         save_folder_name = self._SAVE_FOLDER_NAME
         save_file_name = self._SAVE_FILE_NAME
         load_from_saved_state = self.load_from_saved_state
@@ -399,16 +399,16 @@ class XRD_Spectra:
             pass
 
         return(save_data)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************
 
 
 class XRD_Plot():
     """TEMP.
     """
 
-    #| - XRD_Plot *************************************************************
+    # | - XRD_Plot *************************************************************
     def __init__(self,
         XRD_Spectra,
 
@@ -416,16 +416,16 @@ class XRD_Plot():
         ):
         """
         """
-        #| - __init__
+        # | - __init__
 
-        #| - Setting Instance Attributes
+        # | - Setting Instance Attributes
         self.XRD_Spectra = XRD_Spectra
-        #__|
+        # __|
 
     def create_figure(self):
         """
         """
-        #| - create_figure
+        # | - create_figure
         data = []
 
         trace_i = self.__trace_peak_labels__()
@@ -435,12 +435,12 @@ class XRD_Plot():
         data.append(trace_i)
 
         return(data)
-        #__|
+        # __|
 
     def __trace_peak_labels__(self):
         """
         """
-        #| - __trace_peak_labels__
+        # | - __trace_peak_labels__
         df_peaks = self.XRD_Spectra.df_peaks
 
         trace_i = go.Scatter(
@@ -465,13 +465,13 @@ class XRD_Plot():
         return(trace_i)
 
         # data.append(trace_1)
-        #__|
+        # __|
 
 
     def __trace_spectra__(self):
         """
         """
-        #| - __trace_spectra__
+        # | - __trace_spectra__
         theta_array = self.XRD_Spectra.theta_array
         spectrum = self.XRD_Spectra.spectrum
 
@@ -483,12 +483,12 @@ class XRD_Plot():
             )
 
         return(trace_i)
-        #__|
+        # __|
 
     def get_layout(self):
         """
         """
-        #| - get_layout
+        # | - get_layout
         layout = go.Layout()
 
         layout.width = 18.4 * 37.795275591
@@ -563,20 +563,20 @@ class XRD_Plot():
             )
 
         return(layout)
-        #__|
+        # __|
 
-        #__|
-
-
-    #__| **********************************************************************
+        # __|
 
 
-#| - METHODS
+    # __| **********************************************************************
+
+
+# | - METHODS
 
 def get_weighted_xrange(x_bounds, gamma, x0, min_step_size=1):
     """
     """
-    #| - get_weighted_xrange
+    # | - get_weighted_xrange
     x_i = x_bounds[0]
     x_range= [x_i]
     while x_i < x_bounds[-1]:
@@ -592,12 +592,12 @@ def get_weighted_xrange(x_bounds, gamma, x0, min_step_size=1):
         x_range.append(x_i)
 
     return(x_range)
-    #__|
+    # __|
 
 def Lorentz_i(x0, x, gamma, peak_height):
     """
     """
-    #| - Lorentz_i
+    # | - Lorentz_i
     pi = math.pi
     term_0 = (1 / (pi * gamma))
     term_1 = (gamma ** 2) * ((x - x0) ** 2 + gamma ** 2) ** (-1)
@@ -605,12 +605,12 @@ def Lorentz_i(x0, x, gamma, peak_height):
     y_i = peak_height * term_1
 
     return(y_i)
-    #__|
+    # __|
 
 def Lorentz_distr_i(x0, x_bounds, gamma, intensity):
     """
     """
-    #| - Lorentz_distr_i
+    # | - Lorentz_distr_i
     x_range = get_weighted_xrange(x_bounds, gamma, x0, min_step_size=2)
 
 
@@ -620,6 +620,6 @@ def Lorentz_distr_i(x0, x_bounds, gamma, intensity):
         lorentz_distr.append(y_i)
 
     return(x_range, lorentz_distr)
-    #__|
+    # __|
 
-#__|
+# __|

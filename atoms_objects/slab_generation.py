@@ -5,7 +5,7 @@
 Author: Raul A. Flores
 """
 
-#| - Import Modules
+# | - Import Modules
 from ase.build import surface
 # from ase import io
 
@@ -14,7 +14,7 @@ from catkit.gen.surface import SlabGenerator as SlabGenerator_catkit
 
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.core.surface import SlabGenerator as SlabGenerator_pymatgen
-#__|
+# __|
 
 def cut_slab_ase(
     bulk,
@@ -28,7 +28,7 @@ def cut_slab_ase(
         bulk:
         facet:
     """
-    #| - cut_slab_ase
+    # | - cut_slab_ase
     # facet = [1, 1, 0]
     # layers = 6
     # vacuum = 8
@@ -45,7 +45,7 @@ def cut_slab_ase(
     # slab.write(out_file)
 
     return(slab)
-    #__|
+    # __|
 
 def cut_slab_pymatgen(
     bulk,
@@ -59,7 +59,7 @@ def cut_slab_pymatgen(
         bulk:
         facet:
     """
-    #| - cut_slab_pymatgen
+    # | - cut_slab_pymatgen
     # atoms = io.read("init.traj")
     # atoms = io.read("init.cif")
 
@@ -92,7 +92,7 @@ def cut_slab_pymatgen(
     # IStructure.to(Al55, "poscar", filename="POSCAR")
 
     return(slab)
-    #__|
+    # __|
 
 def cut_slab_catkit(
     bulk,
@@ -106,7 +106,7 @@ def cut_slab_catkit(
         bulk:
         facet:
     """
-    #| - cut_slab_catkit
+    # | - cut_slab_catkit
     gen = SlabGenerator_catkit(
         bulk,
         miller_index=facet,
@@ -128,4 +128,4 @@ def cut_slab_catkit(
     # view(images)
 
     return(images)
-    #__|
+    # __|

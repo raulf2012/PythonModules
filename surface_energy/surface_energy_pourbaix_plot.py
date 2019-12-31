@@ -3,37 +3,37 @@
 """
 """
 
-#| - IMPORT MODULES
-#__|
+# | - IMPORT MODULES
+# __|
 
 
 class SurfaceEnergyPourbaixPlot:
     """
     """
 
-    #| - TEMP ********************************************************
+    # | - TEMP ********************************************************
     _TEMP = "TEMP"
 
     def __init__(self,
         ):
         """
         """
-        #| - __init__
+        # | - __init__
 
-        #| - Setting Argument Instance Attributes
-        #__|
+        # | - Setting Argument Instance Attributes
+        # __|
 
-        #| - Initializing Internal Instance Attributes
-        #__|
+        # | - Initializing Internal Instance Attributes
+        # __|
 
-        #__|
+        # __|
 
     def method_0():
         """
         """
-        #| - TEMP
+        # | - TEMP
 
-        #__|
+        # __|
 
 
-    #__| **********************************************************************
+    # __| **********************************************************************

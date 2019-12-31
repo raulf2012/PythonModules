@@ -5,7 +5,7 @@
 Author: Raul A. Flores
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import numpy as np
 import pandas as pd
 
@@ -14,7 +14,7 @@ import plotly.graph_objs as go
 
 from oxr_reaction.oxr_series import ORR_Free_E_Series
 from oxr_reaction.adsorbate_scaling import lim_U_i
-#__|
+# __|
 
 
 # ██    ██  ██████  ██       ██████         ██████  ██       ██████  ████████
@@ -30,7 +30,7 @@ class Volcano_Plot():
         TEMP
     """
 
-    #| - Volcano_Plot *********************************************************
+    # | - Volcano_Plot *********************************************************
 
     def __init__(self,
         ORR_Free_E_Plot,
@@ -56,7 +56,7 @@ class Volcano_Plot():
                     }
 
         """
-        #| - __init__
+        # | - __init__
         self.ORR_Free_E_Plot = ORR_Free_E_Plot
         self.x_ax_species = x_ax_species
         self.plot_range = plot_range
@@ -69,7 +69,7 @@ class Volcano_Plot():
         self.marker_border_color_key = marker_border_color_key
         self.marker_shape_key = marker_shape_key
 
-        #__|
+        # __|
 
     # NOTE | Rename this create_volcano_plot
     def create_volcano_relations_plot(self,
@@ -82,9 +82,9 @@ class Volcano_Plot():
             smart_format_dict:
                 Optional dictionary that will format data points
         """
-        #| - create_volcano_relations_plot
+        # | - create_volcano_relations_plot
 
-        #| - Default Smart Format Dict
+        # | - Default Smart Format Dict
         smart_format_dict = self.smart_format_dict
 
         if smart_format_dict is None:
@@ -100,15 +100,15 @@ class Volcano_Plot():
                 [{"facet": "211"}, {"color1": "green"}],
                 [{"facet": "100"}, {"color1": "black"}],
                 ]
-        #__|
+        # __|
 
-        #| - Processing Data Points
+        # | - Processing Data Points
         x_data_list = []
         y_data_list = []
 
         for series_i in self.ORR_Free_E_Plot.series_list:
 
-            #| - x-axis energy
+            # | - x-axis energy
             x_spec = self.x_ax_species
             if x_spec == "o-oh":
                 e_o = series_i.energy_states_dict["o"]
@@ -116,9 +116,9 @@ class Volcano_Plot():
                 x_ax_energy = e_o - e_oh
             else:
                 x_ax_energy = series_i.energy_states_dict[x_spec]
-            #__|
+            # __|
 
-            #| - y-axis limiting potential
+            # | - y-axis limiting potential
             if self.ORR_Free_E_Plot.rxn_type == "ORR":
                 lim_pot_i = 1.23 - series_i.overpotential
 
@@ -126,9 +126,9 @@ class Volcano_Plot():
                 lim_pot_i = 1.23 + series_i.overpotential_OER
             else:
                 print("LSDJFlksdj")
-            #__|
+            # __|
 
-            #| - Process series_i
+            # | - Process series_i
             x_data_list.append(x_ax_energy)
             y_data_list.append(lim_pot_i)
 
@@ -159,11 +159,11 @@ class Volcano_Plot():
                 )
 
             self.data_points.append(trace_i)
-            #__|
+            # __|
 
-        #__|
+        # __|
 
-        #| - Finding plot axis limits
+        # | - Finding plot axis limits
         if self.plot_range is None:
             y_axis_range = [min(y_data_list) - 0.2, max(y_data_list) + 0.2]
             if self.ORR_Free_E_Plot.rxn_type == "OER":
@@ -177,9 +177,9 @@ class Volcano_Plot():
                 }
 
             self.plot_range = plot_range
-        #__|
+        # __|
 
-        #__|
+        # __|
 
     def create_volcano_lines(self,
         gas_molec_dict=None,
@@ -207,11 +207,11 @@ class Volcano_Plot():
                 plot, if 'bottom' then the data points will by on top of the
                 volcano
         """
-        #| - create_volcano_lines
+        # | - create_volcano_lines
         out_data = []
         x_range = self.plot_range["x"]
 
-        #| - Volcano Legs
+        # | - Volcano Legs
         volc_legs = [
             'o2_to_ooh',
             'ooh_to_o',
@@ -226,7 +226,7 @@ class Volcano_Plot():
             'oh_to_h2o': [],
             }
 
-        #| - Create Volcano Legs (LOOP)
+        # | - Create Volcano Legs (LOOP)
         x_axis = np.linspace(x_range[0], x_range[1], num=500)
         for leg_i in volc_legs:
             for x_energy_i in x_axis:
@@ -250,11 +250,11 @@ class Volcano_Plot():
                         rxn_direction="forward",
                         ),
                     )
-        #__|
+        # __|
 
         if plot_all_legs:
 
-            #| - plot_all_legs
+            # | - plot_all_legs
             # hoverinfo_type = "none"
             hoverinfo_type = "name"
 
@@ -317,11 +317,11 @@ class Volcano_Plot():
                 out_data.insert(0, trace_ooh_to_o)
                 out_data.insert(0, trace_o_to_oh)
                 out_data.insert(0, trace_oh_to_h2o)
-            #__|
+            # __|
 
-        #__|
+        # __|
 
-        #| - Minimum Energy Legs
+        # | - Minimum Energy Legs
         energy_lists= []
         for leg_i in legs_to_plot:
             energy_lists.append(energy_dict[leg_i])
@@ -355,10 +355,10 @@ class Volcano_Plot():
 
             elif trace_priority == "bottom":
                 out_data.insert(0, trace_volcano)
-        #__|
+        # __|
 
         return(out_data)
-        #__|
+        # __|
 
     def __create_trace_i__(self,
         x_energy,
@@ -371,7 +371,7 @@ class Volcano_Plot():
         ):
         """
         """
-        #| - __create_trace_i__
+        # | - __create_trace_i__
 
         if show_data_labels is True:
             mode_i = "markers+text"
@@ -428,7 +428,7 @@ class Volcano_Plot():
             )
 
         return(trace_i)
-        #__|
+        # __|
 
     def get_plotly_layout(self,
         showlegend=False,
@@ -438,9 +438,9 @@ class Volcano_Plot():
         ):
         """
         """
-        #| - get_plotly_layout
+        # | - get_plotly_layout
 
-        #| - Properties
+        # | - Properties
         # plot_title="FED"
         plot_title = None
         # plot_title_size = 18
@@ -450,7 +450,7 @@ class Volcano_Plot():
         legend_size = 18
         # font_family="Computer Modern"  # "Courier New, monospace"
         font_family = "Arial"  # "Courier New, monospace"
-        #__|
+        # __|
 
         if self.x_ax_species == "oh":
             xaxis_title = "dG<sub>OH</sub> (eV)"
@@ -465,9 +465,9 @@ class Volcano_Plot():
                 "color": "black",
                 },
 
-            #| - Axes -----------------------------------------------------
+            # | - Axes -----------------------------------------------------
 
-            #| - yaxis
+            # | - yaxis
             "yaxis": {
                 "title": "Limiting Potential (V)",
                 # "title": "$\\Delta G (ev)$",
@@ -492,9 +492,9 @@ class Volcano_Plot():
                 "ticklen": 2,
                 "tickwidth": 1,
                 },
-            #__|
+            # __|
 
-            #| - xaxis
+            # | - xaxis
             "xaxis": {
                 # "title": "$\\Delta G_{OH} (ev)$",
                 "title": xaxis_title,
@@ -517,9 +517,9 @@ class Volcano_Plot():
                     size=tick_lab_size,
                     ),
                 },
-            #__|
+            # __|
 
-            #__|
+            # __|
 
             "margin": go.layout.Margin(
                 b=50.,
@@ -531,7 +531,7 @@ class Volcano_Plot():
             # "paper_bgcolor": 'rgba(0,0,0,0)',
             "plot_bgcolor": 'rgba(0,0,0,0)',
 
-            #| - Legend ---------------------------------------------------
+            # | - Legend ---------------------------------------------------
             "legend": {
                 "traceorder": "normal",
                 "font": dict(size=legend_size),
@@ -544,13 +544,13 @@ class Volcano_Plot():
             # "showlegend": False,
             "showlegend": showlegend,
 
-            #__|
+            # __|
 
             "paper_bgcolor": 'rgba(250,250,250,0.9)',
 
             }
 
-        #| - Plot Size Settings
+        # | - Plot Size Settings
         # # bottom_margin_size = 2.5 * 9. * 37.795275591
         # plot_size_settings = {
         #     "width": width,
@@ -570,21 +570,21 @@ class Volcano_Plot():
         #     #     }),
         #     }
         # layout = {**layout, **plot_size_settings}
-        #__|
+        # __|
 
 
-        #| - Applying Layout override dict
+        # | - Applying Layout override dict
         if layout_dict is not None:
             from misc_modules.misc_methods import dict_merge
             dict_merge(layout, layout_dict)
 
             # layout_i = {**layout_i, **layout_dict}
 
-        #__|
+        # __|
 
         return(layout)
 
-        #__|
+        # __|
 
 
-    #__| **********************************************************************
+    # __| **********************************************************************

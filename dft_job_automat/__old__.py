@@ -1,9 +1,9 @@
 
-    #| - __old__
+    # | - __old__
     # def __parse_username__(self):
     #     """
     #     """
-    #     #| - __parse_username__
+    #     # | - __parse_username__
     #     username = os.environ.get("USER")
     #
     #     cond_1 = False
@@ -20,28 +20,28 @@
     #     print(username)
     #     print("*******")
     #     return(username)
-    #     #__|
-    #__|
+    #     # __|
+    # __|
 
 
 
 
-#| - job_analysis
+# | - job_analysis
 
-#| - DEPRECATED METHODS
+# | - DEPRECATED METHODS
 # def max_force(self, path):
 #     """
 #     """
-#     #| - max_force
+#     # | - max_force
 #     with open(path + "/simulation/qn.log", "r") as file:
 #         max_f = file.readlines()[-1].split(" ")[-1]
 #         return(float(max_f))
-#     #__|
+#     # __|
 
 # def job_id_names(self):
 #     """
 #     """
-#     #| - job_id_names
+#     # | - job_id_names
 #     try:
 #         f = open("job_id_names", "r")
 #         job_id_data = pickle.load(f)
@@ -55,20 +55,20 @@
 #     except:
 #         print("Couldn't parse job_id_names file")
 #
-#     #__|
-#__|
+#     # __|
+# __|
 
-#__|
+# __|
 
-#| - job_setup
+# | - job_setup
 
-#| - __old__
+# | - __old__
 
-#| - TEMP
+# | - TEMP
 # def __parse_cluster_type__(self):
 #     """
 #     """
-#     #| - __parse_cluster_type__
+#     # | - __parse_cluster_type__
 #     clusters_dict = {
 #         "aws": "AWSCluster",
 #         "slac": "SLACCluster",
@@ -86,16 +86,16 @@
 #         self.cluster = cluster
 #         # from dft_job_automat.compute_env import clusters_dict[cluster_sys]
 #    return(cluster_sys)
-#__|
+# __|
 
 
-#__|
+# __|
 
-#__|
+# __|
 
-#| - job_manager
+# | - job_manager
 
-#| - TEMP - Old Restart Job Method
+# | - TEMP - Old Restart Job Method
 # def restart_job(self, prev_rev_file_list=[], root_dir_file_list=[],
 # revision="Auto"):
 #     """Restart job from previous run
@@ -113,7 +113,7 @@
 #             Job revision number from which the job will be restarted from.
 #             "Auto" | Restarts the job from the most recent job revision.
 #     """
-#     #| - restart_job
+#     # | - restart_job
 #     for job in self.job_var_lst:
 #         path = self.var_lst_to_path(job)
 #
@@ -144,10 +144,10 @@
 #
 #         os.system("chmod 777 " + new_path + "/*")
 #
-#     #__|
-#__|
+#     # __|
+# __|
 
-#| - __old__
+# | - __old__
 
 # def job_revision_number(self, variable_lst):
     """Returns the largest revision number for the job with the given
@@ -156,7 +156,7 @@
     Args:
         variable_lst:
     """
-    #| - job_revision_number
+    # | - job_revision_number
     # # path = "data/" + self.var_lst_to_path(variable_lst)
     # path = self.var_lst_to_path(variable_lst)
     # bash_comm = ""
@@ -175,20 +175,20 @@
     # os.chdir(self.root_dir)
     #
     # return(num_jobs)
-    #__|
+    # __|
 
-#__|
+# __|
 
-#__|
+# __|
 
-#| - compute_env
+# | - compute_env
 
-#| - __old__
+# | - __old__
 
     # def get_jobid(self, path_i="."):
     #     """
     #     """
-    #     #| - get_jobid
+    #     # | - get_jobid
     #     # path_i = "."
     #     fileid_path = path_i + "/.jobid"
     #     # print(fileid_path)
@@ -199,33 +199,33 @@
     #         jobid=None
     #
     #     return(jobid)
-    #     #__|
+    #     # __|
 
-    #| - OLD
+    # | - OLD
     # def job_info_batch(self, path_i="."):
-    #     #| - job_info_batch
+    #     # | - job_info_batch
     #     data_dict = self.cluster.job_info_batch(path_i = path_i)
     #
     #     return(data_dict)
     #
-    #     #__|
+    #     # __|
 
 
 
     # def write_job_queue_state_file(self, path="."):
     #     """
     #     """
-    #     #| - write_job_queue_state_file
+    #     # | - write_job_queue_state_file
     #     print(self)
     #     data_dict = self.cluster.job_info_batch(path_i=path)
     #     key = self.cluster.job_state_key
     #     with open(path_i + "/.QUEUESTATE", "w") as fle:
     #         fle.write(data_dict[key])
-    #__|
+    # __|
 
 
 
-#__|
+# __|
 
 
-#__|
+# __|

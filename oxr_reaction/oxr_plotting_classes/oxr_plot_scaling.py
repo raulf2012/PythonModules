@@ -31,7 +31,7 @@ class Scaling_Relations_Plot():
         IDEA: Add vertical lines to connect *O, *OH, and *OOH data points
     """
 
-    #| - Scaling_Relations_Plot ***********************************************
+    # | - Scaling_Relations_Plot ***********************************************
 
     def __init__(self,
         ORR_Free_E_Plot,
@@ -56,7 +56,7 @@ class Scaling_Relations_Plot():
             mode:
                 "all", "ooh_vs_oh", "o_vs_oh"
         """
-        #| - __init__
+        # | - __init__
         self.ORR_Free_E_Plot = ORR_Free_E_Plot
 
         assert (x_ax_species == "oh"), "Only *OH as the x-axis is allowed now"
@@ -102,7 +102,7 @@ class Scaling_Relations_Plot():
 
         self.annotations_list = []
 
-        #__|
+        # __|
 
     def create_scaling_relations_plot(self,
         smart_format_dict=None,
@@ -113,9 +113,9 @@ class Scaling_Relations_Plot():
             y_ax_spec:
             x_ax_spec:
         """
-        #| - create_scaling_relations_plot
+        # | - create_scaling_relations_plot
 
-        #| - Default Smart Format Dict
+        # | - Default Smart Format Dict
         if smart_format_dict is None:
             print("No smart format given!")
             smart_format_dict = [
@@ -129,9 +129,9 @@ class Scaling_Relations_Plot():
                 [{"facet": "211"}, {self.marker_border_color_key: "green"}],
                 [{"facet": "100"}, {self.marker_border_color_key: "black"}],
                 ]
-        #__|
+        # __|
 
-        #| - Processing Data Points
+        # | - Processing Data Points
         for series_i in self.ORR_Free_E_Plot.series_list:
 
             e_oh = series_i.energy_states_dict["oh"]
@@ -161,7 +161,7 @@ class Scaling_Relations_Plot():
                 smart_format_i = series_i.format_dict
 
 
-            #| - ooh_vs_oh
+            # | - ooh_vs_oh
             trace_i = self.__create_trace_i__(
                 e_oh,
                 e_ooh,
@@ -171,9 +171,9 @@ class Scaling_Relations_Plot():
                 )
             # self.data_ooh_oh.append(trace_i)
             self.data_points["ooh_vs_oh"].append(trace_i)
-            #__|
+            # __|
 
-            #| - o_vs_oh
+            # | - o_vs_oh
             trace_i = self.__create_trace_i__(
                 e_oh,
                 e_o,
@@ -183,9 +183,9 @@ class Scaling_Relations_Plot():
                 )
             # self.data_o_oh.append(trace_i)
             self.data_points["o_vs_oh"].append(trace_i)
-            #__|
+            # __|
 
-            #| - oh_vs_oh
+            # | - oh_vs_oh
             trace_i = self.__create_trace_i__(
                 e_oh,
                 e_oh,
@@ -195,11 +195,11 @@ class Scaling_Relations_Plot():
                 )
             # self.data_oh_oh.append(trace_i)
             self.data_points["oh_vs_oh"].append(trace_i)
-            #__|
+            # __|
 
-        #__|
+        # __|
 
-        #__|
+        # __|
 
     # Deprecated, delete this later
     def __create_smart_format_dict__(self, property_dict, smart_format_dict):
@@ -209,7 +209,7 @@ class Scaling_Relations_Plot():
             property_dict:
             smart_format_dict:
         """
-        #| - __create_smart_format_dict__
+        # | - __create_smart_format_dict__
         format_dict = {}
         for key_i, value_i in property_dict.items():
             for format_i in smart_format_dict:
@@ -218,12 +218,12 @@ class Scaling_Relations_Plot():
                         format_dict.update(format_i[1])
 
         return(format_dict)
-        #__|
+        # __|
 
     def __create_series_name__(self, series_i):
         """
         """
-        #| - create_series_name
+        # | - create_series_name
         name_i = ""
         for key, value in series_i.properties.items():
             if key == "coverage":
@@ -232,7 +232,7 @@ class Scaling_Relations_Plot():
             name_i += str(key) + ": " + str(value) + " | "
 
         return(name_i)
-        #__|
+        # __|
 
     def __create_trace_i__(self,
         x_energy,
@@ -243,7 +243,7 @@ class Scaling_Relations_Plot():
         ):
         """
         """
-        #| - create_trace_i
+        # | - create_trace_i
         # NOTE Looks like I need to put these in a list here
         x_energy = [x_energy]
         y_energy = [y_energy]
@@ -272,7 +272,7 @@ class Scaling_Relations_Plot():
             )
 
         return(trace_i)
-        #__|
+        # __|
 
     def __series_excluded__(self,
         properties_i,
@@ -288,7 +288,7 @@ class Scaling_Relations_Plot():
             properties_i:
             exclude_dict:
         """
-        #| - series_excluded
+        # | - series_excluded
         exclude_dict_keys = list(exclude_dict.keys())
         properties_i_keys = list(properties_i.keys())
 
@@ -316,7 +316,7 @@ class Scaling_Relations_Plot():
 
         return(all_props_match)
 
-        #__|
+        # __|
 
     def fit_scaling_lines(self,
         dependent_species,  # 'ooh', 'o', 'oh'
@@ -328,14 +328,14 @@ class Scaling_Relations_Plot():
             dependent_species:
                 y-axis species 'ooh' or 'o'
         """
-        #| - fit_scaling_lines
+        # | - fit_scaling_lines
 
-        #| - LOOP
+        # | - LOOP
         oh_list = []
         dependent_e_list = []
         for series_i in self.ORR_Free_E_Plot.series_list:
 
-            #| - Excluding series from fitting
+            # | - Excluding series from fitting
             if exclude_dict is not None:
                 properties_i = series_i.properties
                 exclude_series = self.__series_excluded__(
@@ -344,13 +344,13 @@ class Scaling_Relations_Plot():
                     )
                 if exclude_series:
                     continue
-            #__|
+            # __|
 
             energy_i = series_i.energy_states_dict[dependent_species]
             dependent_e_list.append(energy_i)
             oh_list.append(series_i.energy_states_dict["oh"])
 
-        #__|
+        # __|
 
         X = np.array([[i] for i in oh_list])
         y = np.array(dependent_e_list)
@@ -373,7 +373,7 @@ class Scaling_Relations_Plot():
             }
         # print("_------__)_Z(*XF(8))")
 
-        #| - Equation Annotations
+        # | - Equation Annotations
         if dependent_species == "ooh":
             eqn_str_i = ("" +
                 "G<sub>OOH</sub>=" +
@@ -423,15 +423,15 @@ class Scaling_Relations_Plot():
             )
 
         self.annotations_list.append(annotation_i)
-        #__|
+        # __|
 
 
         return(out)
-        #__|
+        # __|
 
     def add_ideal_lines(self):
         """Add ideal scaling liknes to plot."""
-        #| - add_ideal_lines
+        # | - add_ideal_lines
         self.add_line({"slope": 1, "intercept": 3.2},
             name="*OOH vs *OH Scaling",
             color="black",
@@ -452,7 +452,7 @@ class Scaling_Relations_Plot():
             width=1,
             dash="dash",
             )
-        #__|
+        # __|
 
     def add_line(self,
         slope_intercept_dict,
@@ -470,7 +470,7 @@ class Scaling_Relations_Plot():
             width:
             dash:
         """
-        #| - add_line
+        # | - add_line
 
         # print(slope_intercept_dict)
 
@@ -480,11 +480,11 @@ class Scaling_Relations_Plot():
         def scaling_meth(E_OH):
             """
             """
-            #| - scaling_meth
+            # | - scaling_meth
             out = slope * E_OH + intercept
 
             return(out)
-            #__|
+            # __|
 
         LH_bound = self.x_range[0] - 0.2
         RH_bound = self.x_range[1] + 0.2
@@ -525,7 +525,7 @@ class Scaling_Relations_Plot():
         #     ""
         #     )
 
-        #__|
+        # __|
 
     # NOTE | This shouldn't be an internal method
     # I don't remember why I wrote the above note
@@ -543,7 +543,7 @@ class Scaling_Relations_Plot():
             showlegend:
             layout_dict: <dict> <plotly layout>
         """
-        #| - create_layout
+        # | - create_layout
         # if x_ax_spec == ""
         if self.x_ax_species == "oh":
             x_ax_title = "G<sub>ads,*OH</sub> (eV)"
@@ -559,7 +559,7 @@ class Scaling_Relations_Plot():
 
         # legend_size = 18
 
-        #| - Common Axis Dict
+        # | - Common Axis Dict
         common_axis_dict = {
 
             # "range": y_axis_range,
@@ -580,7 +580,7 @@ class Scaling_Relations_Plot():
             "ticklen": 2,
             "tickwidth": 1,
             }
-        #__|
+        # __|
 
         x_range = self.x_range
         y_range = self.y_range
@@ -612,14 +612,14 @@ class Scaling_Relations_Plot():
                     },
                 ),
 
-            #| - Margins ------------------------------------------------------
+            # | - Margins ------------------------------------------------------
             "margin": go.layout.Margin(
                 b=50.,
                 l=50.,
                 r=30.,
                 t=30.,
                 ),
-            #__|
+            # __|
 
 
             # # Margin
@@ -636,7 +636,7 @@ class Scaling_Relations_Plot():
                 color='black',
                 ),
 
-            #| - Plot Size
+            # | - Plot Size
             # "width": 37 * 37.795275591,
             # "height": 23 * 37.795275591,
             #
@@ -644,9 +644,9 @@ class Scaling_Relations_Plot():
             # # "height": 18.7 * 37.795275591,
             # # "width": 1.5 * 18.7 * 37.795275591,
             # # "height": 18.7 * 37.795275591,
-            #__|
+            # __|
 
-            #| - Legend
+            # | - Legend
             "showlegend": showlegend,
 
             "legend": go.layout.Legend(
@@ -676,7 +676,7 @@ class Scaling_Relations_Plot():
             #         ),
             #     ),
 
-            #__|
+            # __|
 
             }
 
@@ -686,22 +686,22 @@ class Scaling_Relations_Plot():
             layout.update(layout_dict)
 
         return(layout)
-        #__|
+        # __|
 
 
 
 
 
-    #| - __old__
+    # | - __old__
     # def __ideal_ooh_oh_scaling__(self, E_OH):
     #     """Return the *OOH adsorption energy given DG_*OH by scaling.
     #
     #     Args:
     #         E_OH:DG_*OH energy of adsorption
     #     """
-    #     #| - __ideal_ooh_oh_scaling__
+    #     # | - __ideal_ooh_oh_scaling__
     #     return(E_OH + 3.2)
-    #     #__|
+    #     # __|
     #
     # def __ideal_h_oh_scaling__(self, E_OH):
     #     """Return the *OOH adsorption energy given DG_*OH by scaling.
@@ -709,9 +709,9 @@ class Scaling_Relations_Plot():
     #     Args:
     #         E_OH: DG_*OH energy of adsorption.
     #     """
-    #     #| - __ideal_h_oh_scaling__
+    #     # | - __ideal_h_oh_scaling__
     #     return(2 * E_OH)
-    #     #__|
+    #     # __|
     #
     # def __ideal_oh_oh_scaling__(self, E_OH):
     #     """Return the *OH adsorption energy given DG_*OH by scaling.
@@ -721,18 +721,18 @@ class Scaling_Relations_Plot():
     #     Args:
     #         E_OH: DG_*OH energy of adsorption.
     #     """
-    #     #| - __ideal_oh_oh_scaling__
+    #     # | - __ideal_oh_oh_scaling__
     #     return(E_OH)
-    #     #__|
+    #     # __|
     #
-    #__|
+    # __|
 
-#__| **********************************************************************
-
-
+# __| **********************************************************************
 
 
-#| - __old__
+
+
+# | - __old__
 # x_range_ooh_vs_oh=[0., 3.5],
 # y_range_ooh_vs_oh=[0., 5.],
 # x_range_o_vs_oh=[0., 3.5],
@@ -755,4 +755,4 @@ class Scaling_Relations_Plot():
 #     y_range = self.y_range_oh_vs_oh
 # else:
 #     print("Woops - create_layout")
-#__|
+# __|

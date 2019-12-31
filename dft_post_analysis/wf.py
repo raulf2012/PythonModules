@@ -6,12 +6,12 @@
 Author(s): I got the script from Colin but I think Karen wrote these methods
 """
 
-#| - Import Modules
+# | - Import Modules
 # from ase.units import Bohr
 # from ase.io import read
 import numpy as np
 import os
-#__|
+# __|
 
 def find_max_empty_space(atoms, edir=3):
         """Return scaled midpoint coordinate of largest empty space.
@@ -20,7 +20,7 @@ def find_max_empty_space(atoms, edir=3):
         continuous segment of free, unoccupied space and returns its midpoint
         in scaled coordinates (0 to 1) in the edir direction (default z).
         """
-        #| - find_max_empty_space
+        # | - find_max_empty_space
         # 0-indexed direction
         position_array = atoms.get_scaled_positions()[..., edir - 1]
         position_array.sort()
@@ -38,7 +38,7 @@ def find_max_empty_space(atoms, edir=3):
             out = (position_array[max_diff_index] +
                 position_array[max_diff_index + 1]) / 2.
             return(out)
-        #__|
+        # __|
 
 def calc_wf(atoms, outdir):
     """Calculate work function of slab.
@@ -47,7 +47,7 @@ def calc_wf(atoms, outdir):
         atoms:
         outdir:
     """
-    #| - calc_wf
+    # | - calc_wf
     hartree = 27.21138505
     rydberg = 0.5 * hartree
     bohr = 0.52917721092
@@ -112,4 +112,4 @@ def calc_wf(atoms, outdir):
         ]
 
     return(wf)
-    #__|
+    # __|

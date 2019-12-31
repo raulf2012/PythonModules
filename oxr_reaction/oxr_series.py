@@ -5,7 +5,7 @@
 Author: Raul A. Flores
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import copy
 
 import numpy as np
@@ -13,7 +13,7 @@ import pandas as pd
 
 from plotly.graph_objs import Scatter
 pd.options.mode.chained_assignment = None
-#__|
+# __|
 
 class ORR_Free_E_Series():
     """ORR free energy diagram series class.
@@ -29,7 +29,7 @@ class ORR_Free_E_Series():
     # TODO | The color_list approach is not good
     """
 
-    #| - ORR_Free_E_Series ****************************************************
+    # | - ORR_Free_E_Series ****************************************************
     def __init__(self,
         free_energy_df=None,
         state_title="adsorbate",
@@ -76,9 +76,9 @@ class ORR_Free_E_Series():
                 If true then the overpotential is given explicitely in the
                 input dataframe with name "overpotential"
         """
-        #| - __init__
+        # | - __init__
 
-        #| - Setting Instance Attributes
+        # | - Setting Instance Attributes
         self.fe_df = free_energy_df
         # self.sys_props = system_properties
 
@@ -110,7 +110,7 @@ class ORR_Free_E_Series():
         self.overpotential_given = overpotential_given
 
         # self.i_cnt = i_cnt
-        #__|
+        # __|
 
         if self.rxn_type == "ORR":
             self.rxn_mech_states = ["bulk", "ooh", "o", "oh", "bulk"]
@@ -157,11 +157,11 @@ class ORR_Free_E_Series():
                 overpotential_type=self.rxn_type,
                 add_overpot=self.add_overpot,
                 )
-        #__|
+        # __|
 
     def __fill_nan_values__(self):
         """Fill nan adsorption energy values from scaling relations."""
-        #| - tmp
+        # | - tmp
         energy_dict = self.energy_states_dict
         if True in list(np.isnan(list(energy_dict.values()))):
 
@@ -186,7 +186,7 @@ class ORR_Free_E_Series():
                     energy_dict["oh"] = oh_new
 
         self.energy_states_dict = energy_dict
-        #__|
+        # __|
 
     def __num_of_states__(self):
         """Return number of unique states.
@@ -195,7 +195,7 @@ class ORR_Free_E_Series():
         data frame. The correct number of states for the OER and/or ORR
         reaction are 4, only 2 states are needed for the peroxide reaction.
         """
-        #| - __num_of_states
+        # | - __num_of_states
         df_i = self.fe_df
 
         num_of_states = len(set(df_i["adsorbate"].tolist()))
@@ -204,12 +204,12 @@ class ORR_Free_E_Series():
         assert num_of_states >= 4, err_mess
 
         return(num_of_states)
-        #__|
+        # __|
 
     def __energy_states_dict__(self):
         """
         """
-        #| - __energy_states_dict__
+        # | - __energy_states_dict__
 
         energy_lst = self.energy_lst
         rxn_mech_states = self.rxn_mech_states
@@ -219,18 +219,18 @@ class ORR_Free_E_Series():
 
         return(energy_states_dict)
         # energy_states_dict
-        #__|
+        # __|
 
     def __create_property_dict__(self):
         """
         """
-        #| - __create_property_dict__
+        # | - __create_property_dict__
         df_i = self.fe_df
 
         def all_same_val(df_i, prop_i, val_1):
             """
             """
-            #| - all_same_val
+            # | - all_same_val
             out_list = []
             for i in df_i[prop_i].tolist():
                 if i == val_1:
@@ -243,7 +243,7 @@ class ORR_Free_E_Series():
 
             # [True if i == val_1 else False for i in
             # df_i[prop_i].tolist()],
-            #__|
+            # __|
 
         if self.property_key_list is not None:
             prop_dict_i = {}
@@ -264,7 +264,7 @@ class ORR_Free_E_Series():
             return(prop_dict_i)
         else:
             return({})
-        #__|
+        # __|
 
     def add_bulk_entry(self,
         bulk_e=0.0,
@@ -275,7 +275,7 @@ class ORR_Free_E_Series():
         Args:
             bulk_e:
         """
-        #| - add_bulk_entry
+        # | - add_bulk_entry
         df = self.fe_df
         bulk_df = pd.DataFrame([{
             "adsorbate": "bulk",
@@ -287,11 +287,11 @@ class ORR_Free_E_Series():
         df = df.append(bulk_df, ignore_index=True, sort=True)
 
         self.fe_df = df
-        #__|
+        # __|
 
     def rxn_energy_lst_h2o2(self):
         """Construct energy list of h2o2 FED."""
-        #| - rxn_energy_lst_h2o2
+        # | - rxn_energy_lst_h2o2
         # h2o2_e = 3.52
 
         df = self.fe_df
@@ -311,7 +311,7 @@ class ORR_Free_E_Series():
         free_energy_list.append(3.52)
 
         return(free_energy_list)
-        #__|
+        # __|
 
     def property_list(self, column_name):
         """General method to create a list from a column in the dataframe.
@@ -322,7 +322,7 @@ class ORR_Free_E_Series():
         Args:
             column_name:
         """
-        #| - property_list
+        # | - property_list
         df = self.fe_df
 
         property_list = []
@@ -334,35 +334,35 @@ class ORR_Free_E_Series():
         # free_energy_list[0] += 4.92
 
         return(property_list)
-        #__|
+        # __|
 
     def fill_missing_data(self):
         """
         """
-        #| - fill_missing_data
+        # | - fill_missing_data
         df = self.fe_df
         df_missing_data = pd.DataFrame()
         for state in self.rxn_mech_states:
             df_state = df.loc[df[self.state_title] == state]
 
-            #| - If df is missing state fill in row with NaN for energy
+            # | - If df is missing state fill in row with NaN for energy
             if df_state.empty:
                 df_state = pd.DataFrame([{
                     self.state_title: state,
                     self.fe_title: np.nan,
                     }])
                 df_missing_data = df_missing_data.append(df_state)
-            #__|
+            # __|
 
         self.fe_df = self.fe_df.append(df_missing_data, sort=True)
-        #__|
+        # __|
 
     def rxn_energy_lst(self):
         """List corresponding to the steps of ORR.
 
         (1. O2, 2. *OOH, 3. *O, 4. *OH, 5. 2H2O)
         """
-        #| - rxn_energy_lst
+        # | - rxn_energy_lst
         df = self.fe_df
 
         free_energy_list = []
@@ -371,29 +371,29 @@ class ORR_Free_E_Series():
 
             # print(df_state)
 
-            #| - __old__
+            # | - __old__
             # Not sure what this was trying to accomplish
             # if len(df_state) == 2:
             #     state_energy_list = []
             #     for j_cnt, row_j in df_state.iterrows():
             #         energy_j = row_j[self.fe_title]
             #         state_energy_list.append(energy_j)
-            #__|
+            # __|
 
-            #| - If df is missing state fill in row with NaN for energy
+            # | - If df is missing state fill in row with NaN for energy
             if df_state.empty:
                 df_state = pd.DataFrame([{
                     self.state_title: state,
                     self.fe_title: np.nan,
                     }])
-            #__|
+            # __|
 
             # This just takes the first species
             # If you feed a df with more than one entry per species, then
             # this will stupidly choose the first one
             state_energy_1 = df_state.iloc[0][self.fe_title]
 
-            #| - __old__
+            # | - __old__
             # if type(state_energy_1) != float:
             #     print(type(state_energy_1))
             #     print("DSKFJKLSDJFSjk_d--_d-d-_D_D_d-d-d-d-d___D_D_D_")
@@ -413,7 +413,7 @@ class ORR_Free_E_Series():
             # print(np.isnan(state_energy_1))
             # if isinstance(state_energy_1, np.float) is False:
             #     print("lkjfksjd")
-            #__|
+            # __|
 
             free_energy_list.append(state_energy_1)
 
@@ -425,24 +425,24 @@ class ORR_Free_E_Series():
             free_energy_list[0] += 4.92
 
         return(free_energy_list)
-        #__|
+        # __|
 
     def rxn_energy_lst_new(self):
         """
         """
-        #| - rxn_energy_lst_new
+        # | - rxn_energy_lst_new
         df = self.fe_df
         free_energy_list = []
         for state in self.rxn_mech_states:
             df_state = df.loc[df[self.state_title] == state]
 
-            #| - If df is missing state fill in row with NaN for energy
+            # | - If df is missing state fill in row with NaN for energy
             if df_state.empty:
                 df_state = pd.DataFrame([{
                     self.state_title: state,
                     self.fe_title: np.nan,
                     }])
-            #__|
+            # __|
 
             state_energy_list = []
             for j_cnt, row_j in df_state.iterrows():
@@ -469,7 +469,7 @@ class ORR_Free_E_Series():
             free_energy_list[0] += 4.92
 
         return(free_energy_list)
-        #__|
+        # __|
 
     def apply_bias(self, bias, energy_list):
         """Apply bias to free energies.
@@ -477,7 +477,7 @@ class ORR_Free_E_Series():
         Applies a potential to every species in the 4 and 2-electron process
         and adjusts their free energies accordingly
         """
-        #| - apply_bias
+        # | - apply_bias
         if self.rxn_type == "ORR":
             flip_energy_list = False
             bool_flip = -1
@@ -492,7 +492,7 @@ class ORR_Free_E_Series():
             mod_free_e_lst.append(en - elec * bias)
 
         return(mod_free_e_lst)
-        #__|
+        # __|
 
     def calc_overpotential(self):
         """
@@ -502,7 +502,7 @@ class ORR_Free_E_Series():
         limiting reaction step in the form of a list, species_A -> species_B is
         [species_A, species_B]
         """
-        #| - calc_overpotential
+        # | - calc_overpotential
         if self.overpotential_given:
             out_list = [None, None]
             if "overpotential" in list(self.fe_df):
@@ -529,11 +529,11 @@ class ORR_Free_E_Series():
             out_list = [overpotential, limiting_step]
 
         return(out_list)
-        #__|
+        # __|
 
     def calc_overpotential_OER(self):
         """Calculate the OER overpotential of a ORR series."""
-        #| - calc_overpotential_OER
+        # | - calc_overpotential_OER
         rxn_spec = self.rxn_mech_states
 
         overpotential_lst = []
@@ -549,7 +549,7 @@ class ORR_Free_E_Series():
         out_list = [overpotential, limiting_step]
 
         return(out_list)
-        #__|
+        # __|
 
     def calc_overpotential_h2o2(self):
         """
@@ -558,7 +558,7 @@ class ORR_Free_E_Series():
         The overpotential for the 2e- process depends only on the energy of the
         *OOH intermediate
         """
-        #| - calc_overpotential_h2o2
+        # | - calc_overpotential_h2o2
         df = self.fe_df
         ooh_row = df[df["adsorbate"] == "ooh"]
         ooh_ads_e = ooh_row.iloc[0]["ads_e"]
@@ -566,7 +566,7 @@ class ORR_Free_E_Series():
         op_4e = ooh_ads_e - 4.22
 
         return(op_4e)
-        #__|
+        # __|
 
     def __series_plot_name__(self,
         opt_name=None,
@@ -587,9 +587,9 @@ class ORR_Free_E_Series():
             smart_format:
             overpotential_type:
         """
-        #| - __series_plot_name__
+        # | - __series_plot_name__
 
-        #| - Getting appropriate Overpotential
+        # | - Getting appropriate Overpotential
         if add_overpot:
             if overpotential_type == "ORR":
                 overpot_i = self.overpotential
@@ -601,9 +601,9 @@ class ORR_Free_E_Series():
                 overpot_i = self.overpotential
         else:
             overpot_i = ""
-        #__|
+        # __|
 
-        #| - Connecting properties key: values into string
+        # | - Connecting properties key: values into string
         if properties is not None:
             properties_string_name = ""
             for key_i, value_i in properties.items():
@@ -619,9 +619,9 @@ class ORR_Free_E_Series():
             properties_string_name = properties_string_name[0:-3]
         else:
             properties_string_name = ""
-        #__|
+        # __|
 
-        #| - Data Series Name
+        # | - Data Series Name
         if opt_name is not None:
             name_i = opt_name + ": " + properties_string_name
 
@@ -631,13 +631,13 @@ class ORR_Free_E_Series():
         if add_overpot:
             name_i += " (OP: " + str(round(overpot_i, 2)) + ")"
 
-        #__|
+        # __|
 
         # NEW | If name_i given, then just use that
         if self.name_i is not None:
             return(self.name_i)
 
         return(name_i)
-        #__|
+        # __|
 
-    #__|
+    # __|

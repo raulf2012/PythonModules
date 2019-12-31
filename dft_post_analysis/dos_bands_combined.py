@@ -5,9 +5,9 @@
 Author: Raul A. Flores
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 from plotly import tools
-#__|
+# __|
 
 
 # pdos_data_out,
@@ -39,7 +39,7 @@ def plot_pdos_bands(
         pdos_layout:
         bands_layout:
     """
-    #| - plot_pdos_bands
+    # | - plot_pdos_bands
     # TEMP_PRINT
     print("KSDKFJDSJIFJSIDJFISD")
 
@@ -80,4 +80,4 @@ def plot_pdos_bands(
     fig["layout"]["yaxis"]["range"] = e_range
 
     return(fig)
-    #__|
+    # __|
