@@ -81,6 +81,12 @@ def add_duplicate_axes(
     """
     # | - add_duplicate_axes
 
+    if axis_type == "x":
+        axis_type_other = "y"
+    elif axis_type == "y":
+        axis_type_other = "x"
+
+
     # This is necessary to make sure that the original traces are still visible after adding the new traces
     fig.update_layout(
         # paper_bgcolor="white",
@@ -92,18 +98,10 @@ def add_duplicate_axes(
 
     # #########################################################################
     if axis_num_list is None:
-        # axis_list = axis_info_dict["axis_list"]
         axis_num_list = axis_info_dict["axis_num_list"]
-
 
     # axis_num_list_new = [i + len(axis_num_list) for i in axis_num_list]
     axis_num_list_new = [i + num_of_axis + 1 for i, j in enumerate(axis_num_list)]
-
-
-    # print("num_of_axis:", num_of_axis)
-    # print("axis_num_list_new:", axis_num_list_new)
-
-    # [(i, j) for i, j in enumerate(mylist)]
 
     iterator = enumerate(zip(axis_num_list, axis_num_list_new))
     for i_cnt, (old_index, new_index) in iterator:
@@ -111,14 +109,12 @@ def add_duplicate_axes(
 
         new_axis = copy.deepcopy(old_Axis)
         new_axis = new_axis.update(
-            # dtick=0.1,
             showticklabels=False,
             title=dict(
                 font=None,
                 standoff=None,
                 text="",
-                ),
-            )
+                ))
 
         new_axis = new_axis.update(**axis_data)
 
@@ -131,7 +127,10 @@ def add_duplicate_axes(
 
         fig.add_scatter(
             **go.Scatter({
-                axis_type + "axis": axis_type + str(new_index)
+                axis_type + "axis": axis_type + str(new_index),
+
+                # I added this to fix some issues
+                axis_type_other + "axis": axis_type_other + str(new_index),
                 }).to_plotly_json())
 
     # __|
