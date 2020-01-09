@@ -15,6 +15,7 @@ from plotly.graph_objs import Scatter
 pd.options.mode.chained_assignment = None
 # __|
 
+
 class ORR_Free_E_Series():
     """ORR free energy diagram series class.
 
@@ -30,7 +31,8 @@ class ORR_Free_E_Series():
     """
 
     # | - ORR_Free_E_Series ****************************************************
-    def __init__(self,
+    def __init__(
+        self,
         free_energy_df=None,
         state_title="adsorbate",
         free_e_title="ads_e",

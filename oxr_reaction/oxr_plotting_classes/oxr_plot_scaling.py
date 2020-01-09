@@ -13,8 +13,8 @@ from sklearn.linear_model import LinearRegression
 
 import plotly.graph_objs as go
 
-from oxr_reaction.oxr_series import ORR_Free_E_Series
-from oxr_reaction.adsorbate_scaling import lim_U_i
+# from oxr_reaction.oxr_series import ORR_Free_E_Series
+# from oxr_reaction.adsorbate_scaling import lim_U_i
 # __|
 
 
@@ -47,6 +47,7 @@ class Scaling_Relations_Plot():
         marker_color_key="color2",
         marker_border_color_key="color1",
         marker_shape_key="symbol",
+        num_round=4,
         ):
         """
         Input variables to class instance.
@@ -55,6 +56,9 @@ class Scaling_Relations_Plot():
             ORR_Free_E_Plot:
             mode:
                 "all", "ooh_vs_oh", "o_vs_oh"
+            num_round:
+                Amount by which to round values when writing to string (when making plots for example)
+
         """
         # | - __init__
         self.ORR_Free_E_Plot = ORR_Free_E_Plot
@@ -64,7 +68,7 @@ class Scaling_Relations_Plot():
         self.marker_color_key = marker_color_key
         self.marker_border_color_key = marker_border_color_key
         self.marker_shape_key = marker_shape_key
-
+        self.num_round = num_round
         # #################################################################
 
         self.data_points = {
@@ -260,8 +264,7 @@ class Scaling_Relations_Plot():
                 size=smart_format_i.get("marker_size", 9),
                 symbol=smart_format_i.get(
                     self.marker_shape_key, "circle"),
-                color=smart_format_i.get(
-                    self.marker_color_key, "pink"),
+                color=smart_format_i.get(self.marker_color_key, "pink"),
                 line=dict(
                     # color=smart_format_i[marker_border_color_key],
                     color=smart_format_i.get(
@@ -330,6 +333,8 @@ class Scaling_Relations_Plot():
         """
         # | - fit_scaling_lines
 
+        num_round = self.num_round
+
         # | - LOOP
         oh_list = []
         dependent_e_list = []
@@ -376,28 +381,30 @@ class Scaling_Relations_Plot():
         # | - Equation Annotations
         if dependent_species == "ooh":
             eqn_str_i = ("" +
-                "G<sub>OOH</sub>=" +
-                str(round(slope_i, 4)) +
-                " G<sub>OH</sub>+" +
-                str(round(intercept_i, 4)) +
+                "ΔG<sub>OOH</sub>=" +
+                str(round(slope_i, num_round)) +
+                " ΔG<sub>OH</sub>+" +
+                str(round(intercept_i, num_round)) +
                 ""
                 )
 
+                # num_round
+
         elif dependent_species == "o":
             eqn_str_i = ("" +
-                "G<sub>O</sub> = " +
-                str(round(slope_i, 4)) +
-                " G<sub>OH</sub>+" +
-                str(round(intercept_i, 4)) +
+                "ΔG<sub>O</sub> = " +
+                str(round(slope_i, num_round)) +
+                " ΔG<sub>OH</sub>+" +
+                str(round(intercept_i, num_round)) +
                 ""
                 )
 
         elif dependent_species == "oh":
             eqn_str_i = ("" +
-                "G<sub>OH</sub> = " +
-                str(round(slope_i, 4)) +
-                " G<sub>OH</sub>+" +
-                str(round(intercept_i, 4)) +
+                "ΔG<sub>OH</sub> = " +
+                str(round(slope_i, num_round)) +
+                " ΔG<sub>OH</sub>+" +
+                str(round(intercept_i, num_round)) +
                 ""
                 )
 
@@ -405,16 +412,32 @@ class Scaling_Relations_Plot():
             eqn_str_i = "TEMP TEMP TEMP TEMP | 190213 | RF"
             raise ValueError('A very specific bad thing happened.')
 
-        annotation_i = dict(
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        # annotation_i = dict(
+        annotation_i = go.layout.Annotation(
             x=0.,
             y=1.,
             xref="paper",
             yref="paper",
             text=eqn_str_i,
             font=dict(
-                color="red",
-                family="Droid Sans Mono,Overpass",
-                size=9. * (4. / 3.),
+                color="black",
+                # family="Droid Sans Mono,Overpass",
+                family="Arial,Droid Sans Mono,Overpass",
+                size=8. * (4. / 3.),
                 ),
             showarrow=False,
             xanchor="left",
@@ -423,6 +446,28 @@ class Scaling_Relations_Plot():
             )
 
         self.annotations_list.append(annotation_i)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         # __|
 
 
@@ -530,10 +575,10 @@ class Scaling_Relations_Plot():
     # NOTE | This shouldn't be an internal method
     # I don't remember why I wrote the above note
     def get_plotly_layout(self,
-        # x_ax_spec="oh",
         title="Scaling Relations",
         showlegend=True,
         layout_dict=None,
+        # x_ax_spec="oh",
         ):
         """Create plotly layout dict.
 
@@ -689,6 +734,9 @@ class Scaling_Relations_Plot():
         # __|
 
 
+# __| **********************************************************************
+
+
 
 
 
@@ -726,11 +774,6 @@ class Scaling_Relations_Plot():
     #     # __|
     #
     # __|
-
-# __| **********************************************************************
-
-
-
 
 # | - __old__
 # x_range_ooh_vs_oh=[0., 3.5],

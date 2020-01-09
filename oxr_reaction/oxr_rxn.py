@@ -180,7 +180,8 @@ class ORR_Free_E_Plot:
         return(format_dict)
         # __|
 
-    def add_series(self,
+    def add_series(
+        self,
         fe_df,
         plot_mode="all",
         name_i=None,

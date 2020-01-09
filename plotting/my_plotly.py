@@ -19,6 +19,7 @@ import plotly.graph_objs as go
 from plotly import io as pyio
 # __|
 
+
 def get_xy_axis_info(fig):
     """
     """
@@ -68,7 +69,6 @@ def get_xy_axis_info(fig):
 
     return(out_dict)
     # __|
-
 
 
 def add_duplicate_axes(
@@ -134,62 +134,6 @@ def add_duplicate_axes(
                 }).to_plotly_json())
 
     # __|
-
-
-# | - OLD | add_duplicate_axes
-# def add_duplicate_axes(
-#     fig,
-#     axis_type="x",  # 'x' or 'y'
-#     axis_data=dict(),
-#     ):
-#     """
-#     """
-#     # | - add_duplicate_axes
-#
-#     # This is necessary to make sure that the original traces are still visible after adding the new traces
-#     fig.update_layout(
-#         # paper_bgcolor="white",
-#         plot_bgcolor="rgba(255,255,255,0.)",
-#         )
-#
-#     # #########################################################################
-#     axis_info_dict = get_xy_axis_info(fig)[axis_type]
-#
-#     num_of_axis = axis_info_dict["num_of_axis"]
-#     axis_list = axis_info_dict["axis_list"]
-#     axis_num_list = axis_info_dict["axis_num_list"]
-#
-#     axis_num_list_new = [i + num_of_axis for i in axis_num_list]
-#     iterator = enumerate(zip(axis_num_list, axis_num_list_new))
-#     for i_cnt, (old_index, new_index) in iterator:
-#         old_Axis = fig.layout[axis_type + "axis" + str(old_index)]
-#
-#         new_axis = copy.deepcopy(old_Axis)
-#         new_axis = new_axis.update(
-#             # dtick=0.1,
-#             showticklabels=False,
-#             title=dict(
-#                 font=None,
-#                 standoff=None,
-#                 text="",
-#                 ),
-#             )
-#
-#         new_axis = new_axis.update(**axis_data)
-#
-#         axis_key = axis_type + "axis" + str(new_index)
-#         new_layout = go.Layout({
-#             axis_key: new_axis,
-#             })
-#
-#         fig.update_layout(new_layout)
-#
-#         fig.add_scatter(
-#             **go.Scatter({
-#                 axis_type + "axis": axis_type + str(new_index)
-#                 }).to_plotly_json())
-#     # __|
-# __|
 
 
 def add_minor_ticks(
@@ -394,8 +338,6 @@ def my_plotly_plot(
     # __|
 
 
-
-
 def reapply_colors(data):
     """Redefines the line colors of a plotly data series.
 
@@ -437,88 +379,73 @@ def reapply_colors(data):
     return(dat_lst_master)
     # __|
 
+
 def plot_layout(
     # xax_labels =
     ):
     """
-    """
-    # | - plot_layout
 
-    # | - Plot Settings
-    plot_title_size = 18
-    tick_lab_size = 16
-    axes_lab_size = 18
-    legend_size = 18
-    # __|
 
-    # | - Plot Layout
-    xax_labels = ["O2", "OOH", "O", "OH", "H2O"]
-    layout = {
 
-        "title": "FED of ORR Mechanism For Iron-Supported-Graphene",
 
-        "font": {
-            "family": "Courier New, monospace",
-            "size": plot_title_size,
-            "color": "black",
-            },
 
-        # | - Axes --------------------------------------------------------------
-        "yaxis": {
-            "title": "Free Energy [eV]",
-            "zeroline": True,
-            "titlefont": dict(size=axes_lab_size),
-            "showgrid": False,
-            "tickfont": dict(
-                size=tick_lab_size,
-                ),
-            },
 
-        "xaxis": {
-            "title": "Reaction Coordinate",
-            "zeroline": True,
-            "titlefont": dict(size=axes_lab_size),
-            "showgrid": False,
 
-            # "showticklabels": False,
 
-            "ticktext": xax_labels,
-            "tickvals": [1.5 * i + 0.5 for i in range(len(xax_labels))],
 
-            "tickfont": dict(
-                size=tick_lab_size,
-                ),
-            },
-        # __| -------------------------------------------------------------------
 
-        # | - Legend ------------------------------------------------------------
-        "legend": {
-            "traceorder": "normal",
-            "font": dict(size=legend_size)
-            },
-        # __| -------------------------------------------------------------------
+# | - OLD | add_duplicate_axes
+# def add_duplicate_axes(
+#     fig,
+#     axis_type="x",  # 'x' or 'y'
+#     axis_data=dict(),
+#     ):
+#     """
+#     """
+#     # | - add_duplicate_axes
+#
+#     # This is necessary to make sure that the original traces are still visible after adding the new traces
+#     fig.update_layout(
+#         # paper_bgcolor="white",
+#         plot_bgcolor="rgba(255,255,255,0.)",
+#         )
+#
+#     # #########################################################################
+#     axis_info_dict = get_xy_axis_info(fig)[axis_type]
+#
+#     num_of_axis = axis_info_dict["num_of_axis"]
+#     axis_list = axis_info_dict["axis_list"]
+#     axis_num_list = axis_info_dict["axis_num_list"]
+#
+#     axis_num_list_new = [i + num_of_axis for i in axis_num_list]
+#     iterator = enumerate(zip(axis_num_list, axis_num_list_new))
+#     for i_cnt, (old_index, new_index) in iterator:
+#         old_Axis = fig.layout[axis_type + "axis" + str(old_index)]
+#
+#         new_axis = copy.deepcopy(old_Axis)
+#         new_axis = new_axis.update(
+#             # dtick=0.1,
+#             showticklabels=False,
+#             title=dict(
+#                 font=None,
+#                 standoff=None,
+#                 text="",
+#                 ),
+#             )
+#
+#         new_axis = new_axis.update(**axis_data)
+#
+#         axis_key = axis_type + "axis" + str(new_index)
+#         new_layout = go.Layout({
+#             axis_key: new_axis,
+#             })
+#
+#         fig.update_layout(new_layout)
+#
+#         fig.add_scatter(
+#             **go.Scatter({
+#                 axis_type + "axis": axis_type + str(new_index)
+#                 }).to_plotly_json())
+#     # __|
+# __|
 
-        # | - Plot Size
-        "width": 200 * 4.,
-        "height": 200 * 3.,
-        # __|
-
-        }
-    # __|
-
-    fig = Figure(data=dat_lst, layout=layout)
-    # plotly.plotly.image.save_as(fig, filename="pl_hab_opda_raman.png")
-
-    plotly.offline.plot(
-        {
-            "data": dat_lst,
-            "layout": layout,
-            },
-        filename="plots/pl_fed_supp_graph_02.html"
-        )
-
-    # tmp = plotly.plotly.image.plot(data, filename="pl_fed_180314.png")
-
-    return(layout)
-
-    # __|
