@@ -76,6 +76,7 @@ def add_duplicate_axes(
     axis_type="x",  # 'x' or 'y'
     axis_data=dict(),
     axis_num_list=None,
+    tmp_define_both_axis_types=False,
     ):
     """
     """
@@ -125,13 +126,21 @@ def add_duplicate_axes(
 
         fig.update_layout(new_layout)
 
-        fig.add_scatter(
-            **go.Scatter({
-                axis_type + "axis": axis_type + str(new_index),
+        if tmp_define_both_axis_types:
+            fig.add_scatter(
+                **go.Scatter({
+                    axis_type + "axis": axis_type + str(new_index),
 
-                # I added this to fix some issues
-                axis_type_other + "axis": axis_type_other + str(new_index),
-                }).to_plotly_json())
+                    # I added this to fix some issues
+                    # It breaks in some applications, look over more closely
+                    axis_type_other + "axis": axis_type_other + str(new_index),
+                    }).to_plotly_json())
+
+        else:
+            fig.add_scatter(
+                **go.Scatter({
+                    axis_type + "axis": axis_type + str(new_index),
+                    }).to_plotly_json())
 
     # __|
 

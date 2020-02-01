@@ -47,7 +47,10 @@ def plot_band_series(
 
 # __|
 
-def filter_bands_data(bands_data, percent_keep=0.6):
+
+def filter_bands_data(
+    bands_data,
+    percent_keep=0.6):
     """Filter bands data series to lower memory cost.
 
     Args:
