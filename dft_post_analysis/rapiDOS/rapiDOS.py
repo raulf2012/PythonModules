@@ -11,6 +11,8 @@ from ase import io
 import re
 import pandas as pd
 import os
+
+import shutil
 # __|
 
 
@@ -178,7 +180,6 @@ def get_bandgap(total_dos):
 
 # __|
 
-# if __name__ == '__main__':
 
 def rapiDOS(
     data_folder=None,
@@ -214,6 +215,11 @@ def rapiDOS(
     ###########################################################################
     # Check spin:
     ###########################################################################
+    # Copy INCAR file into out_data folder, needed for further analysis
+    shutil.copyfile(
+        os.path.join(data_folder, "INCAR"),
+        os.path.join(out_folder, "INCAR"),
+        )
 
     incar_file = open(os.path.join(data_folder, "INCAR"), "r")
     ispin = 1  # Non spin polarised calculations.
@@ -374,3 +380,12 @@ def rapiDOS(
     #os.system('jupyter nbconvert --to notebook --execute rapiDOS_analysis.ipynb')
 
     # __|
+
+
+if __name__ == '__main__':
+    print("KJKDFS")
+    rapiDOS(
+        data_folder=None,
+        out_folder="rapiDOS_out",
+        )
+

@@ -126,6 +126,9 @@ def plot_bands(
 
     s, k, x, X, e = bands_data
 
+    print("s:")
+    print(s)
+
     # symbols = [t.replace('Gamma', '$\Gamma$') for t in s]
     symbols = [t.replace("Gamma", "G") for t in s]
 

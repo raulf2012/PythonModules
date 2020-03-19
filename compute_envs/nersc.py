@@ -100,6 +100,10 @@ class NERSC_Cluster(ComputerCluster):
 
         self.arch_inst.__make_run_vasp_script__(params)
 
+        print("params:", params)
+        if "tasks-per-node" in list(params.keys()):
+            print("tasks-per-node is in params varialbe before merging with arch_inst")
+
         params = merge_two_dicts(params, self.arch_inst.sbatch_params)
 
         # | - Write submission script

@@ -79,6 +79,7 @@ def add_duplicate_axes(
     tmp_define_both_axis_types=False,
     ):
     """
+    Note: range must be set for this to work
     """
     # | - add_duplicate_axes
 
@@ -107,6 +108,9 @@ def add_duplicate_axes(
     iterator = enumerate(zip(axis_num_list, axis_num_list_new))
     for i_cnt, (old_index, new_index) in iterator:
         old_Axis = fig.layout[axis_type + "axis" + str(old_index)]
+
+        if old_Axis.range == None:
+            print("This doesn't work well if you don't set the range attribute! Do that!")
 
         new_axis = copy.deepcopy(old_Axis)
         new_axis = new_axis.update(

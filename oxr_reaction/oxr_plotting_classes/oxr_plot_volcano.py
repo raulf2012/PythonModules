@@ -382,6 +382,10 @@ class Volcano_Plot():
 
         # print(mode_i)
 
+        #  print("KSDJIKFKDSF")
+        #  print("smart_format_i:", smart_format_i)
+        #  print('smart_format_i.get("marker_size", 9)', smart_format_i.get("marker_size", 9))
+
         trace_i = go.Scatter(
             x=[x_energy],
             y=[y_energy],
@@ -413,6 +417,7 @@ class Volcano_Plot():
                 "size": 10,
                 "color": "black",
                 },
+
 
             marker=dict(
                 size=smart_format_i.get("marker_size", 9),
