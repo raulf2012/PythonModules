@@ -39,11 +39,20 @@ class Volcano_Plot_2D():
     def __init__(self,
         ORR_Free_E_Plot,
         plot_range=None,
+        smart_format_dict=None,
+        marker_color_key="color2",
+        marker_border_color_key="color1",
+        marker_shape_key="symbol",
+
         ):
         """
         """
         # | - __init__
         self.ORR_Free_E_Plot = ORR_Free_E_Plot
+        self.smart_format_dict = smart_format_dict
+        self.marker_color_key = marker_color_key
+        self.marker_border_color_key = marker_border_color_key
+        self.marker_shape_key = marker_shape_key
 
         if plot_range is None:
             self.plot_range = {
@@ -167,9 +176,54 @@ class Volcano_Plot_2D():
         """
         """
         # | - __create_data_point_traces__
+
+
+        # | - Default Smart Format Dict
+        smart_format_dict = self.smart_format_dict
+
+        if smart_format_dict is None:
+            print("No smart format given!")
+            smart_format_dict = [
+                [{"bulk_system": "IrO3"}, {self.marker_color_key: "green"}],
+                [{"bulk_system": "IrO2"}, {self.marker_color_key: "yellow"}],
+
+                [{"coverage_type": "o_covered"}, {"symbol": "s"}],
+                [{"coverage_type": "h_covered"}, {"symbol": "^"}],
+
+                [{"facet": "110"}, {"color1": "red"}],
+                [{"facet": "211"}, {"color1": "green"}],
+                [{"facet": "100"}, {"color1": "black"}],
+                ]
+        # __|
+
+
         data_list = []
-        for sys_i in self.ORR_Free_E_Plot.series_list:
-            trace_i = self.__create_scatter_trace_i__(sys_i)
+        for series_i in self.ORR_Free_E_Plot.series_list:
+
+
+            smart_format_i = self.ORR_Free_E_Plot.__create_smart_format_dict__(
+                series_i.properties,
+                smart_format_dict,
+                )
+
+            name_i = series_i.series_name
+
+            if series_i.color is not None:
+                smart_format_i[self.marker_color_key] = series_i.color
+
+
+            format_i = smart_format_i
+
+            if series_i.format_dict:
+                format_i = series_i.format_dict
+
+
+            print("format_i:", format_i)
+
+            trace_i = self.__create_scatter_trace_i__(
+                series_i,
+                smart_format_i=format_i,
+                )
             data_list.append(trace_i)
 
         return(data_list)
@@ -182,6 +236,7 @@ class Volcano_Plot_2D():
         """
         """
         # | - __create_trace_i__
+        print("sys_i:", sys_i)
         trace_i = go.Scatter(
             x=[sys_i.energy_states_dict["o"] - sys_i.energy_states_dict["oh"]],
             y=[sys_i.energy_states_dict["oh"]],
@@ -193,15 +248,41 @@ class Volcano_Plot_2D():
             # <br>
             hoverinfo="name",
 
+            # marker=dict(
+            #     size=20,
+            #     #  symbol=sys_i.format_dict["symbol_i"],
+            #     symbol=sys_i.format_dict.get("symbol_i", "circle"),
+            #     color=sys_i.format_dict.get("color_2", "blue"),
+            #     line=dict(
+            #         width=2,
+            #         smart_format_i
+            #         color=sys_i.format_dict.get("color_1", "black"),
+            #         ),
+            #     ),
+
             marker=dict(
-                size=20,
-                symbol=sys_i.format_dict["symbol_i"],
-                color=sys_i.format_dict["color_2"],
+                size=smart_format_i.get("marker_size", 9),
+                color=smart_format_i.get(self.marker_color_key, "red"),
+                symbol=smart_format_i.get(
+                    self.marker_shape_key, "circle"),
                 line=dict(
-                    width=2,
-                    color=sys_i.format_dict["color_1"],
+                    width=smart_format_i.get("marker_border_width", 1.),
+                    color=smart_format_i.get(
+                        self.marker_border_color_key, "black"),
                     ),
                 ),
+
+            # marker=dict(
+            #     size=20,
+            #     #  symbol=sys_i.format_dict["symbol_i"],
+            #     symbol=sys_i.format_dict.get("symbol_i", "circle"),
+            #     color=sys_i.format_dict.get("color_2", "blue"),
+            #     line=dict(
+            #         width=2,
+            #         color=sys_i.format_dict.get("color_1", "black"),
+            #         ),
+            #     ),
+
             )
 
         return(trace_i)
@@ -223,7 +304,7 @@ class Volcano_Plot_2D():
         """ooh_oh_scaling equation."""
         # | - ooh_oh_scaling
         #like ambars
-        #dooh=0.5*doh  + 3.0		 #O
+        #dooh=0.5*doh  + 3.0         #O
         #normal one
         # dooh = doh + 3.2
 

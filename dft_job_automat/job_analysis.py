@@ -224,9 +224,14 @@ class DFT_Jobs_Analysis(DFT_Jobs_Setup):
             fle_name = self.root_dir + "/jobs_bin/job_dataframe.pickle"
 
         with open(fle_name, "rb") as fle:
+
+
             if sys.version_info.major > 2:
-                df = pickle.load(fle, encoding="latin1")
+                #  print("IJDIFIDSj89yu892sdf")
+                #  print("fle_name:", fle_name)
+
                 # NOTE Added encoding="latin1" for p36 support (180415 - RF)
+                df = pickle.load(fle, encoding="latin1")
             else:
                 df = pickle.load(fle)
 

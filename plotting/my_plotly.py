@@ -80,6 +80,42 @@ def add_duplicate_axes(
     ):
     """
     Note: range must be set for this to work
+
+    Example usage:
+
+    from plotting.my_plotly import add_duplicate_axes
+
+    shared_axis_data = {
+	"tickcolor": "black",
+	"ticklen": 3,
+	}
+
+    shared_xaxis_data = {
+	"dtick": 50,
+	**shared_axis_data,
+	}
+
+    shared_yaxis_data = {
+	"dtick": 1,
+	**shared_axis_data,
+	}
+
+    shared_meth_props = dict(
+	tmp_define_both_axis_types=True,
+	)
+
+    add_duplicate_axes(
+	fig, axis_type='x',
+	axis_data=shared_xaxis_data,
+	axis_num_list=[1, ],
+	**shared_meth_props)
+    add_duplicate_axes(
+	fig, axis_type='y',
+	axis_data=shared_yaxis_data,
+	axis_num_list=[1, ],
+	**shared_meth_props)
+
+
     """
     # | - add_duplicate_axes
 
@@ -309,6 +345,12 @@ def my_plotly_plot(
             )
     # __|
 
+    if write_svg:
+        try:
+            fig.write_image(prepath + ".svg")
+        except:
+            print("Couldn't write svg")
+
     # | - Write pdf and svg (if ORCA is installed and working)
     # Getting the hostname of computer
     import socket
@@ -333,11 +375,6 @@ def my_plotly_plot(
                 fig.write_image(prepath + ".pdf")
             except:
                 print("Couldn't write pdf")
-        if write_svg:
-            try:
-                fig.write_image(prepath + ".svg")
-            except:
-                print("Couldn't write svg")
         if write_png:
             try:
                 fig.write_image(prepath + ".png", scale=png_scale)
@@ -393,11 +430,6 @@ def reapply_colors(data):
     # __|
 
 
-def plot_layout(
-    # xax_labels =
-    ):
-    """
-
 
 
 
@@ -408,6 +440,13 @@ def plot_layout(
 
 
 # | - OLD | add_duplicate_axes
+
+# def plot_layout(
+#     # xax_labels =
+#     ):
+#     """
+
+
 # def add_duplicate_axes(
 #     fig,
 #     axis_type="x",  # 'x' or 'y'
@@ -461,4 +500,3 @@ def plot_layout(
 #                 }).to_plotly_json())
 #     # __|
 # __|
-

@@ -400,7 +400,7 @@ class Volcano_Plot():
 
             legendgroup=group,
 
-            hoverinfo="text",
+            # hoverinfo="text",
 
             # hoverinfo=None,
             # hoverinfosrc=None,

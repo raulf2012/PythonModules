@@ -269,7 +269,9 @@ class Scaling_Relations_Plot():
                     # color=smart_format_i[marker_border_color_key],
                     color=smart_format_i.get(
                         self.marker_border_color_key, "black"),
-                    width=1.,
+                    #  width=1.,
+
+                    width=smart_format_i.get("marker_border_width", 1.),
                     )
                 )
             )
@@ -381,10 +383,11 @@ class Scaling_Relations_Plot():
         # | - Equation Annotations
         if dependent_species == "ooh":
             eqn_str_i = ("" +
-                "ΔG<sub>OOH</sub>=" +
+                "ΔG<sub>OOH</sub> = " +
                 str(round(slope_i, num_round)) +
-                " ΔG<sub>OH</sub>+" +
+                " ΔG<sub>OH</sub> + " +
                 str(round(intercept_i, num_round)) +
+                " (eV)" +
                 ""
                 )
 
@@ -394,8 +397,9 @@ class Scaling_Relations_Plot():
             eqn_str_i = ("" +
                 "ΔG<sub>O</sub> = " +
                 str(round(slope_i, num_round)) +
-                " ΔG<sub>OH</sub>+" +
+                " ΔG<sub>OH</sub> + " +
                 str(round(intercept_i, num_round)) +
+                " (eV)" +
                 ""
                 )
 
@@ -403,8 +407,9 @@ class Scaling_Relations_Plot():
             eqn_str_i = ("" +
                 "ΔG<sub>OH</sub> = " +
                 str(round(slope_i, num_round)) +
-                " ΔG<sub>OH</sub>+" +
+                " ΔG<sub>OH</sub> + " +
                 str(round(intercept_i, num_round)) +
+                " (eV)" +
                 ""
                 )
 
@@ -481,21 +486,21 @@ class Scaling_Relations_Plot():
             name="*OOH vs *OH Scaling",
             color="black",
             width=1,
-            dash="dash",
+            dash="dot",
             )
 
         self.add_line({"slope": 2, "intercept": 0.},
             name="*O vs *OH Scaling",
             color="black",
             width=1,
-            dash="dash",
+            dash="dot",
             )
 
         self.add_line({"slope": 1, "intercept": 0.},
             name="*OH vs *OH Scaling",
             color="black",
             width=1,
-            dash="dash",
+            dash="dot",
             )
         # __|
 

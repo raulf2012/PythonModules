@@ -103,7 +103,10 @@ class ORR_Free_E_Series():
         self.hover_text_col = hover_text_col
         self.plot_mode = plot_mode
         self.smart_format = smart_format
+
         self.format_dict = format_dict
+        if format_dict is None:
+            self.format_dict = dict()
 
         # self.overpotential_type = overpotential_type
         self.rxn_type = rxn_type

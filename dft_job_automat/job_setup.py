@@ -364,8 +364,18 @@ class DFT_Jobs_Setup:
 
                 print(job_i_dir)
                 if rev_dirs:
+
+                    print("rev_dirs:", rev_dirs)
+
                     if self.parse_all_revisions is False:
-                        rev_dirs = [rev_dirs[-1]]
+
+                        last_rev_int = np.sort(
+                                    [int(i.split("_")[-1]) for i in rev_dirs])[-1]
+                        rev_dirs = ["_" + str(last_rev_int), ]
+                        # rev_dirs = [rev_dirs[-1]]
+
+                        print("rev_dirs:", rev_dirs)
+                        print("IOPSDFJOKIDSIJFIJDSF")
 
                     for rev_i in rev_dirs:
                         path_i = os.path.join(job_i_dir, rev_i)

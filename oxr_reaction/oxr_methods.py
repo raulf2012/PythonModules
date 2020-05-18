@@ -214,6 +214,7 @@ def df_calc_adsorption_e(
             oxy_ref_e=oxy_ref,
             hyd_ref_e=hyd_ref,
             )
+        #  print("ads_e_i:", ads_e_i)
         ads_e_list.append(ads_e_i)
 
     df["ads_e"] = np.array(ads_e_list)

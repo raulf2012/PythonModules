@@ -193,9 +193,9 @@ class SurfaceEnergy:
         sssc = special_surface_species_corrections
 
 
-        # TEMP
-        print(non_stoich_comp)
-        print(H_ref_electronic_energy)
+        # # TEMP
+        # print(non_stoich_comp)
+        # print(H_ref_electronic_energy)
 
         # TODO Make the referencing more robust, take arbitary dict of
         # referencec atoms
@@ -206,14 +206,22 @@ class SurfaceEnergy:
             -non_stoich_comp.get("H", 0.) * (H_ref_electronic_energy) + \
             +0.
 
+        print("TEMP | ksjdfidsihjgisdfjgf8sgsd | TEMP")
+        print("electronic_energy:", electronic_energy)
+        print("bulk_formula_units_in_slab:", bulk_formula_units_in_slab)
+        print("bulk_energy_per_formula_unit", bulk_energy_per_formula_unit)
+        print("std_surface_e_per_side:", surf_e_0)
+
         if apply_special_species_corrections:
-            special_surface_species
             for spec_i, num_spec_i in special_surface_species.items():
                 corr_i = num_spec_i * sssc[spec_i]
-                print(corr_i)
-                surf_e_0 += corr_i
+                print("Special spec corr:", spec_i, corr_i)
+                # surf_e_0 += corr_i
+                surf_e_0 -= corr_i
 
-        print(surf_e_0)
+        print("std_surface_e_per_side__after_corr:", surf_e_0)
+        print("TEMP | ksjdfidsihjgisdfjgf8sgsd | TEMP")
+
 
         # Divide surface energy across two sides of slab
         surf_e_0 /= 2
@@ -235,11 +243,11 @@ class SurfaceEnergy:
 
         non_stoich_comp_new = copy.copy(non_stoich_comp)
 
-        print(non_stoich_comp)
+        # print(non_stoich_comp)
 
         special_species_dict = dict()
         if "O" in non_stoich_comp.keys():
-
+            #| - If *O present
             num_Os = non_stoich_comp.get("O")
 
             if "H" in non_stoich_comp.keys():
@@ -254,6 +262,8 @@ class SurfaceEnergy:
 
                 special_species_dict["*OH"] = num_OHs
                 special_species_dict["*O"] = left_over_Os
+                special_species_dict["*H"] = left_over_Hs
+
 
                 # All nonstoich Os will be *O species
                 non_stoich_comp_new["O"] = 0
@@ -271,22 +281,26 @@ class SurfaceEnergy:
                 # All nonstoich Os will be *O species
                 non_stoich_comp_new["O"] = 0
                 non_stoich_comp_new["H"] = left_over_Hs
+            #__|
 
-        else:
-            num_OHs = 0
-            left_over_Os = num_Os
-            left_over_Hs = 0
 
-            if "H" in non_stoich_comp.keys():
-                if non_stoich_comp.get("H") > 0:
-                    raise ValueError(
-                        "NOT GOOD HERE, THERE IS AN *H WITHOUT and *OH")
+
+        #| - __old__
+        # else:
+        #     num_OHs = 0
+        #     left_over_Os = num_Os
+        #     left_over_Hs = 0
+        #
+        #     if "H" in non_stoich_comp.keys():
+        #         if non_stoich_comp.get("H") > 0:
+        #             raise ValueError(
+        #                 "NOT GOOD HERE, THERE IS AN *H WITHOUT and *OH")
 
 
         # print("----")
         # print(non_stoich_comp_new)
         # print(special_species_dict)
-
+        #__|
 
         self.non_stoich_comp_new = non_stoich_comp_new
 
@@ -1009,6 +1023,7 @@ def surf_e_4(
             -nonstoich_Os * (G_H2O - G_H2) + \
             -nonstoich_Hs * (G_H2 / 2) + \
             +0.
+            # -nonstoich_Os * (G_H2O - G_H2 - 2.518583065) + \
             # -nonstoich_Hs * (G_H2) + \
 
 
