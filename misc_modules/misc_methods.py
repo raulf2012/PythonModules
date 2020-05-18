@@ -4,11 +4,11 @@ TEMP
 TEMP
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import os
 
 # import sys
-#__|
+# __|
 
 
 def even_spaced_range(start_finish, spacing):
@@ -25,7 +25,7 @@ def even_spaced_range(start_finish, spacing):
             ex. [1, 87]
         spacing:
     """
-    #| - even_spaced_range
+    # | - even_spaced_range
     out_list = []
     entry_i = start_finish[0]
     while entry_i < start_finish[1]:
@@ -34,17 +34,17 @@ def even_spaced_range(start_finish, spacing):
     out_list.append(start_finish[1])
 
     return(out_list)
-    #__|
+    # __|
 
 def merge_two_dicts(x, y):
     """
     """
-    #| - merge_two_dicts
+    # | - merge_two_dicts
     z = x.copy()   # start with x's keys and values
     z.update(y)    # modifies z with y's keys and values & returns None
 
     return z
-    #__|
+    # __|
 
 
 import collections
@@ -62,17 +62,17 @@ def dict_merge(dct, merge_dct):
     Obtained from:
     https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
     """
-    #| - dict_merge
+    # | - dict_merge
     # for k, v in merge_dct.iteritems():
     for k, v in merge_dct.items():
         if (k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], collections.Mapping)):
             dict_merge(dct[k], merge_dct[k])
         else:
             dct[k] = merge_dct[k]
-    #__|
+    # __|
 
 
-#| - File and Directory Management
+# | - File and Directory Management
 
 def remove_file_from_all_folders(
     file_name_list,
@@ -87,7 +87,7 @@ def remove_file_from_all_folders(
         remove_files: Whether to perform file deletion or not.
         root_dir: Starting directory, assumed to be current directory
     """
-    #| - remove_file_from_all_folders
+    # | - remove_file_from_all_folders
     total_disk_usage = 0.
     for dirName, subdirList, fileList in os.walk(root_dir):
         for file_name in file_name_list:
@@ -130,13 +130,13 @@ def remove_file_from_all_folders(
             unit = "MB"
 
         print("Total Disk Usage: ", str(total_disk_usage_print), "", unit)
-    #__|
+    # __|
 
 
-#__|
+# __|
 
 
-#| - Generating unique IDs
+# | - Generating unique IDs
 import random
 from random import choice
 
@@ -145,7 +145,7 @@ def GetFriendlyID(append_random_num=False):
     Create an ID string we can recognise.
     (Think Italian or Japanese or Native American.)
     """
-    #| - GetFriendlyID
+    # | - GetFriendlyID
     v = 'aeiou'
     c = 'bdfghklmnprstvw'
 
@@ -157,7 +157,7 @@ def GetFriendlyID(append_random_num=False):
             str(random.randint(0, 9))
 
     return(id_i)
-    #__|
+    # __|
 
 def GetUniqueFriendlyID(used_ids):
     """Return an ID that is not in our list of already used IDs.
@@ -167,7 +167,7 @@ def GetUniqueFriendlyID(used_ids):
         id = GetUniqueFriendlyID(used_ids)
         used_ids.add(id)
     """
-    #| - GetUniqueFriendlyID
+    # | - GetUniqueFriendlyID
     # trying infinitely is a bad idea
     LIMIT = 1000
 
@@ -179,6 +179,6 @@ def GetUniqueFriendlyID(used_ids):
         count += 1
         id = ''
     return id
-    #__|
+    # __|
 
-#__|
+# __|

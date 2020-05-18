@@ -1,6 +1,6 @@
 """Class defining methods to extract/manipulate data in vasp raman job folders."""
 
-#| - Import Modules
+# | - Import Modules
 # from dft_job_automat.job_setup import DFT_Jobs_Setup
 # from aws.aws_class import AWS_Queues
 import pandas as pd
@@ -12,7 +12,7 @@ import numpy as np
 # import pickle
 # import boto3
 # import subprocess
-#__|
+# __|
 
 class Raman_Vasp():
     """Summary line.
@@ -25,22 +25,22 @@ class Raman_Vasp():
 
         Args:
         """
-        #| - __init__
+        # | - __init__
         self.tmp = 42
         self.methods_to_run = methods_to_run
-        #__|
+        # __|
 
     def tmp_meth(self, path_i):
         """
         """
-        #| - tmp_meth
+        # | - tmp_meth
         return("tmp - tmp_meth")
-        #__|
+        # __|
 
     def read_modes_file(self, path_i):
         """
         """
-        #| - read_modes_file
+        # | - read_modes_file
         # raman_dat_file = path_i + "/simulation/vasp_raman.dat"
         # print("3:" + path_i)
 
@@ -95,4 +95,4 @@ class Raman_Vasp():
 
         return(data_list)
 
-        #__|
+        # __|

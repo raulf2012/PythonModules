@@ -8,17 +8,17 @@ Development:
     NOTE Take into account BEEF ensemble of energies
 """
 
-#| - Import Modules
+# | - Import Modules
 import os
 import sys
-#__|
+# __|
 
 
 class Energy(object):
     """
     """
 
-    #| - Energy ***************************************************************
+    # | - Energy ***************************************************************
     def __init__(self,
         gibbs_e=None,
         internal_e=None,
@@ -46,7 +46,7 @@ class Energy(object):
             rot_e:
             vib_e:
         """
-        #| - __init__
+        # | - __init__
         self.gibbs_e = gibbs_e
         self.internal_e = internal_e
         self.enthalpy_e = enthalpy_e
@@ -71,33 +71,33 @@ class Energy(object):
 
         if self.gibbs_e is None:
             self.gibbs_e = self.calc_gibbs_free_energy()
-        #__|
+        # __|
 
 
     def __str__(self):
         """
         """
-        #| - __str__
+        # | - __str__
         mess = "Gibbs Free Energy: " + str(self.gibbs_e) + "\n"
         mess += "Electronic Energy: " + str(self.electronic_e) + "\n"
 
         return(mess)
-        #__|
+        # __|
 
     def __repr__(self):
         """Representation of instance when printed to stdout."""
-        #| - __repr__
+        # | - __repr__
         mess = "Electronic Energy: " + str(self.electronic_e) + "\n"
         mess += "Enthalpy Energy: " + str(self.enthalpy_e) + "\n"
         mess += "Gibbs Free Energy: " + str(self.gibbs_e) + "\n"
 
         return(mess)
-        #__|
+        # __|
 
     def __sub__(self, other):
         """
         """
-        #| - __sub__
+        # | - __sub__
 
         def subtract_mine(a, b):
             """Return a - b.
@@ -108,14 +108,14 @@ class Energy(object):
                 a:
                 b:
             """
-            #| - subtract_mine
+            # | - subtract_mine
             if a is None or b is None:
                 return(None)
             else:
                 out = a - b
 
                 return(out)
-            #__|
+            # __|
 
 
         if isinstance(other, Energy):
@@ -166,19 +166,19 @@ class Energy(object):
         out_Energy = Energy(**E_dict)
 
         return(out_Energy)
-        #__|
+        # __|
 
     def __add__(self, other):
         """
         """
-        #| - __add__
+        # | - __add__
         return (self.gibbs_e + other.gibbs_e)
-        #__|
+        # __|
 
     def __truediv__(self, other):
         """
         """
-        #| - __truediv__
+        # | - __truediv__
 
         if isinstance(other, Energy):
             electronic_e_new = self.electronic_e / other.electronic_e
@@ -204,15 +204,15 @@ class Energy(object):
         out_Energy = Energy(**E_dict)
 
         return(out_Energy)
-        #__|
+        # __|
 
     def __floordiv__(self, other):
         """
         """
-        #| - __floordiv__
+        # | - __floordiv__
         print("__floordiv__")
         return (self.gibbs_e / other.gibbs_e)
-        #__|
+        # __|
 
 
 
@@ -225,7 +225,7 @@ class Energy(object):
         Args:
             entries_list:
         """
-        #| - add_entries
+        # | - add_entries
         sum_tot = 0.
         for entry in entries_list:
             if entry is None:
@@ -235,7 +235,7 @@ class Energy(object):
             sum_tot += summand
 
         return(sum_tot)
-        #__|
+        # __|
 
     def calc_internal_energy(self):
         """Calculate internal energy.
@@ -243,7 +243,7 @@ class Energy(object):
         Args:
 
         """
-        #| - internal_energy
+        # | - internal_energy
         energy_list = [
             self.electronic_e,
             self.zero_point_e,
@@ -256,12 +256,12 @@ class Energy(object):
         internal_energy = self.add_entries(energy_list)
 
         return(internal_energy)
-        #__|
+        # __|
 
     def calc_enthalpy_energy(self):
         """
         """
-        #| - calc_enthalpy_energy
+        # | - calc_enthalpy_energy
         energy_list = [
             self.internal_e,
             self.PV_term,
@@ -270,12 +270,12 @@ class Energy(object):
         enthalpy_e = self.add_entries(energy_list)
 
         return(enthalpy_e)
-        #__|
+        # __|
 
     def calc_gibbs_free_energy(self):
         """
         """
-        #| - calc_gibbs_free_energy
+        # | - calc_gibbs_free_energy
         if self.entropy_term is not None:
             entropy_term = -self.entropy_term
         else:
@@ -289,9 +289,9 @@ class Energy(object):
         gibbs_e = self.add_entries(energy_list)
 
         return(gibbs_e)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************
 
 
 class Element_Refs():
@@ -310,7 +310,7 @@ class Element_Refs():
 
     """
 
-    #| - Element_Refs *********************************************************
+    # | - Element_Refs *********************************************************
 
     def __init__(self,
          H2O_dict={
@@ -387,7 +387,7 @@ class Element_Refs():
                 Conventionally for ORR/OER I use a H2, H2O reference state,
                 such that H2O has 0 energy
         """
-        #| - __init__
+        # | - __init__
         self.En_H2O = Energy(**H2O_dict)
         self.En_H2 = Energy(**H2_dict)
         self.En_O2 = Energy(**O2_dict)
@@ -400,12 +400,12 @@ class Element_Refs():
         self.H2O_form_gibbs = Energy(**H2O_form_e_dict)
 
         self.E_O_ref, self.E_H_ref = self.calc_ref_energies()
-        #__|
+        # __|
 
     def calc_ref_energies(self):
         """
         """
-        #| - calc_ref_energies
+        # | - calc_ref_energies
 
         if self.hydrogen_ref == "H2":
             # hyd_ref = self.En_H2 / 2.
@@ -424,6 +424,6 @@ class Element_Refs():
             # print(tmp)
 
         return(oxy_ref, hyd_ref)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************

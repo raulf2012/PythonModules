@@ -2,7 +2,7 @@
 
 """Methods to add atoms/adsorbates to surfaces."""
 
-#| - Import Modules
+# | - Import Modules
 import numpy as np
 import copy
 import math
@@ -10,7 +10,7 @@ import math
 from operator import itemgetter
 from ase.build import add_adsorbate
 from misc_modules.numpy_methods import angle_between
-#__|
+# __|
 
 def add_adsorbate_centered(active_element, slab, adsorbate, ads_height=2.5):
     """Add adsorbate to surface.
@@ -25,7 +25,7 @@ def add_adsorbate_centered(active_element, slab, adsorbate, ads_height=2.5):
         adsorbate: ASE atoms object
         ads_height: Float
     """
-    #| - add_adsorbate_centered
+    # | - add_adsorbate_centered
     center = (sum(slab.cell)) / 2
     act_metals = []
     for atom in slab:
@@ -40,7 +40,7 @@ def add_adsorbate_centered(active_element, slab, adsorbate, ads_height=2.5):
     add_adsorbate(slab, adsorbate, ads_height, position=ads_pos)
 
     return slab
-    #__|
+    # __|
 
 
 def add_graphene_layer(
@@ -58,7 +58,7 @@ def add_graphene_layer(
         graph_surf_d:
         graph_bond_d_real:
     """
-    #| - add_graphene_layer
+    # | - add_graphene_layer
     slab = copy.deepcopy(slab)
 
     # num_graph_units = graphene_units + 1
@@ -91,11 +91,11 @@ def add_graphene_layer(
     y_unit_v = y_unit_v / np.linalg.norm(y_unit_v)
 
 
-    #| - STRAIN
+    # | - STRAIN
     tmp = mag1 / num_graph_bond_lengths
     strain = 100. * (graph_bond_d_real - tmp) / graph_bond_d_real
     print("Strain: " + str(strain))
-    #__|
+    # __|
 
     patt_cnt_x = 0
     patt_cnt_y = 0
@@ -144,4 +144,4 @@ def add_graphene_layer(
     C_pos_lst = np.array(C_pos_lst)
 
     return(slab)
-    #__|
+    # __|

@@ -10,7 +10,7 @@ def entry_data(mtnme_1, mtnme_2, direct_0, mprester_key):
         mtnme_2: Material 2
         direct_0: Directory of entry database for binary systems
     """
-    #| -  entry_data
+    # | -  entry_data
     from pymatgen.matproj.rest import MPRester # Access species in MP
     import warnings; import json; from monty.json import MontyDecoder
     warnings.filterwarnings('ignore')    # Ignore errors related to HTTP request
@@ -62,12 +62,12 @@ def entry_data(mtnme_1, mtnme_2, direct_0, mprester_key):
             ion_dict_2 = mpr._make_request('/pourbaix_diagram/reference_data/'+mtnme_2)
         out_dict = {"entries" : entries, "ion_dict_1" : ion_dict_1, "ion_dict_2" : ion_dict_2}
         return out_dict
-        #__|
+        # __|
 
 def remove_duplicate_entries(entry_list):
     """
     """
-    #| -  remove_duplicate_entries
+    # | -  remove_duplicate_entries
     def contains_entry(entry_list, ent):
         """
         Helpful to filter duplicate entries, if entry
@@ -91,7 +91,7 @@ def remove_duplicate_entries(entry_list):
             entry_list_new.append(entry)
 
     return entry_list_new
-    #__|
+    # __|
 
 def aq_correction(entries):
     """
@@ -102,7 +102,7 @@ def aq_correction(entries):
     Args:
         entries: List of entries on which the correction will be applied
     """
-    #| -  aq_correction
+    # | -  aq_correction
     from pymatgen.entries.compatibility import MaterialsProjectAqueousCompatibility
 
     def contains_entry(entry_list, ent):
@@ -132,7 +132,7 @@ def aq_correction(entries):
             entries_aqcorr.append(aq_corrected_entry)
 
     return entries_aqcorr
-#__|
+# __|
 
 def stable_entr(entries_aqcorr):
     """
@@ -144,7 +144,7 @@ def stable_entr(entries_aqcorr):
         entries_aqcorr: List of entries, usually they have been run through the
         aqueous compatibility module
     """
-    #| -  stable_entr
+    # | -  stable_entr
     from pymatgen.analysis.pourbaix.entry import PourbaixEntry
     from pymatgen.phasediagram.maker import PhaseDiagram
 
@@ -155,7 +155,7 @@ def stable_entr(entries_aqcorr):
         entry.composition.reduced_formula not in ["H2", "O2", "H2O", "H2O2"]]
 
     return stable_solids_minus_h2o
-    #__|
+    # __|
 
 def form_e(stable_solids_minus_h2o, entries_aqcorr, gas_gibbs=True):
     """
@@ -167,14 +167,14 @@ def form_e(stable_solids_minus_h2o, entries_aqcorr, gas_gibbs=True):
     H2O2 (from stable_entr)
         entries_aqcorr: entries list before being modified by stable_entr
     """
-    #| -  form_e
+    # | -  form_e
 
-    #| -  Imported Modules
+    # | -  Imported Modules
     from pymatgen.analysis.pourbaix.entry import PourbaixEntry
     from pymatgen.phasediagram.maker import PhaseDiagram
     from entry_methods import base_atom
     from energy_scheme import ref_atoms_dict
-    #__|
+    # __|
 
     ref_atom_energies = ref_atoms_dict()
     e_o = ref_atom_energies['e_o']
@@ -230,7 +230,7 @@ def form_e(stable_solids_minus_h2o, entries_aqcorr, gas_gibbs=True):
         pbx_solid_entries.append(pbx_entry)
 
     return pbx_solid_entries
-    #__|
+    # __|
 
 ###############################################################################
 #                    ██  ██████  ███    ██ ███████
@@ -246,7 +246,7 @@ def ref_entry_find(stable_solids_minus_h2o, ref_state):
         stable_solids_minus_h2o:
         ref_state:
     """
-    #| -  ref_entry_find
+    # | -  ref_entry_find
 
     # print ref_state+'_______________'    # TEMP
     #Chk# Ion solid material reference state (defined by the dict 'Reference Solid' entry in ion_dict)
@@ -261,20 +261,20 @@ def ref_entry_find(stable_solids_minus_h2o, ref_state):
         return '05 - Error with '+ref_state+' solid reference data'
 
     return ref_entry
-    #__|
+    # __|
 
 def ref_entry_stoich(ref_entry):
     """
     """
-    #| -  ref_entry_stoich
+    # | -  ref_entry_stoich
     ref_stoich_fact=ref_entry.composition.get_reduced_composition_and_factor()[1]
     return ref_stoich_fact
-    #__|
+    # __|
 
 def mke_pour_ion_entr(mtnme, ion_dict, stable_solids_minus_h2o, ref_state, entries_aqcorr, ref_dict):
     """
     """
-    #| -  mke_pour_ion_entr
+    # | -  mke_pour_ion_entr
     from pymatgen import Element # Accesses properties of element
     from pymatgen.core.ion import Ion
     from pymatgen.phasediagram.maker import PhaseDiagram
@@ -310,4 +310,4 @@ def mke_pour_ion_entr(mtnme, ion_dict, stable_solids_minus_h2o, ref_state, entri
         pbx_ion_entries_1.append(pbx_entry_ion)
 
     return pbx_ion_entries_1
-    #__|
+    # __|

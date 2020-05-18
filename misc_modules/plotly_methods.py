@@ -5,13 +5,13 @@
 Author: Raul A. Flores
 """
 
-#| - Import Modules
+# | - Import Modules
 import json
 # import numpy as np
 
 from plotly.utils import PlotlyJSONEncoder
 import plotly.graph_objs as go
-#__|
+# __|
 
 def plotlyfig2json(fig, fpath=None):
     """Serialize a plotly figure object to JSON so it can be persisted to disk.
@@ -27,7 +27,7 @@ def plotlyfig2json(fig, fpath=None):
 
     Modified from https://github.com/nteract/nteract/issues/1229
     """
-    #| - plotlyfig2json
+    # | - plotlyfig2json
     redata = json.loads(json.dumps(fig.data, cls=PlotlyJSONEncoder))
     relayout = json.loads(json.dumps(fig.layout, cls=PlotlyJSONEncoder))
 
@@ -38,7 +38,7 @@ def plotlyfig2json(fig, fpath=None):
             f.write(fig_json)
     else:
         return fig_json
-    #__|
+    # __|
 
 def plotlyfromjson(fpath):
     """Render a plotly figure from a json file.
@@ -49,7 +49,7 @@ def plotlyfromjson(fpath):
     Args:
         fpath:
     """
-    #| - plotlyfromjson
+    # | - plotlyfromjson
     with open(fpath, 'r') as f:
         v = json.loads(f.read())
 
@@ -57,4 +57,4 @@ def plotlyfromjson(fpath):
 
     return(fig)
     # iplot(fig, show_link=False)
-    #__|
+    # __|

@@ -5,7 +5,7 @@
 
 """
 
-#| - Import Modules
+# | - Import Modules
 import os
 import sys
 import subprocess
@@ -20,7 +20,7 @@ from misc_modules.misc_methods import merge_two_dicts
 
 from dft_job_automat.compute_env import ComputerCluster
 from dft_job_automat.compute_env import slurm_squeue_parse
-#__|
+# __|
 
 
 
@@ -30,7 +30,7 @@ class NERSC_Cluster(ComputerCluster):
     Two main architectures, knl and haswell
     """
 
-    #| - NERSC_Cluster ********************************************************
+    # | - NERSC_Cluster ********************************************************
     def __init__(self,
         root_dir=".",
         ):
@@ -39,7 +39,7 @@ class NERSC_Cluster(ComputerCluster):
         Args:
             root_dir:
         """
-        #| - __init__
+        # | - __init__
         # print(80 * "#")
         # print(4 * "jfsd78yf7823w78yhs81")
         # print(80 * "#")
@@ -58,7 +58,7 @@ class NERSC_Cluster(ComputerCluster):
         self.job_queue_state_key = "STAT"  # COMBAK
         self.error_file = "job.err"
         self.out_file = "job.out"
-        #__|
+        # __|
 
     def submit_job_clust(self, **kwargs):
         """Submit job to sherlck.
@@ -66,10 +66,10 @@ class NERSC_Cluster(ComputerCluster):
         Args:
             **kwargs:
         """
-        #| - submit_job
+        # | - submit_job
         time.sleep(1.5)
 
-        #| - Merging Submission Parameters
+        # | - Merging Submission Parameters
         params = merge_two_dicts(self.default_sub_params, kwargs)
 
         path = params["path_i"]
@@ -94,15 +94,19 @@ class NERSC_Cluster(ComputerCluster):
                 params["min_time"] = 180
             # --time-min=01:30:00
 
-        #__|
+        # __|
 
         self.__import_arch_class__(params)
 
         self.arch_inst.__make_run_vasp_script__(params)
 
+        print("params:", params)
+        if "tasks-per-node" in list(params.keys()):
+            print("tasks-per-node is in params varialbe before merging with arch_inst")
+
         params = merge_two_dicts(params, self.arch_inst.sbatch_params)
 
-        #| - Write submission script
+        # | - Write submission script
 
         knl_sub_script = """#!/bin/bash
 # KNL submission bash script
@@ -148,10 +152,10 @@ python ./model.py"""
 
         with open(os.path.join(path, 'submit_job.pbs'), 'w') as the_file:
             the_file.write(sub_script)
-        #__|
+        # __|
 
 
-        #| - Submit Job
+        # | - Submit Job
         os.chdir(path)
         if params["job_name"] == "Default":
             params["job_name"] = os.getcwd()
@@ -159,9 +163,9 @@ python ./model.py"""
         print("submitting job")
         os.system("chmod 777 *")
         # bash_command = "/u/if/flores12/bin/qv model.py"
-        #__| **** TEMP
+        # __| **** TEMP
 
-        #| - Bash Submisssion Command
+        # | - Bash Submisssion Command
         # The -q flag is being used in place of the -p flag
         # Only the -q needs to be defined
 
@@ -196,7 +200,7 @@ python ./model.py"""
 
         print("Bash Submission Command:")
         print(bash_command)
-        #__|
+        # __|
 
         try:
             output = subprocess.Popen(
@@ -213,7 +217,7 @@ python ./model.py"""
             print("JOB SKIPPED: ")
             return(None)
 
-        #| - Parsing Output
+        # | - Parsing Output
         out, err = output.communicate()
         out_copy = copy.deepcopy(out)
 
@@ -225,9 +229,9 @@ python ./model.py"""
         except:
             print("Couldn't parse for jobid")
             job_id = None
-        #__|
+        # __|
 
-        #| - Writing Files
+        # | - Writing Files
         with open(".SUBMITTED", "w") as fle:
             fle.write("\n")
 
@@ -244,16 +248,16 @@ python ./model.py"""
         else:
             with open(".sub_out", "w") as fle:
                 fle.write(out_copy)
-        #__|
+        # __|
 
         os.chdir(self.root_dir)
-        #__|
+        # __|
 
 
 
     def default_submission_parameters(self):
         """Defaul SLURM parameters for Sherlock cluster."""
-        #| - default_submission_parameters
+        # | - default_submission_parameters
 
         def_params = {
             "queue": "regular",  # -p flag | regular, debug
@@ -288,13 +292,13 @@ python ./model.py"""
             }
 
         return(def_params)
-        #__|
+        # __|
 
 
     def __import_arch_class__(self, params):
         """
         """
-        #| - __import_arch_class__
+        # | - __import_arch_class__
         arch = params["architecture"]
 
         if arch == "knl":
@@ -304,15 +308,15 @@ python ./model.py"""
 
 
         self.arch_inst = arch_inst
-        #__|
+        # __|
 
 
-    #| - out of sight
+    # | - out of sight
 
     def job_state_dict(self):
         """
         """
-        #| - job_state_dict
+        # | - job_state_dict
         job_state_dict = {
             "PD": "PENDING",
             "R": "RUNNING",
@@ -326,13 +330,13 @@ python ./model.py"""
             }
 
         return(job_state_dict)
-        #__|
+        # __|
 
 
     def __queue_types__(self):
         """Queue types for Edison cluster
         """
-        #| - __queue_types__
+        # | - __queue_types__
         queue_list = [
             "regular",
             "debug",
@@ -340,12 +344,12 @@ python ./model.py"""
             ]
 
         return(queue_list)
-        #__|
+        # __|
 
     def job_info_batch(self, job_id, path_i=None):
         """
         """
-        #| - job_info_batch
+        # | - job_info_batch
         data_dict = slurm_squeue_parse(
             job_id,
             path_i=path_i,
@@ -355,7 +359,7 @@ python ./model.py"""
 
         return(data_dict)
 
-        #| - __old__
+        # | - __old__
         # bash_comm = "squeue -j " + str(job_id)
         #
         # try:
@@ -432,9 +436,9 @@ python ./model.py"""
         # print(data_dict)
         #
         # return(data_dict)
-        #__|
+        # __|
 
-        #__|
+        # __|
 
     def completed_file(self, path_i="."):
         """Check whether ".FINISHED" file exists.
@@ -444,13 +448,13 @@ python ./model.py"""
         Args:
             path_i:
         """
-        #| - completed_file
+        # | - completed_file
         completed_fle = False
         if os.path.exists(path_i + "/.FINISHED"):
             completed_fle = True
 
         return(completed_fle)
-        #__|
+        # __|
 
     def job_state(self, path_i="."):
         """Return job state of path_i --> job_i.
@@ -458,7 +462,7 @@ python ./model.py"""
         Args:
             path_i
         """
-        #| - job_state
+        # | - job_state
         job_id = self.get_jobid(path_i=path_i)
 
         job_state_out = None
@@ -471,14 +475,14 @@ python ./model.py"""
                     job_state_out = job_info[key]
                     job_state_out = self.job_state_keys[job_state_out]
 
-        #| - Checking for "completed" file indicating success
+        # | - Checking for "completed" file indicating success
         completed_fle = self.completed_file(path_i=path_i)
         if completed_fle:
             job_state_out = self.job_state_keys["SUCCEEDED"]
-        #__|
+        # __|
 
         return(job_state_out)
-        #__|
+        # __|
 
     def get_jobid(self, path_i="."):
         """Return job ID of job_i.
@@ -486,7 +490,7 @@ python ./model.py"""
         Args:
             path_i:
         """
-        #| - get_jobid
+        # | - get_jobid
         fileid_path = path_i + "/.jobid"
         if os.path.isfile(fileid_path):
             with open(path_i + "/.jobid") as fle:
@@ -495,11 +499,11 @@ python ./model.py"""
             jobid = None
 
         return(jobid)
-        #__|
+        # __|
 
-    #__|
+    # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************
 
 
 
@@ -509,14 +513,14 @@ class KNL_Arch():
     """
     """
 
-    #| - KNL_Arch *************************************************************
+    # | - KNL_Arch *************************************************************
     def __init__(self):
         """Initialize Sherlock cluster instance.
 
         Args:
             root_dir:
         """
-        #| - __init__
+        # | - __init__
         self.vasp_module = "vasp-tpc/5.4.4-knl"
 
         # Actually 68
@@ -532,12 +536,12 @@ class KNL_Arch():
 
         os.putenv("TMPDIR", "$SLURM_SUBMIT_DIR")
         os.putenv("VASP_SCRIPT", "./run_vasp.py")
-        #__|
+        # __|
 
     def __make_run_vasp_script__(self, params):
         """
         """
-        #| - __make_run_vasp_script__
+        # | - __make_run_vasp_script__
         os.system("echo import os > run_vasp.py")
         exitcode_line = "exitcode = os.system('srun -n" + " " + \
             str(int(self.cores_per_node * int(params["nodes"]))) + " " + \
@@ -556,34 +560,34 @@ class KNL_Arch():
                 os.path.join(params["path_i"], "run_vasp.py"),
                 )
 
-        #__|
+        # __|
 
     def __self_sbatch_settings__(self):
         """
         """
-        #| - __self_sbatch_settings__
+        # | - __self_sbatch_settings__
         def_params = {
             "constraints": "knl",
             "tasks-per-node": 66,
             }
 
         return(def_params)
-        #__|
+        # __|
 
     def __module_load_vasp__(self):
         """
         THIS DOESN'T WORK
         """
-        #| - __module_load_vasp__
+        # | - __module_load_vasp__
         bash_comm = "module load " + self.vasp_module
 
         # TEMP
         print("fjjisdjfjisdfu8h3w8whgiafd6gwgundssoijgg")
         print(bash_comm)
         os.system(bash_comm)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************
 
 
 
@@ -592,38 +596,38 @@ class Haswell_Arch():
     """
     """
 
-    #| - Haswell_Arch *********************************************************
+    # | - Haswell_Arch *********************************************************
     def __init__(self):
         """Initialize Sherlock cluster instance.
 
         Args:
             root_dir:
         """
-        #| - __init__
+        # | - __init__
         self.vasp_module = "vasp-tpc/5.4.4-hsw"
 
         # Actually 68
         self.cores_per_node = 32
 
         self.sbatch_params = self.__self_sbatch_settings__()
-        #__|
+        # __|
 
     def __self_sbatch_settings__(self):
         """
         """
-        #| - __self_sbatch_settings__
+        # | - __self_sbatch_settings__
         def_params = {
             "constraints": "haswell",
             # "tasks-per-node": 66,
             }
 
         return(def_params)
-        #__|
+        # __|
 
     def __make_run_vasp_script__(self, params):
         """
         """
-        #| - __make_run_vasp_script__
+        # | - __make_run_vasp_script__
         os.system("echo import os > run_vasp.py")
         exitcode_line = "exitcode = os.system('srun -n" + " " + \
             str(int(self.cores_per_node * int(params["nodes"]))) + " " + \
@@ -632,6 +636,6 @@ class Haswell_Arch():
         os.system(line_2)  # on edison
 
 
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************

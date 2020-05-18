@@ -5,7 +5,7 @@
 Author: Raul A. Flores
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import numpy as np
 import pandas as pd
 import copy
@@ -18,7 +18,7 @@ pd.options.mode.chained_assignment = None
 
 from oxr_reaction.oxr_series import ORR_Free_E_Series
 from oxr_reaction.adsorbate_scaling import lim_U_i
-#__|
+# __|
 
 
 # ██    ██  ██████  ██       ██████         ██████  ██       ██████  ████████
@@ -34,16 +34,25 @@ class Volcano_Plot_2D():
         TEMP
     """
 
-    #| - Volcano_Plot *********************************************************
+    # | - Volcano_Plot *********************************************************
 
     def __init__(self,
         ORR_Free_E_Plot,
         plot_range=None,
+        smart_format_dict=None,
+        marker_color_key="color2",
+        marker_border_color_key="color1",
+        marker_shape_key="symbol",
+
         ):
         """
         """
-        #| - __init__
+        # | - __init__
         self.ORR_Free_E_Plot = ORR_Free_E_Plot
+        self.smart_format_dict = smart_format_dict
+        self.marker_color_key = marker_color_key
+        self.marker_border_color_key = marker_border_color_key
+        self.marker_shape_key = marker_shape_key
 
         if plot_range is None:
             self.plot_range = {
@@ -64,12 +73,12 @@ class Volcano_Plot_2D():
         data += self.data_point_traces
         data.insert(0, self.contour_trace)
         self.traces = data
-        #__|
+        # __|
 
     def __create_contour_trace__(self):
         """
         """
-        #| - __create_contour_trace__
+        # | - __create_contour_trace__
         x_range_bounds = self.plot_range["x"]
         y_range_bounds = self.plot_range["y"]
 
@@ -114,15 +123,15 @@ class Volcano_Plot_2D():
         #     ncontours=180,
             ncontours=20,
 
-            #| - Color Scale
+            # | - Color Scale
             colorscale='Jet',
             reversescale=True,
             autocontour=True,
 
             # showscale=False,
-            #__|
+            # __|
 
-            #| - Colorbar
+            # | - Colorbar
             colorbar=go.contour.ColorBar(
                 # x=None,
                 # xanchor=None,
@@ -145,9 +154,9 @@ class Volcano_Plot_2D():
                 outlinecolor="black",
                 outlinewidth=1.,
                 ),
-            #__|
+            # __|
 
-            #| - Line
+            # | - Line
             line=go.contour.Line(
                 color="white",
                 # dash="dot",
@@ -156,24 +165,69 @@ class Volcano_Plot_2D():
                 width=0.,
                 )
             )
-            #__|
+            # __|
 
         return(series_i)
-        #__|
+        # __|
 
 
 
     def __create_data_point_traces__(self):
         """
         """
-        #| - __create_data_point_traces__
+        # | - __create_data_point_traces__
+
+
+        # | - Default Smart Format Dict
+        smart_format_dict = self.smart_format_dict
+
+        if smart_format_dict is None:
+            print("No smart format given!")
+            smart_format_dict = [
+                [{"bulk_system": "IrO3"}, {self.marker_color_key: "green"}],
+                [{"bulk_system": "IrO2"}, {self.marker_color_key: "yellow"}],
+
+                [{"coverage_type": "o_covered"}, {"symbol": "s"}],
+                [{"coverage_type": "h_covered"}, {"symbol": "^"}],
+
+                [{"facet": "110"}, {"color1": "red"}],
+                [{"facet": "211"}, {"color1": "green"}],
+                [{"facet": "100"}, {"color1": "black"}],
+                ]
+        # __|
+
+
         data_list = []
-        for sys_i in self.ORR_Free_E_Plot.series_list:
-            trace_i = self.__create_scatter_trace_i__(sys_i)
+        for series_i in self.ORR_Free_E_Plot.series_list:
+
+
+            smart_format_i = self.ORR_Free_E_Plot.__create_smart_format_dict__(
+                series_i.properties,
+                smart_format_dict,
+                )
+
+            name_i = series_i.series_name
+
+            if series_i.color is not None:
+                smart_format_i[self.marker_color_key] = series_i.color
+
+
+            format_i = smart_format_i
+
+            if series_i.format_dict:
+                format_i = series_i.format_dict
+
+
+            print("format_i:", format_i)
+
+            trace_i = self.__create_scatter_trace_i__(
+                series_i,
+                smart_format_i=format_i,
+                )
             data_list.append(trace_i)
 
         return(data_list)
-        #__|
+        # __|
 
     def __create_scatter_trace_i__(self,
         sys_i,
@@ -181,7 +235,8 @@ class Volcano_Plot_2D():
         ):
         """
         """
-        #| - __create_trace_i__
+        # | - __create_trace_i__
+        print("sys_i:", sys_i)
         trace_i = go.Scatter(
             x=[sys_i.energy_states_dict["o"] - sys_i.energy_states_dict["oh"]],
             y=[sys_i.energy_states_dict["oh"]],
@@ -193,19 +248,45 @@ class Volcano_Plot_2D():
             # <br>
             hoverinfo="name",
 
+            # marker=dict(
+            #     size=20,
+            #     #  symbol=sys_i.format_dict["symbol_i"],
+            #     symbol=sys_i.format_dict.get("symbol_i", "circle"),
+            #     color=sys_i.format_dict.get("color_2", "blue"),
+            #     line=dict(
+            #         width=2,
+            #         smart_format_i
+            #         color=sys_i.format_dict.get("color_1", "black"),
+            #         ),
+            #     ),
+
             marker=dict(
-                size=20,
-                symbol=sys_i.format_dict["symbol_i"],
-                color=sys_i.format_dict["color_2"],
+                size=smart_format_i.get("marker_size", 9),
+                color=smart_format_i.get(self.marker_color_key, "red"),
+                symbol=smart_format_i.get(
+                    self.marker_shape_key, "circle"),
                 line=dict(
-                    width=2,
-                    color=sys_i.format_dict["color_1"],
+                    width=smart_format_i.get("marker_border_width", 1.),
+                    color=smart_format_i.get(
+                        self.marker_border_color_key, "black"),
                     ),
                 ),
+
+            # marker=dict(
+            #     size=20,
+            #     #  symbol=sys_i.format_dict["symbol_i"],
+            #     symbol=sys_i.format_dict.get("symbol_i", "circle"),
+            #     color=sys_i.format_dict.get("color_2", "blue"),
+            #     line=dict(
+            #         width=2,
+            #         color=sys_i.format_dict.get("color_1", "black"),
+            #         ),
+            #     ),
+
             )
 
         return(trace_i)
-        #__|
+        # __|
 
 
 
@@ -221,9 +302,9 @@ class Volcano_Plot_2D():
 
     def ooh_oh_scaling(self, doh):
         """ooh_oh_scaling equation."""
-        #| - ooh_oh_scaling
+        # | - ooh_oh_scaling
         #like ambars
-        #dooh=0.5*doh  + 3.0		 #O
+        #dooh=0.5*doh  + 3.0         #O
         #normal one
         # dooh = doh + 3.2
 
@@ -239,7 +320,7 @@ class Volcano_Plot_2D():
         dooh = m * doh + b  # TEMP
 
         return(dooh)
-        #__|
+        # __|
 
     def overpotential3(self, x, doh):
         """Calculate overpotential (version 3).
@@ -248,14 +329,14 @@ class Volcano_Plot_2D():
             x:
             doh:
         """
-        #| - overpotential3
+        # | - overpotential3
         dooh = self.ooh_oh_scaling(doh)
         dg14 = [doh, x, dooh - (x + doh), -dooh + 4.92]
         m = max(dg14)
         return(m - 1.23)
 
         #return doh*do
-        #__|
+        # __|
 
     # #########################################################################
     # #########################################################################
@@ -270,7 +351,7 @@ class Volcano_Plot_2D():
         ):
         """
         """
-        #| - get_plotly_layout
+        # | - get_plotly_layout
         y_range = self.plot_range["y"]
         x_range = self.plot_range["x"]
 
@@ -281,16 +362,16 @@ class Volcano_Plot_2D():
 
             "title": None,
 
-            #| - Font Settings
+            # | - Font Settings
             "font": {
                 "family": "Arial",  # "Courier New, monospace"
                 "color": "black",
                 },
-            #__|
+            # __|
 
-            #| - Axes ---------------------------------------------------------
+            # | - Axes ---------------------------------------------------------
 
-            #| - yaxis
+            # | - yaxis
             "yaxis": {
                 "title": "ΔG<sub>OH</sub> (eV)",
 
@@ -318,9 +399,9 @@ class Volcano_Plot_2D():
                 "ticklen": 2,
                 "tickwidth": 1,
                 },
-            #__|
+            # __|
 
-            #| - xaxis
+            # | - xaxis
             "xaxis": {
                 "title": "ΔG<sub>O</sub> - ΔG<sub>OH</sub> (eV)",
                 "range": x_range,
@@ -345,20 +426,20 @@ class Volcano_Plot_2D():
                     size=tick_lab_size,
                     ),
                 },
-            #__|
+            # __|
 
-            #__|
+            # __|
 
-            #| - Margins ------------------------------------------------------
+            # | - Margins ------------------------------------------------------
             "margin": go.layout.Margin(
                 b=50.,
                 l=50.,
                 r=30.,
                 t=30.,
                 ),
-            #__|
+            # __|
 
-            #| - Legend ---------------------------------------------------
+            # | - Legend ---------------------------------------------------
             "legend": go.layout.Legend(
                 x=1.2,
                 xanchor=None,
@@ -382,12 +463,12 @@ class Volcano_Plot_2D():
 
             "showlegend": True,
             # "showlegend": showlegend,
-            #__|
+            # __|
 
-            #| - Plot Size
+            # | - Plot Size
             "width": 37 * 37.795275591,
             "height": 23 * 37.795275591,
-            #__|
+            # __|
 
             "paper_bgcolor": 'rgba(255,255,255,1.)',
             # "plot_bgcolor": 'rgba(3,3,3,0.3)',
@@ -395,7 +476,7 @@ class Volcano_Plot_2D():
 
             }
 
-        #| - Plot Size Settings
+        # | - Plot Size Settings
         # # bottom_margin_size = 2.5 * 9. * 37.795275591
         # plot_size_settings = {
         #
@@ -406,7 +487,7 @@ class Volcano_Plot_2D():
         #     # "height": 17 * 37.795275591,
         #     }
         # layout = {**layout, **plot_size_settings}
-        #__|
+        # __|
 
         layout = go.Layout(**layout)
 
@@ -419,6 +500,6 @@ class Volcano_Plot_2D():
 
         return(layout)  # COMBAK
 
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************

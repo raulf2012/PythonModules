@@ -5,14 +5,14 @@
 Author: Raul A. Flores
 """
 
-#| - Import Modules
+# | - Import Modules
 import os
 import pandas as pd
 
 import numpy as np
-#__|
+# __|
 
-#| - Log File Methods
+# | - Log File Methods
 
 def number_of_atoms(path_i=".", log="log"):
     """Return number of atoms from QE log file.
@@ -21,7 +21,7 @@ def number_of_atoms(path_i=".", log="log"):
         path_i:
         log:
     """
-    #| - number_of_atoms
+    # | - number_of_atoms
     file_name = path_i + "/" + log
     with open(file_name, "r") as fle:
         fle.seek(0)  # just in case
@@ -57,7 +57,7 @@ def tot_abs_magnetization(path_i=".", log="log"):
         path_i
         log
     """
-    #| - tot_abs_magnetization
+    # | - tot_abs_magnetization
     fle = open(log, "r")
     fle.seek(0)  # just in case
 
@@ -70,7 +70,7 @@ def tot_abs_magnetization(path_i=".", log="log"):
         if not line:
             break
 
-        #| - Searching for Atomic Magmoms
+        # | - Searching for Atomic Magmoms
         if "total magnetization" in line:
             line_list = line.strip().split(" ")
             line = [i for i in line_list if i != ""]
@@ -83,7 +83,7 @@ def tot_abs_magnetization(path_i=".", log="log"):
             abs_mag = float(line[3])
             abs_mag_list.append(abs_mag)
 
-        #__|
+        # __|
 
     df_tot = pd.DataFrame(tot_mag_list, columns=["tot_mag"])
     df_abs = pd.DataFrame(abs_mag_list, columns=["abs_mag"])
@@ -91,7 +91,7 @@ def tot_abs_magnetization(path_i=".", log="log"):
     df = pd.concat([df_tot, df_abs], axis=1)
 
     return(df)
-    #__|
+    # __|
 
 def element_index_dict(path_i=".", log="log"):
     """Return index: element dictionary.
@@ -102,7 +102,7 @@ def element_index_dict(path_i=".", log="log"):
         path_i
         log
     """
-    #| - element_index_dict
+    # | - element_index_dict
     elem_ind_dict = {}
     file_name = path_i + "/" + log
     with open(file_name, "r") as fle:
@@ -115,7 +115,7 @@ def element_index_dict(path_i=".", log="log"):
             if not line:
                 break
 
-            #| - Atom Index <---> Atom Type
+            # | - Atom Index <---> Atom Type
             if "Cartesian axes" in line:
                 fle.readline()  # Blank line
                 fle.readline()  # Column header line
@@ -138,10 +138,10 @@ def element_index_dict(path_i=".", log="log"):
                     else:
                         break
 
-            #__|
+            # __|
 
     return(elem_ind_dict)
-    #__|
+    # __|
 
 def magmom_charge_data(path_i=".", log="log"):
     """Return charge and magmom data per atom for all SCF iterations.
@@ -150,9 +150,9 @@ def magmom_charge_data(path_i=".", log="log"):
         path_i
         log
     """
-    #| - magmom_charge_data
+    # | - magmom_charge_data
 
-    #| - Reading Log File
+    # | - Reading Log File
     file_name = path_i + "/" + log
 
     fle = open(file_name, "r")
@@ -166,7 +166,7 @@ def magmom_charge_data(path_i=".", log="log"):
         if not line:
             break
 
-        #| - Searching for Atomic Magmoms
+        # | - Searching for Atomic Magmoms
         if "Magnetic moment per site" in line:
 
             list_i = []
@@ -193,11 +193,11 @@ def magmom_charge_data(path_i=".", log="log"):
                     break
 
             master_list.append(list_i)
-        #__|
+        # __|
 
-    #__|
+    # __|
 
-    #| - Creating Pandas DataFrame
+    # | - Creating Pandas DataFrame
     if master_list == []:
         print("Magmom/charge data not found, ",
             "calculation probably not spin-polarized"
@@ -221,10 +221,10 @@ def magmom_charge_data(path_i=".", log="log"):
 
     # Resetting index
     df.reset_index()
-    #__|
+    # __|
 
     return(df)
-    #__|
+    # __|
 
 def estimate_magmom(
     path_i=".",
@@ -242,7 +242,7 @@ def estimate_magmom(
     and assign to atoms object to assist with calculation restart upon
     unexpected interruption.
     """
-    #| - estimate_magmom
+    # | - estimate_magmom
     num_atoms = number_of_atoms(path_i=path_i, log=log)
     # print(num_atoms)
 
@@ -254,7 +254,7 @@ def estimate_magmom(
     i = len(lines) - 1
     while True:
 
-        #| - If magmom/charge data is not found in log file
+        # | - If magmom/charge data is not found in log file
         # The calculation is probably not spin-polarized
         if i == 0:
             print("estimate_magmom - Could not find magmom/charge data \n",
@@ -264,7 +264,7 @@ def estimate_magmom(
             break
             # raise IOError("Could not identify espresso magmoms")
 
-        #__|
+        # __|
 
         line = lines[i].split()
         if len(line) > 3:
@@ -315,7 +315,7 @@ def estimate_magmom(
         atoms.info.update({"qe_log_charges": charge_list})
 
     return(magmom_list, charge_list)
-    #__|
+    # __|
 
 def scf_convergence(path_i=".", log="log"):
     """Return SCF convergence vs iteration.
@@ -328,7 +328,7 @@ def scf_convergence(path_i=".", log="log"):
     Args:
         log
     """
-    #| - scf_convergence
+    # | - scf_convergence
     rydberg = 13.6057  # rydberg to eV conversion
 
     filename = os.path.join(
@@ -374,6 +374,6 @@ def scf_convergence(path_i=".", log="log"):
     os.system("rm %s" % filename)
 
     return(scf, iter, pw)
-    #__|
+    # __|
 
-#__|
+# __|

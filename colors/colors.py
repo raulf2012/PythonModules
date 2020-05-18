@@ -5,11 +5,11 @@
 Author: Raul A. Flores
 """
 
-#| - Import Modules
+# | - Import Modules
 import seaborn as sns
 
 import colorlover as cl
-#__|
+# __|
 
 color_list = [
     "rgb(113,166,190)",
@@ -25,7 +25,7 @@ color_list = [
     ]
 
 
-#| - My Sets of Contrasting Color Schemes
+# | - My Sets of Contrasting Color Schemes
 color_palette_1 = [
     "rgb(198,158,61)",
     "rgb(238,88,121)",
@@ -42,7 +42,7 @@ color_palette_2 = [
     "rgb(93,80,139)",
     ]
 
-#__|
+# __|
 
 # palette = sns.color_palette(None, 3)
 # palette
@@ -63,12 +63,12 @@ def generate_color_palette(
         bins:
             Number of colors to produce
     """
-    #| - generate_color_palette
+    # | - generate_color_palette
     # tmp = sns.palplot(sns.color_palette(palette_name, bins))
     colors = sns.color_palette(palette_name, bins)
 
     return(colors)
-    #__|
+    # __|
 
 
 
@@ -76,7 +76,7 @@ def generate_color_palette(
 def rgb_to_hex(rgb_tuple):
     """
     """
-    #| - rgb_to_hex
+    # | - rgb_to_hex
     r = int(rgb_tuple[0])
     g = int(rgb_tuple[1])
     b = int(rgb_tuple[2])
@@ -91,7 +91,7 @@ def rgb_to_hex(rgb_tuple):
         )
 
     return(hex_rep)
-    #__|
+    # __|
 
 def color_scale_interp(
     input_num,
@@ -102,7 +102,7 @@ def color_scale_interp(
     ):
     """
     """
-    #| - color_scale_interp
+    # | - color_scale_interp
 #     cl.scales["8"]["seq"]["Purples"]
 
     black_white_cs = [
@@ -144,4 +144,4 @@ def color_scale_interp(
 
 
     return(color_out)
-    #__|
+    # __|

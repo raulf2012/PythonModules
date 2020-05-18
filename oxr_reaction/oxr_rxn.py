@@ -5,7 +5,7 @@
 Author: Raul A. Flores
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import numpy as np
 import pandas as pd
 
@@ -18,7 +18,7 @@ pd.options.mode.chained_assignment = None
 from oxr_reaction.oxr_series import ORR_Free_E_Series
 from oxr_reaction.adsorbate_scaling import lim_U_i
 # from oxr_reaction.oxr_rxn import ORR_Free_E_Plot
-#__|
+# __|
 
 
 class ORR_Free_E_Plot:
@@ -32,7 +32,7 @@ class ORR_Free_E_Plot:
         we have to normalize all of the species energies by it?
     """
 
-    #| - ORR_Free_E_Plot ******************************************************
+    # | - ORR_Free_E_Plot ******************************************************
 
     def __init__(self,
         free_energy_df=None,
@@ -70,9 +70,9 @@ class ORR_Free_E_Plot:
             rxn_type:
                 ORR or OER
         """
-        #| - __init__
+        # | - __init__
 
-        #| - Setting Instance Attributes
+        # | - Setting Instance Attributes
         self.fe_df = free_energy_df
         # self.sys_props = system_properties
         self.state_title = state_title
@@ -96,7 +96,7 @@ class ORR_Free_E_Plot:
         self.plot_states_width = 1.
 
         self.rxn_type = rxn_type
-        #__|
+        # __|
 
 
         if self.rxn_type == "ORR":
@@ -121,7 +121,7 @@ class ORR_Free_E_Plot:
         else:
             self.series_list = ORR_Free_E_series_list
 
-        #| - __old__
+        # | - __old__
         # if free_energy_df is not None:
         #     self.add_bulk_entry()
         #     self.fill_missing_data()
@@ -134,14 +134,14 @@ class ORR_Free_E_Plot:
         #     # self.ideal_energy = [4.92, 3.69, 2.46, 1.23, 0]
         #     self.energy_lst_h2o2 = self.rxn_energy_lst_h2o2()
         #     self.overpotential_h2o2 = self.calc_overpotential_h2o2()
-        #__|
+        # __|
 
-        #__|
+        # __|
 
     def __create_series_name__(self, series_i):
         """
         """
-        #| - __create_series_name__
+        # | - __create_series_name__
 
         if series_i.properties is not None:
             name_i = ""
@@ -157,7 +157,7 @@ class ORR_Free_E_Plot:
             name_i = ""
 
         return(name_i)
-        #__|
+        # __|
 
     def __create_smart_format_dict__(self, property_dict, smart_format_dict):
         """Create smart format dictionary.
@@ -166,7 +166,7 @@ class ORR_Free_E_Plot:
             property_dict:
             smart_format_dict:
         """
-        #| - __create_smart_format_dict__
+        # | - __create_smart_format_dict__
         if property_dict is None:
             return({})
 
@@ -178,9 +178,10 @@ class ORR_Free_E_Plot:
                         format_dict.update(format_i[1])
 
         return(format_dict)
-        #__|
+        # __|
 
-    def add_series(self,
+    def add_series(
+        self,
         fe_df,
         plot_mode="all",
         name_i=None,
@@ -203,7 +204,7 @@ class ORR_Free_E_Plot:
         Args:
             TEMP
         """
-        #| - add_series
+        # | - add_series
         if smart_format:
             smart_format_i = self.smart_format
         else:
@@ -237,6 +238,6 @@ class ORR_Free_E_Plot:
             )
 
         self.series_list.append(ORR_Series)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************

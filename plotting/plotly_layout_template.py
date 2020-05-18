@@ -1,14 +1,14 @@
 """
 """
 
-#| - Import Modules
+# | - Import Modules
 import plotly.graph_objs as go
-#__|
+# __|
 
 # #############################################################################
 
 
-#| - Main layout object
+# | - Main layout object
 layout = go.Layout(
     angularaxis=None,
     annotations=None,
@@ -101,12 +101,12 @@ layout = go.Layout(
     xaxis=None,
     yaxis=None,
     )
-#__|
+# __|
 
 
-#| - Axis Layout  options
+# | - Axis Layout  options
 
-#| - shared axis dict
+# | - shared axis dict
 shared_axis_dict = dict(
     anchor=None,
     automargin=None,
@@ -185,7 +185,7 @@ shared_axis_dict = dict(
     zerolinecolor=None,
     zerolinewidth=None,
     )
-#__|
+# __|
 
 xaxis_layout = go.layout.XAxis(shared_axis_dict)
 xaxis_layout.update(go.layout.XAxis(
@@ -201,13 +201,13 @@ yaxis_layout.update(go.layout.YAxis(
 
 layout.xaxis = xaxis_layout
 layout.yaxis = yaxis_layout
-#__|
+# __|
 
 
-#| - Plot Annotations
+# | - Plot Annotations
 annotations = [
 
-    #| - Axis Titles
+    # | - Axis Titles
     {
         # 'font': {'size': axis_label_font_size},
         'font': {'size': 12},
@@ -236,9 +236,9 @@ annotations = [
         'yanchor': 'middle',
         'yref': 'paper'
         },
-    #__|
+    # __|
 
     ]
 
 layout.annotations = annotations
-#__|
+# __|

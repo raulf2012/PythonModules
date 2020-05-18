@@ -1,4 +1,4 @@
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 from raman_dft.vasp_raman_job_methods import get_modes_from_OUTCAR
 # from raman_dft.vasp_raman_job_methods import parse_poscar
 
@@ -9,12 +9,12 @@ import copy
 import numpy as np
 import os
 import itertools
-#__|
+# __|
 
 def num_of_atoms_OUTCAR_tmp(outcar_fh):
     """Parses OUTCAR for number of atoms in atoms object
     """
-    #| - num_of_atoms_OUTCAR
+    # | - num_of_atoms_OUTCAR
     outcar_fh.seek(0)
     num_atoms = 0
     while True:
@@ -32,7 +32,7 @@ def num_of_atoms_OUTCAR_tmp(outcar_fh):
                 # ion_entry = next_line.split()[0].isdigit()
                 num_atoms += 1
     return(num_atoms)
-    #__|
+    # __|
 
 def create_vib_modes_atoms(
     path_i=".",
@@ -52,18 +52,18 @@ def create_vib_modes_atoms(
         step_size:
         number_images:
     """
-    #| - create_vib_modes_atoms
+    # | - create_vib_modes_atoms
 
-    #| - SCRIPT INPUTS
+    # | - SCRIPT INPUTS
     # step_size = 1.2
     # number_images = 31
     vis_dir = "/mode_movies"
     # path_i = "/mnt/c/Users/raul_desktop/Dropbox/01_acad_folder
     # /01_grad_school/01_norskov/04_comp_clusters/00_scripts/
     # 09_raman_dft/view_modes"
-    #__|
+    # __|
 
-    #| - Reading in OUTCAR
+    # | - Reading in OUTCAR
     file_name = "OUTCAR"
     with open(path_i + "/" + file_name, "r") as fle:
         atoms = io.read(path_i + "/" + file_name)
@@ -71,12 +71,12 @@ def create_vib_modes_atoms(
         pos = atoms.positions
 
         eigvals, eigvecs, norms = get_modes_from_OUTCAR(fle, path_i=path_i)
-    #__|
+    # __|
 
-    #| - Creating Visualization Directory
+    # | - Creating Visualization Directory
     if not os.path.isdir(path_i + vis_dir):
         os.makedirs(path_i + vis_dir)
-    #__|
+    # __|
 
     iterator = enumerate(itertools.izip(eigvals, eigvecs, norms))
     for index, (eigval_i, eigvec_i, norm_i) in iterator:
@@ -143,14 +143,14 @@ def create_vib_modes_atoms(
 
     with open(".FINISHED", "w") as fle:
         fle.write("")
-    #__|
+    # __|
 
 def create_vdw_kernel_symlink():
     """
     If on the SLAC cluster, symlinks the vdw vasp kernel into the job directory,
     otherwise does nothing
     """
-    #| - create_vdw_kernel_symlink
+    # | - create_vdw_kernel_symlink
     if os.getenv("COMPENV") == "slac":
         print("TEMP - 180313 !@#")
         if not (os.path.exists("vdw_kernel.bindat")):
@@ -172,7 +172,7 @@ def create_vdw_kernel_symlink():
     if os.getenv("AWS_BATCH_JOB_ID") is None:
         pass
 
-    #__|
+    # __|
 
 
 def parse_incar(incar_list):
@@ -183,7 +183,7 @@ def parse_incar(incar_list):
             INCAR file in python list where each line represents a line from
             the file.
     """
-    #| - parse_incar
+    # | - parse_incar
     incar_1 = [line for line in incar_list if " = " in line]
 
     incar_dict = {}
@@ -194,7 +194,7 @@ def parse_incar(incar_list):
         assert len(line_i) == 2, mess
         incar_dict.update({line_i[0].strip(): line_i[1].strip()})
 
-    #| - Incar keys list
+    # | - Incar keys list
     # incar_keys = [
     #     "ENCUT",
     #     "AMIX_MAG",
@@ -231,9 +231,9 @@ def parse_incar(incar_list):
     #     "LDAUU",
     #     "LDAUJ",
     #     ]
-    #__|
+    # __|
 
-    #| - Incar Types Dict
+    # | - Incar Types Dict
 
     incar_types_dict = {
         "ENCUT": "float",
@@ -283,9 +283,9 @@ def parse_incar(incar_list):
         "LDAUU": "list",
         "LDAUJ": "list",
         }
-    #__|
+    # __|
 
-    #| - Formatting Dict to Proper Data Types
+    # | - Formatting Dict to Proper Data Types
     formatted_incar_dict = {}
     for key, value in incar_dict.items():
 
@@ -322,9 +322,9 @@ def parse_incar(incar_list):
             value_new = value
 
         formatted_incar_dict.update({key: value_new})
-    #__|
+    # __|
 
     return(formatted_incar_dict)
 
     # return(incar_dict)
-    #__|
+    # __|

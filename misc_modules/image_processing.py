@@ -2,9 +2,9 @@
 
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import os
-#__|
+# __|
 
 
 def convert_pdf_to_svg(figure_path, out_dir, converter="inkscape"):
@@ -13,7 +13,7 @@ def convert_pdf_to_svg(figure_path, out_dir, converter="inkscape"):
     Args:
       converter: 'inkscape' or 'cairo'
     """
-    #| - convert_pdf_to_svg
+    # | - convert_pdf_to_svg
     extension = figure_path[-3:]
 
     # assert extension == "pdf", "Must give a pdf"
@@ -50,4 +50,4 @@ def convert_pdf_to_svg(figure_path, out_dir, converter="inkscape"):
         print("Can only handle svg or pdfs now")
 
     return(output_path)
-    #__|
+    # __|

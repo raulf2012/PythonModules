@@ -5,7 +5,7 @@
 Author: Raul A. Flores
 """
 
-#| - Import Modules
+# | - Import Modules
 from dft_job_automat.job_setup import DFT_Jobs_Setup
 import os
 import errno
@@ -17,50 +17,50 @@ import shutil
 import pandas as pd
 
 import boto3
-#__|
+# __|
 
 
 def force_symlink(file1, file2):
-    #| - force_symlink
+    # | - force_symlink
     try:
         os.symlink(file1, file2)
     except OSError, e:
         if e.errno == errno.EEXIST:
             os.unlink(file2)
             os.symlink(file1, file2)
-    #__|
+    # __|
 
 
 class AWS_Queues():
     """
     """
-    #| - AWS_Class *****************************************************************
+    # | - AWS_Class *****************************************************************
     def __init__(self):
         """
         """
-        #| - __init__
+        # | - __init__
         try:
             self.aws_dir = os.environ["TRI_PATH"]
             self.job_queue_dir = self.aws_dir + "/bin/job_queues"
         except:
             pass
 
-        #__|
+        # __|
 
 
     def job_info_batch(self, job_id):
         """
         """
-        #| - job_info_batch
+        # | - job_info_batch
         batch = boto3.client("batch")
         job_descriptions = batch.describe_jobs(jobs=[job_id])
 
-        #| - Checking if Job is in AWS Batch
+        # | - Checking if Job is in AWS Batch
         if len(job_descriptions["jobs"]) == 0:
             return("job not in batch system")
         else:
             job_info = job_descriptions["jobs"][0]
-        #__|
+        # __|
 
         job_status = job_info["status"]
         job_path = job_info["parameters"]["model"]
@@ -84,27 +84,27 @@ class AWS_Queues():
                           "job_name": job_name}
 
         return(job_queue_dict)
-        #__|
+        # __|
 
     def cancel_job(self, job_id, reason="N/A"):
         """
         """
-        #| - cancel_job
+        # | - cancel_job
         bash_command = "aws batch cancel-job --job-id "
         bash_command += job_id + " --reason " + reason
 
         print("Cancelling job | " + job_id)
         run_bash = subprocess.check_output(bash_command, shell=True)
 
-        #__|
+        # __|
 
     def cancel_jobs(self, job_id_list):
         """Cancels all jobs in a given job id list
         """
-        #| - cancel_jobs
+        # | - cancel_jobs
         for job in job_id_list:
             self.cancel_job(job)
-        #__|
+        # __|
 
     def list_jobs(self, queue="small"):
         """
@@ -112,7 +112,7 @@ class AWS_Queues():
         Included jobs in SUBMITTED, PENDING, RUNNABLE, STARTING, RUNNING, and
         FAILED states.
         """
-        #| - list_jobs
+        # | - list_jobs
         batch = boto3.client("batch")
         job_status_opt = ["SUBMITTED", "PENDING", "RUNNABLE",
                           "STARTING", "RUNNING", "SUCCEEDED", "FAILED"]
@@ -122,15 +122,15 @@ class AWS_Queues():
             all_jobs = batch.list_jobs(jobQueue=queue, jobStatus=status)  # TEMP
             job_ids = [i["jobId"] for i in all_jobs["jobSummaryList"]]
 
-            #| - Checking that queue is being used
+            # | - Checking that queue is being used
             print(str(len(job_ids)) + " jobs in the " + status + " queue")
             #
             # if len(job_ids) < 1:
             #     print("No jobs in the " + status + " queue")
-            #__|
+            # __|
 
 
-            #| - Retreiving Job ID's From AWS
+            # | - Retreiving Job ID's From AWS
             job_ids_split = [job_ids[x:x+100] for x in xrange(0, len(job_ids), 100)]
             for j in range(len(job_ids_split)):
                 job_descriptions = batch.describe_jobs(jobs=job_ids_split[j])
@@ -141,23 +141,23 @@ class AWS_Queues():
                     "model": i["parameters"]["model"],
                     "job_state": status,
                     })
-            #__|
+            # __|
 
         return(job_id_list)
 
-        #__|
+        # __|
 
     def submit_job(self, path=None, queue="test", cpus="default", copy_PythonModules=True):
         """
         Submits job to aws cluster. Copies PythonModules folder into
         job directory
         """
-        #| - submit_job
+        # | - submit_job
         root_dir = os.getcwd()
         if path == None:
             path = root_dir
 
-        #| - Checking if job has already been submitted
+        # | - Checking if job has already been submitted
         os.chdir(path)
         if os.path.isfile(".SUBMITTED"):
             print("Directory already submitted, will be skipped")
@@ -165,10 +165,10 @@ class AWS_Queues():
             return(None)  # <-------- SKIP JOB ---------------------------------
         else:
             os.chdir(root_dir)
-        #__|
+        # __|
 
 
-        #| - Copy PYTHONMODULES to Job Directory
+        # | - Copy PYTHONMODULES to Job Directory
         if os.path.isdir(path + "/PythonModules") == True:
             print("PythonModules already exists, erasing and recopying")
             shutil.rmtree(path + "/PythonModules")
@@ -177,10 +177,10 @@ class AWS_Queues():
         else:
             py_mod = os.environ["python_modules"]
             shutil.copytree(py_mod, path + "/PythonModules")
-        #__|
+        # __|
 
 
-        #| - Submit Job
+        # | - Submit Job
         os.chdir(path)
 
         if os.path.isfile(".sSUBMITTED"):
@@ -211,17 +211,17 @@ class AWS_Queues():
                 print("JOB SKIPPED: ")
                 return(None)
 
-        #__|
+        # __|
 
 
-        #| - Parsing Submission for Job ID
+        # | - Parsing Submission for Job ID
         output = output.splitlines()
         for line in output:
             if "jobId" in line:
                 lst = line.split('"')
                 job_id_ind = (lst.index("jobId") + 2)
                 jobId = lst[job_id_ind]
-        #__|
+        # __|
 
         file = open(".submitted", "w")
         file.close()
@@ -231,7 +231,7 @@ class AWS_Queues():
 
         os.chdir(root_dir)
 
-        #| - Querying AWS For Job Info
+        # | - Querying AWS For Job Info
         job_queue_dict = self.job_info_batch(jobId)
         job_queue_dict["submit_time"] = sub_time
 
@@ -245,12 +245,12 @@ class AWS_Queues():
             df = df_new
 
         df.to_csv(jobs_file_path, index=False)
-        #__|
+        # __|
 
         return job_queue_dict
-        #__|
+        # __|
 
-    #__| ***************************************************************************
+    # __| ***************************************************************************
 
 
 class AWS_Class_tmp():
@@ -258,27 +258,27 @@ class AWS_Class_tmp():
 
     TEMP
     """
-    #| - AWS_Class_tmp *************************************************************
+    # | - AWS_Class_tmp *************************************************************
     def __init__(self):
         """TMP_docstring.
 
         TEMP TEMP
         """
-        #| - __init__
+        # | - __init__
         self.tmp = "TMP AWS Class Atribute!!!!!"
 
         try:
             self.TRI_PATH = os.environ["TRI_PATH"]
         except:
             pass
-        #__|
+        # __|
 
 
     def create_symlinks(self):
         """
         Attempts to create symlinks in all subfolders whose names starts with _<num>
         """
-        #| - create_symlinks
+        # | - create_symlinks
         # root_dir = '.'
         root_dir = os.getcwd()
         for dir_name, subdirList, fileList in os.walk(root_dir):
@@ -299,23 +299,23 @@ class AWS_Class_tmp():
             # print("Found directory: %s" % dirName)
             # for fname in fileList:
                 # print('\t%s' % fname)
-        #__|
+        # __|
 
 
     def create_symlink(self, path=None):
         """
         """
-        #| - create_symlink
+        # | - create_symlink
 
         # def force_symlink(file1, file2):
-        #     #| - force_symlink
+        #     # | - force_symlink
         #     try:
         #         os.symlink(file1, file2)
         #     except OSError, e:
         #         if e.errno == errno.EEXIST:
         #             os.unlink(file2)
         #             os.symlink(file1, file2)
-        #     #__|
+        #     # __|
 
         if path == None:
             path = os.getcwd()
@@ -329,9 +329,9 @@ class AWS_Class_tmp():
         source = source.replace("/model/", "/simulation/", 1)
         force_symlink(source, dest)
 
-        #__|
+        # __|
 
-    #__| ***************************************************************************
+    # __| ***************************************************************************
 
 # NOT USEFUL FOR THIS TO BE CHILD CLASS -- FIX!!!!!!!!!!!!
 class AWS_Class(DFT_Jobs_Setup):
@@ -339,13 +339,13 @@ class AWS_Class(DFT_Jobs_Setup):
 
     TEMP
     """
-    #| - AWS_Class *****************************************************************
+    # | - AWS_Class *****************************************************************
     def __init__(self, system="sherlock"):
         """TMP_docstring.
 
         TEMP TEMP
         """
-        #| - __init__
+        # | - __init__
         DFT_Jobs_Setup.__init__(self, system=system)
         self.tmp = "TMP AWS Class Atribute!!!!!"
 
@@ -353,7 +353,7 @@ class AWS_Class(DFT_Jobs_Setup):
             self.TRI_PATH = os.environ["TRI_PATH"]
         except:
             pass
-        #__|
+        # __|
 
 
     def create_symlinks(self):
@@ -361,17 +361,17 @@ class AWS_Class(DFT_Jobs_Setup):
 
         TEMP TEMP
         """
-        #| - create_symlinks
+        # | - create_symlinks
 
         def force_symlink(file1, file2):
-            #| - force_symlink
+            # | - force_symlink
             try:
                 os.symlink(file1, file2)
             except OSError, e:
                 if e.errno == errno.EEXIST:
                     os.unlink(file2)
                     os.symlink(file1, file2)
-            #__|
+            # __|
 
         for job in self.job_var_lst:
             path = self.var_lst_to_path(job)
@@ -385,20 +385,20 @@ class AWS_Class(DFT_Jobs_Setup):
                 source = source.replace("/model/", "/simulation/", 1)
 
                 force_symlink(source, dest)
-        #__|
+        # __|
 
-    #__| ***************************************************************************
-
-
+    # __| ***************************************************************************
 
 
 
-#| - DEPRECATED METHODS
+
+
+# | - DEPRECATED METHODS
 
 # def list_jobs(self, status="RUNNING", queue="small"):
 #     """
 #     """
-#     #| - list_jobs
+#     # | - list_jobs
 #     bash_command = "aws batch list-jobs --job-status {} --job-queue {} > aws_list_jobs.json".format(status, queue)
 #     run_bash = subprocess.check_output(bash_command, shell=True)  #TEMP
 #     data = json.load(open("aws_list_jobs.json"))
@@ -409,7 +409,7 @@ class AWS_Class(DFT_Jobs_Setup):
 #
 #     return(job_id_list)
 #
-#     #__|
+#     # __|
 
 
-#__|
+# __|

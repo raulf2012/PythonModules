@@ -6,7 +6,7 @@ Author: Raul A. Flores
 """
 
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 # import numpy as np
 #
 # import pandas as pd
@@ -19,7 +19,7 @@ Author: Raul A. Flores
 #
 #
 # from orr_reaction.orr_series import ORR_Free_E_Series
-#__|
+# __|
 
 
 class Adsorbate_Scaling:
@@ -28,53 +28,53 @@ class Adsorbate_Scaling:
     Development Notes:
     """
 
-    #| - Adsorbate_Scaling ****************************************************
+    # | - Adsorbate_Scaling ****************************************************
 
     def __init__(self,
         tmp=42
         ):
         """
         """
-        #| - __init__
+        # | - __init__
         self.tmp = tmp
 
-        #__|
+        # __|
 
     def tmp_meth(self,
         ):
         """
         """
-        #| - tmp
+        # | - tmp
         tmp = 42
         return(tmp)
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************
 
 
 def get_g_ooh(m_ooh, b_ooh, g_oh):
     """
     """
-    #| - get_g_ooh
+    # | - get_g_ooh
     g_ooh = m_ooh * g_oh + b_ooh
     return(g_ooh)
-    #__|
+    # __|
 
 def get_g_o(m_o, b_o, g_oh):
     """
     """
-    #| - get_g_o
+    # | - get_g_o
     g_o = m_o * g_oh + b_o
     return(g_o)
-    #__|
+    # __|
 
 def get_g_oh(m_oh, b_oh, g_oh):
     """
     """
-    #| - get_g_oh
+    # | - get_g_oh
     g_oh = m_oh * g_oh + b_oh
     return(g_oh)
-    #__|
+    # __|
 
 def lim_U_i(
     g_oh=None,
@@ -95,9 +95,9 @@ def lim_U_i(
         scaling_dict:
         rxn_direction:
     """
-    #| - lim_U_i
+    # | - lim_U_i
 
-    #| - Checking Input Types
+    # | - Checking Input Types
     if g_oh is None and g_o_minus_g_oh is None:
         raise ValueError("Need to provide either g_oh or g_o_minus_g_oh")
 
@@ -107,9 +107,9 @@ def lim_U_i(
     assert gas_molec_dict is not None, "Please provide gas_molec_dict"
     assert scaling_dict is not None, "Please provide the scaling_dict"
     assert mech_step is not None, "Please provide the step to calculate"
-    #__|
+    # __|
 
-    #| - linear fit and gas molecule data
+    # | - linear fit and gas molecule data
     m_ooh = scaling_dict["ooh"]["m"]
     b_ooh = scaling_dict["ooh"]["b"]
 
@@ -123,7 +123,7 @@ def lim_U_i(
     g_o2 = gas_molec_dict["o2"]
     g_h2 = gas_molec_dict["h2"]
     g_h2o = gas_molec_dict["h2o"]
-    #__|
+    # __|
 
     if g_o_minus_g_oh is not None:
         """
@@ -136,7 +136,7 @@ def lim_U_i(
     elif g_oh is not None:
         g_oh = g_oh
 
-    #| - Calculating Limiting Potential for all legs
+    # | - Calculating Limiting Potential for all legs
     if mech_step == "o2_to_ooh":
         lim_U_out = get_g_ooh(m_ooh, b_ooh, g_oh) + \
             - g_o2
@@ -155,7 +155,7 @@ def lim_U_i(
             - get_g_oh(m_oh, b_oh, g_oh)
     else:
         raise ValueError("Woops, error here (9sdfijsd9)")
-    #__|
+    # __|
 
     if rxn_direction == "forward":
         lim_U_out = - lim_U_out
@@ -163,12 +163,12 @@ def lim_U_i(
         lim_U_out = + lim_U_out
 
     return(lim_U_out)
-    #__|
+    # __|
 
 
 
 
-#| - __old__
+# | - __old__
 
 # def lim_U_o2_to_ooh(g_oh,
 # gas_molec_dict, scaling_dict, rxn_direction="forward"):
@@ -182,9 +182,9 @@ def lim_U_i(
 #         scaling_dict:
 #         rxn_direction:
 #     """
-#     #| - lim_U_o2_to_ooh
+#     # | - lim_U_o2_to_ooh
 #
-#     #| - linear fit and gas molecule data
+#     # | - linear fit and gas molecule data
 #     m_ooh = scaling_dict["ooh"]["m"]
 #     b_ooh = scaling_dict["ooh"]["b"]
 #
@@ -198,7 +198,7 @@ def lim_U_i(
 #     g_o2 = gas_molec_dict["o2"]
 #     g_h2 = gas_molec_dict["h2"]
 #     g_h2o = gas_molec_dict["h2o"]
-#     #__|
+#     # __|
 #
 #
 #     if False:
@@ -213,7 +213,7 @@ def lim_U_i(
 #         lim_U_out = + lim_U_out
 #
 #     return(lim_U_out)
-#     #__|
+#     # __|
 #
 # def lim_U_ooh_to_o(g_oh,
 # gas_molec_dict, scaling_dict, rxn_direction="forward"):
@@ -227,9 +227,9 @@ def lim_U_i(
 #         scaling_dict:
 #         rxn_direction:
 #     """
-#     #| - lim_U_ooh_to_o
+#     # | - lim_U_ooh_to_o
 #
-#     #| - linear fit and gas molecule data
+#     # | - linear fit and gas molecule data
 #     m_ooh = scaling_dict["ooh"]["m"]
 #     b_ooh = scaling_dict["ooh"]["b"]
 #
@@ -243,7 +243,7 @@ def lim_U_i(
 #     g_o2 = gas_molec_dict["o2"]
 #     g_h2 = gas_molec_dict["h2"]
 #     g_h2o = gas_molec_dict["h2o"]
-#     #__|
+#     # __|
 #
 #     lim_U_out = get_g_o(m_o,
 # b_o, g_oh) + g_h2o - get_g_ooh(m_ooh, b_ooh, g_oh)
@@ -254,7 +254,7 @@ def lim_U_i(
 #         lim_U_out = + lim_U_out
 #
 #     return(lim_U_out)
-#     #__|
+#     # __|
 #
 # def lim_U_o_to_oh(g_oh,
 # gas_molec_dict, scaling_dict, rxn_direction="forward"):
@@ -268,9 +268,9 @@ def lim_U_i(
 #         scaling_dict:
 #         rxn_direction:
 #     """
-#     #| - lim_U_o_to_oh
+#     # | - lim_U_o_to_oh
 #
-#     #| - linear fit and gas molecule data
+#     # | - linear fit and gas molecule data
 #     m_ooh = scaling_dict["ooh"]["m"]
 #     b_ooh = scaling_dict["ooh"]["b"]
 #
@@ -284,7 +284,7 @@ def lim_U_i(
 #     g_o2 = gas_molec_dict["o2"]
 #     g_h2 = gas_molec_dict["h2"]
 #     g_h2o = gas_molec_dict["h2o"]
-#     #__|
+#     # __|
 #
 #     lim_U_out = get_g_oh(m_oh, b_oh, g_oh) - get_g_o(m_o, b_o, g_oh)
 #
@@ -294,7 +294,7 @@ def lim_U_i(
 #         lim_U_out = + lim_U_out
 #
 #     return(lim_U_out)
-#     #__|
+#     # __|
 #
 # def lim_U_oh_to_h2o(g_oh,
 # gas_molec_dict, scaling_dict, rxn_direction="forward"):
@@ -308,9 +308,9 @@ def lim_U_i(
 #         scaling_dict:
 #         rxn_direction:
 #     """
-#     #| - lim_U_oh_to_h2o
+#     # | - lim_U_oh_to_h2o
 #
-#     #| - linear fit and gas molecule data
+#     # | - linear fit and gas molecule data
 #     m_ooh = scaling_dict["ooh"]["m"]
 #     b_ooh = scaling_dict["ooh"]["b"]
 #
@@ -324,7 +324,7 @@ def lim_U_i(
 #     g_o2 = gas_molec_dict["o2"]
 #     g_h2 = gas_molec_dict["h2"]
 #     g_h2o = gas_molec_dict["h2o"]
-#     #__|
+#     # __|
 #
 #     lim_U_out = g_h2o - get_g_oh(m_oh, b_oh, g_oh)
 #
@@ -334,6 +334,6 @@ def lim_U_i(
 #         lim_U_out = + lim_U_out
 #
 #     return(lim_U_out)
-#     #__|
+#     # __|
 #
-#__|
+# __|

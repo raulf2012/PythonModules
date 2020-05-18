@@ -13,16 +13,16 @@ def most_stable_phase(phase_regions,pH=None, scale='RHE', pt_oxid_V=0.6470339):
 		Pt_ref = True, difference between the Pt V_crit and system's V_crit
 		RHE = V_crit on an RHE scale
 	"""
-	#| -  - most_stable_phase
+	# | -  - most_stable_phase
 
-	#| -  - Imported Modules
+	# | -  - Imported Modules
 	from pd_screen_tools import ORR_line	# ORR/OER V_equil, function of pH
-	#__|
+	# __|
 
 	# print phase_regions[0]
 
 	if pH==None:
-		#| -  - pH==None - Considers Entire pH range
+		# | -  - pH==None - Considers Entire pH range
 
 		point_dis_ORR_lst = []	# Smallest distance from ORR paired with
 								# Pourbaix entry object for each region
@@ -46,10 +46,10 @@ def most_stable_phase(phase_regions,pH=None, scale='RHE', pt_oxid_V=0.6470339):
 			cnt = cnt+1
 		most_stable_reg = min(point_dis_ORR_lst)	# Closest point to ORR for
 													# inputed regions
-		#__|
+		# __|
 
 	if pH!=None:
-		#| -  - pH is Specified
+		# | -  - pH is Specified
 
 		point_dis_ORR_lmost = []
 		cnt = 0
@@ -90,7 +90,7 @@ def most_stable_phase(phase_regions,pH=None, scale='RHE', pt_oxid_V=0.6470339):
 		V_dist_from_ORR = ORR_line(pH) - V_max_total[0]
 		V_max_total[0] = V_dist_from_ORR
 		most_stable_reg = V_max_total
-		#__|
+		# __|
 
 
 	# start_fold - Other Voltage References
@@ -111,7 +111,7 @@ def most_stable_phase(phase_regions,pH=None, scale='RHE', pt_oxid_V=0.6470339):
 	# end_fold
 
 	return most_stable_reg
-	#__|
+	# __|
 
 def oxidation_dissolution_product(phase_regions_all, most_stable_phase):
 
@@ -122,7 +122,7 @@ def oxidation_dissolution_product(phase_regions_all, most_stable_phase):
 	Graphically, this is the phase which is above the stable phase (In terms of
 	voltage), near the pH region at which stable phasae has the highest V_crit
 	"""
-	#| -  - oxidation_dissolution_product
+	# | -  - oxidation_dissolution_product
 	from pymatgen.analysis.pourbaix.maker import PREFAC
 	import numpy as np
 	slope = -0.0591
@@ -242,7 +242,7 @@ def oxidation_dissolution_product(phase_regions_all, most_stable_phase):
 
 	return name_lst
 
-	#__|
+	# __|
 
 
 def is_nonox_phase(phase_regions):
@@ -253,7 +253,7 @@ def is_nonox_phase(phase_regions):
 	Args:
 		phase_regions: PD regions which will be analyzed
 	"""
-	#| -  - is_nonox_phase
+	# | -  - is_nonox_phase
 	from pymatgen.analysis.pourbaix.entry import PourbaixEntry, IonEntry
 
 	## CHECKING FOR NON-OXIDE SOLID PHASES ##
@@ -279,4 +279,4 @@ def is_nonox_phase(phase_regions):
 				non_oxide = True
 				break
 	return non_oxide
-	#__|
+	# __|

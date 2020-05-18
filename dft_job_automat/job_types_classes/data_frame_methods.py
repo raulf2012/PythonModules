@@ -7,15 +7,15 @@ Author: Raul A. Flores
 Development Notes:
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import os
 import shutil
-#__|
+# __|
 
 class DataFrame_Methods():
     """Summary line."""
 
-    #| - DataFrame_Methods ****************************************************
+    # | - DataFrame_Methods ****************************************************
     def __init__(self, dataframe):
         """
         Initialize with dataframe.
@@ -25,9 +25,9 @@ class DataFrame_Methods():
                 Pandas dataframe object created by jobs_setup, jobs_analysis
                 classes
         """
-        #| - __init__
+        # | - __init__
         self.df = dataframe
-        #__|
+        # __|
 
     def create_atoms_objects(self,
         outdir="atoms_objects",
@@ -44,7 +44,7 @@ class DataFrame_Methods():
             atoms_row:
             image:
         """
-        #| - create_atoms_objects
+        # | - create_atoms_objects
         df = self.df
 
         if not os.path.exists(outdir):
@@ -75,6 +75,6 @@ class DataFrame_Methods():
 
             else:
                 pass
-        #__|
+        # __|
 
-    #__| **********************************************************************
+    # __| **********************************************************************

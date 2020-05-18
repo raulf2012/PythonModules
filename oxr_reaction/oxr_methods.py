@@ -5,7 +5,7 @@
 Author: Raul A. Flores
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import copy
 import numpy as np
 import pandas as pd
@@ -15,9 +15,9 @@ from plotly.graph_objs import Scatter
 pd.options.mode.chained_assignment = None
 
 from oxr_reaction.oxr_series import ORR_Free_E_Series
-#__|
+# __|
 
-#| - __old__
+# | - __old__
 def plotly_fed_layout(
     plot_title="FED",
     plot_title_size=18,
@@ -27,7 +27,7 @@ def plotly_fed_layout(
     ):
     """
     """
-    #| - plotly_fed_layout
+    # | - plotly_fed_layout
     xax_labels = ["O2", "OOH", "O", "OH", "H2O"]
     layout = {
 
@@ -39,7 +39,7 @@ def plotly_fed_layout(
             "color": "black",
             },
 
-        #| - Axes --------------------------------------------------------------
+        # | - Axes --------------------------------------------------------------
         "yaxis": {
             "title": "Free Energy [eV]",
             "zeroline": True,
@@ -65,27 +65,27 @@ def plotly_fed_layout(
                 size=tick_lab_size,
                 ),
             },
-        #__| -------------------------------------------------------------------
+        # __| -------------------------------------------------------------------
 
-        #| - Legend ------------------------------------------------------------
+        # | - Legend ------------------------------------------------------------
         "legend": {
             "traceorder": "normal",
             "font": dict(size=legend_size)
             },
-        #__| -------------------------------------------------------------------
+        # __| -------------------------------------------------------------------
 
-        #| - Plot Size
+        # | - Plot Size
         # "width": 200 * 4.,
         # "height": 200 * 3.,
-        #__|
+        # __|
 
         }
 
     return(layout)
 
-    #__|
+    # __|
 
-#__|
+# __|
 
 
 def calc_ads_e(
@@ -106,13 +106,13 @@ def calc_ads_e(
         oxy_ref_e:
         hyd_ref_e:
     """
-    #| - calc_ads_e
+    # | - calc_ads_e
     row = df_row
     bare_slab = bare_raw_e
     oxy_ref = oxy_ref_e
     hyd_ref = hyd_ref_e
 
-    #| - Oxygen & Hydrogen Atom Count
+    # | - Oxygen & Hydrogen Atom Count
     atoms_col = "atom_type_num_dict"
     if atoms_col in list(row.index):
         try:
@@ -139,7 +139,7 @@ def calc_ads_e(
         elif row["adsorbate"] == "bare":
             num_O = 0
             num_H = 0
-    #__|
+    # __|
 
     # print("oxy_ref: ", oxy_ref)
     # print("hyd_ref:", hyd_ref)
@@ -155,7 +155,7 @@ def calc_ads_e(
         ads_e_i = None
 
     return(ads_e_i)
-    #__|
+    # __|
 
 def df_calc_adsorption_e(
     df,
@@ -176,12 +176,12 @@ def df_calc_adsorption_e(
     Args:
         df:
     """
-    #| - df_calc_adsorption_e
+    # | - df_calc_adsorption_e
     ads_e_list = []
     for index, row in df.iterrows():
         bare_e = bare_slab_e
 
-        #| - Correction
+        # | - Correction
         corr = 0.
         # corr = fe_corr_dict[row["adsorbate"]]
 
@@ -198,7 +198,7 @@ def df_calc_adsorption_e(
         else:
             print("No correction being applied")
             corr = 0.
-        #__|
+        # __|
 
         if type(bare_slab_e) == dict:
             bare_e = bare_slab_e[row[bare_slab_var]]
@@ -214,10 +214,11 @@ def df_calc_adsorption_e(
             oxy_ref_e=oxy_ref,
             hyd_ref_e=hyd_ref,
             )
+        #  print("ads_e_i:", ads_e_i)
         ads_e_list.append(ads_e_i)
 
     df["ads_e"] = np.array(ads_e_list)
-    #__|
+    # __|
 
 def lowest_e_path(
     df,
@@ -245,9 +246,9 @@ def lowest_e_path(
         bias:
 
     """
-    #| - lowest_e_path
+    # | - lowest_e_path
 
-    #| - Grouping By Adsorbate Type
+    # | - Grouping By Adsorbate Type
     df = copy.deepcopy(df)
     groupby = copy.deepcopy(jobs_variables)
 
@@ -276,11 +277,11 @@ def lowest_e_path(
             df_i = pd.DataFrame.from_items([(s.name, s) for s in series_list]).T
             data_master[group_i[0]] = df_i
 
-    #__|
+    # __|
 
-    #| - Creating Data Sets
+    # | - Creating Data Sets
 
-    #| - Creating FED Datasets
+    # | - Creating FED Datasets
     data_list = []
     # for i_cnt, (key, fe_dict) in enumerate(data_master.iteritems()):
     for i_cnt, (key, fe_dict) in enumerate(data_master.items()):
@@ -300,9 +301,9 @@ def lowest_e_path(
             )
 
         data_list.extend(dat_lst)
-    #__|
+    # __|
 
-    #| - Creating Ideal FED Dataset
+    # | - Creating Ideal FED Dataset
     if create_ideal_series:
         e_list_ideal = ORR.apply_bias(bias, ORR.ideal_energy)
 
@@ -321,22 +322,22 @@ def lowest_e_path(
         dat_lst = data_list
 
 
-    #__|
+    # __|
 
     # dat_lst = data_list + dat_ideal
 
-    #__|
+    # __|
 
-    #| - Plotting
+    # | - Plotting
 
-    #| - Plot Settings
+    # | - Plot Settings
     plot_title_size = 18
     tick_lab_size = 16
     axes_lab_size = 18
     legend_size = 18
-    #__|
+    # __|
 
-    #| - Plot Layout
+    # | - Plot Layout
     # xax_labels = ["O2", "OOH", "O", "OH", "H2O"]
     # layout = {
     #
@@ -348,7 +349,7 @@ def lowest_e_path(
     #         "color": "black",
     #         },
     #
-    #     #| - Axes --------------------------------------------------------------
+    #     # | - Axes --------------------------------------------------------------
     #     "yaxis": {
     #         "title": "Free Energy [eV]",
     #         "zeroline": True,
@@ -374,30 +375,30 @@ def lowest_e_path(
     #             size=tick_lab_size,
     #             ),
     #         },
-    #     #__| -------------------------------------------------------------------
+    #     # __| -------------------------------------------------------------------
     #
-    #     #| - Legend ------------------------------------------------------------
+    #     # | - Legend ------------------------------------------------------------
     #     "legend": {
     #         "traceorder": "normal",
     #         "font": dict(size=legend_size)
     #         },
-    #     #__| -------------------------------------------------------------------
+    #     # __| -------------------------------------------------------------------
     #
-    #     #| - Plot Size
+    #     # | - Plot Size
     #     # "width": 200 * 4.,
     #     # "height": 200 * 3.,
-    #     #__|
+    #     # __|
     #
     #     }
-    #__|
+    # __|
 
     layout = plotly_fed_layout(plot_title=plot_title)
 
-    #__|
+    # __|
 
     return(dat_lst, layout)
 
-    #__|
+    # __|
 
 def plot_all_states(
     df,
@@ -418,9 +419,9 @@ def plot_all_states(
         bias:
         plot_title:
     """
-    #| - plot_all_states
+    # | - plot_all_states
 
-    #| - Grouping By Adsorbate Type
+    # | - Grouping By Adsorbate Type
 
     groupby = copy.deepcopy(jobs_variables)
     # groupby = copy.deepcopy(Jojobs_variablesbs.tree_level_labels)
@@ -430,11 +431,11 @@ def plot_all_states(
     for group_i in df.groupby(groupby):
 
         data_master[group_i[0]] = group_i[1]
-    #__|
+    # __|
 
-    #| - Creating Data Sets
+    # | - Creating Data Sets
 
-    #| - Creating FED Datasets
+    # | - Creating FED Datasets
     data_list = []
     # for i_cnt, (key, fe_dict) in enumerate(data_master.iteritems()):
     for i_cnt, (key, fe_dict) in enumerate(data_master.items()):
@@ -454,9 +455,9 @@ def plot_all_states(
             )
 
         data_list.extend(dat_lst)
-    #__|
+    # __|
 
-    #| - Creating Ideal FED Dataset
+    # | - Creating Ideal FED Dataset
     if create_ideal_series:
 
         e_list_ideal = ORR.apply_bias(bias, ORR.ideal_energy)
@@ -470,23 +471,23 @@ def plot_all_states(
             )
 
         dat_lst = data_list + dat_ideal
-    #__|
+    # __|
 
     else:
         dat_lst = data_list
 
-    #__|
+    # __|
 
-    #| - Plotting
+    # | - Plotting
 
-    #| - Plot Settings
+    # | - Plot Settings
     plot_title_size = 18
     tick_lab_size = 16
     axes_lab_size = 18
     legend_size = 12
-    #__|
+    # __|
 
-    #| - Plot Layout
+    # | - Plot Layout
     # xax_labels = ["O2", "OOH", "O", "OH", "H2O"]
     # layout = {
     #
@@ -498,7 +499,7 @@ def plot_all_states(
     #         "color": "black",
     #         },
     #
-    #     #| - Axes --------------------------------------------------------------
+    #     # | - Axes --------------------------------------------------------------
     #     "yaxis": {
     #         "title": "Free Energy [eV]",
     #         "zeroline": True,
@@ -524,27 +525,27 @@ def plot_all_states(
     #             size=tick_lab_size,
     #             ),
     #         },
-    #     #__| -------------------------------------------------------------------
+    #     # __| -------------------------------------------------------------------
     #
-    #     #| - Legend ------------------------------------------------------------
+    #     # | - Legend ------------------------------------------------------------
     #     "legend": {
     #         "traceorder": "normal",
     #         "font": dict(size=legend_size)
     #         },
-    #     #__| -------------------------------------------------------------------
+    #     # __| -------------------------------------------------------------------
     #
-    #     #| - Plot Size
+    #     # | - Plot Size
     #     "width": 200 * 4.,
     #     "height": 200 * 3.,
-    #     #__|
+    #     # __|
     #
     #     }
-    #__|
+    # __|
 
     layout = plotly_fed_layout(plot_title=plot_title)
 
     return(dat_lst, layout)
 
-    #__|
+    # __|
 
-    #__|
+    # __|

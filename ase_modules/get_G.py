@@ -11,7 +11,7 @@ TODO
     add Sr, Ru references
 """
 
-#| - Import Modules
+# | - Import Modules
 import os
 
 import glob
@@ -21,7 +21,7 @@ import numpy as np
 
 from ase.atoms import Atoms
 from ase.io import read
-#__|
+# __|
 
 class Get_G:
     """
@@ -29,7 +29,7 @@ class Get_G:
     missing between them to a number of gas-phase or aqueous references
     """
 
-    #| - Get_G
+    # | - Get_G
     def __init__(self,
         slab,
         ads,
@@ -42,7 +42,7 @@ class Get_G:
         Get_G(ads,slab) where ads/slab are either paths to traj files or paths to directory containing traj files that have energy and forces.
         The directories that contain these traj files must also contain a calculation directory with pw.inp.
         """
-        #| - __init__
+        # | - __init__
         self.default_vib_bool = default_vib_bool
         self.get_E = get_E
         self.quiet = quiet
@@ -89,13 +89,13 @@ class Get_G:
 
         # self.calc_G()
         # self.compare_wf()
-        #__|
+        # __|
 
     def read_atoms(self,path,**kwargs):
         """
         Loads traj file. Path must be direct path to traj files or paths to directory containing them named as either qn.traj or qnXX.traj.
         """
-        #| - read_atoms
+        # | - read_atoms
         if path.find('traj') != -1: #Checks if directory or filename has been specified
             atoms = read(path)
             if '/' in path:
@@ -120,14 +120,14 @@ class Get_G:
         if self.fmax(atoms) > 0.05:
             print("WARNING: fmax = %.2f for atoms in %s"%(self.fmax(atoms),atoms.PATH))
         return atoms
-        #__|
+        # __|
 
     def update_params(self,atoms):
         """
         Takes atoms object containing PATH attribute and adds PARAMS dict as attribute with keys pw, dw, xc, pp.
         Assumes PATH contains outdir or calcdir with pw.inp
         """
-        #| - update_params
+        # | - update_params
         if os.path.isdir(atoms.PATH + '/outdir'):
             calcdir = atoms.PATH + '/outdir'
         elif os.path.isdir(atoms.PATH + '/calcdir'):
@@ -160,14 +160,14 @@ class Get_G:
                self.params[key] = synonyms[key][self.params[key]]
 
         atoms.PARAMS = self.params
-        #__|
+        # __|
 
     def update_delta_atoms(self):
         """
         Update dictionary self.data_atoms with difference in chemical formulas between ads and slab.
         Positive numbers represent species that ads has and slab doesn't.
         """
-        #| - update_delta_atoms
+        # | - update_delta_atoms
         self.delta_atoms = {}
         ads_syms = self.ads_atoms.get_chemical_symbols()
         slab_syms = self.slab_atoms.get_chemical_symbols()
@@ -203,20 +203,20 @@ class Get_G:
         for key in list(self.delta_atoms):
             if self.delta_atoms[key] == 0:
                 del self.delta_atoms[key]
-        #__|
+        # __|
 
     def vib_correction(self):
         """
         Attempt to add explicitly calculated vibrational correction from vib directory within PATH of ads_atoms and slab_atoms.
         Otherwise, default vibrational corrections are used by calling default_vib()
         """
-        #| - vib_correction
+        # | - vib_correction
 
         def vib_indices(atoms):
             """
             Return a dict with symbol/count key/value pairs given an atoms object with PATH attribute
             """
-            #| - vib_indices
+            # | - vib_indices
             dict = {}
 
             vib_pkls = glob.glob(atoms.PATH + '/vib/vib.*.pckl')
@@ -235,13 +235,13 @@ class Get_G:
                     dict[sym] = 1
 
             return dict
-            #__|
+            # __|
 
         def parse_corr(path):
             """
             Return vibrational correction from myjob.out in path. Return -1 if myjob.out cannot be read (imag freqs?)
             """
-            #| - parse_corr
+            # | - parse_corr
             file = open(path)
             lines = file.readlines()
             file.close()
@@ -263,7 +263,7 @@ class Get_G:
             except:
                 return -1
             """
-            #__|
+            # __|
 
         if self.get_E:
             self.ads_corr = 0
@@ -315,13 +315,13 @@ class Get_G:
         else:
             self.default_vib()
             return
-        #__|
+        # __|
 
     def default_vib(self):
         """
         Calculate vibrational corrections using estimates based on atom identity.
         """
-        #| - default_vib
+        # | - default_vib
         self.default_vib_bool = True
         self.ads_corr = 0
         self.slab_corr = 0
@@ -330,13 +330,13 @@ class Get_G:
                 self.ads_corr += default_vib_dict[sym]*self.delta_atoms[sym]
             else:
                 self.slab_corr -= default_vib_dict[sym]*self.delta_atoms[sym]
-        #__|
+        # __|
 
     def set_refs(self):
         """
         Formulate references for atoms in self.delta_atoms. Currently chooses reference indicated as default.
         """
-        #| - set_refs
+        # | - set_refs
         self.references = {}
         for sym in self.delta_atoms:
             for atom in references:
@@ -344,13 +344,13 @@ class Get_G:
                     for ref in references[atom]:
                         if len(references[atom][ref]) == 3: #use default reference
                             self.references[sym] = references[atom][ref][:2]
-        #__|
+        # __|
 
     def calc_G(self):
         """
         Perform free energy calculation at standard conditions and record thermodynamic dependencies on pressure, tempreature, potential, etc.
         """
-        #| - calc_G
+        # | - calc_G
         self.G_std = self.ads_atoms.get_potential_energy() - self.slab_atoms.get_potential_energy()
         self.G_std += self.ads_corr - self.slab_corr
         self.G_thermo = {}
@@ -364,13 +364,13 @@ class Get_G:
                     self.G_thermo[thermo] -= n*self.delta_atoms[sym]
                 else:
                     self.G_thermo[thermo] = -n*self.delta_atoms[sym]
-        #__|
+        # __|
 
     def get_DFT_ref(self,ref):
         """
         Pull appropriate DFT reference energy from database according to computational parameters
         """
-        #| - get_DFT_ref
+        # | - get_DFT_ref
         xc = self.params['xc']
         pwdw =(self.params['pw'],self.params['dw'])
         pp = self.params['pp']
@@ -390,22 +390,22 @@ class Get_G:
                             return DFT_references[ref][xc][pwdw][pp_ref]
 
         raise Exception("No reference found for %s with %s @ %s with %s"%(ref,xc,pwdw,pp))
-        #__|
+        # __|
 
     def compare_pp(self,pp1,pp2,syms):
         """
         """
-        #| - compare_pp
+        # | - compare_pp
         for sym in syms:
             if not filecmp.cmp("%s/%s.UPF"%(pp1,sym),"%s/%s.UPF"%(pp2,sym)):
                 return False
         return True
-        #__|
+        # __|
 
     def fmax(self,atoms):
         """
         """
-        #| - fmax
+        # | - fmax
         forces = atoms.get_forces()
         max = 0
         for force in forces:
@@ -413,12 +413,12 @@ class Get_G:
              if tot > max:
                  max = tot
         return max
-        #__|
+        # __|
 
     def compare_magmoms(self):
         """
         """
-        #| - compare_magmoms
+        # | - compare_magmoms
         def nearest_atom(atoms,position):
             "Returns atom nearest to position"
             position = np.array(position)
@@ -482,22 +482,22 @@ class Get_G:
             # print(common)
             # print("Magnetic moments only present in %s"%not_indexed_by)
             # print(uncommon + "\n")
-        #__|
+        # __|
 
     def rms_displacement(self):
         """
         """
-        #| - rms_displacement
+        # | - rms_displacement
         displacements = np.zeros(np.min((len(self.slab_atoms),len(self.ads_atoms))))
         for i in range(len(displacements)):
             displacements[i] = np.linalg.norm(self.slab_atoms[i].position-self.ads_atoms[i].position)**2
         return np.sqrt(displacements.mean())
-        #__|
+        # __|
 
     def compare_wf(self):
         """
         """
-        #| - compare_wf
+        # | - compare_wf
         self.wf_slab = self.read_wf(self.slab_atoms.PATH)
         self.wf_ads = self.read_wf(self.ads_atoms.PATH)
 
@@ -507,12 +507,12 @@ class Get_G:
            self.d_wf = self.wf_ads - self.wf_slab
            self.avg_wf = (self.wf_ads + self.wf_slab)/2
            self.d_mu = 0.0055 * self.d_wf * np.linalg.norm(np.cross(self.ads_atoms.cell[0],self.ads_atoms.cell[1]))
-        #__|
+        # __|
 
     def read_wf(self,path):
         """
         """
-        #| - read_wf
+        # | - read_wf
         try:
            f = open(path + '/out.WF')
         except:
@@ -520,10 +520,10 @@ class Get_G:
 
         line = f.readlines()[0]
         return float(line.split(',')[0][1:])
-        #__|
+        # __|
 
 
-    #| - __old__ | old __repr__
+    # | - __old__ | old __repr__
     # def __repr__(self):
     #     """
     #     String representation of free energy calculation. Example output:
@@ -533,7 +533,7 @@ class Get_G:
     #     Default vibrational corrections applied to adsorbates
     #     Other possible references include H2...
     #     """
-    #     #| - __repr__
+    #     # | - __repr__
     #     string = ""
     #     if self.get_E:
     #         string += "dE = %.3f eV"%self.G_std
@@ -560,18 +560,18 @@ class Get_G:
     #        string += "\nIS WF = %.2f eV, FS WF = %.2f eV, Change in WF = %.2f eV, Change in Dipole = %.2f eA, Average WF = %.2f eV"\
     #                %(self.wf_slab,self.wf_ads,self.d_wf,self.d_mu,self.avg_wf)
     #     return string
-    #     #__|
-    #__|
+    #     # __|
+    # __|
 
-    #__|
-
-
+    # __|
 
 
 
 
 
-#| - out_of_sight
+
+
+# | - out_of_sight
 
 rydberg = 13.6057 #rydberg to eV conversion
 
@@ -786,7 +786,7 @@ synonyms = {
         }
 }
 
-#__|
+# __|
 
 # if __name__ == "__main__":
 #     import argparse

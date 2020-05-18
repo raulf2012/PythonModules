@@ -8,8 +8,8 @@ def tmp_method(var):
     Args:
         var:
     """
-    #| - tmp_method
+    # | - tmp_method
 
     var + 2
     return("hello world")
-    #__|
+    # __|

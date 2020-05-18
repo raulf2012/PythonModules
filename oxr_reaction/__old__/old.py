@@ -1,5 +1,5 @@
 
-#| - __old__
+# | - __old__
 
     # def __create_trace_i__(self,
     #     x_energy,
@@ -12,7 +12,7 @@
     #     ):
     #     """
     #     """
-    #     #| - __create_trace_i__
+    #     # | - __create_trace_i__
     #
     #     if show_data_labels is True:
     #         mode_i = "markers+text"
@@ -69,7 +69,7 @@
     #         )
     #
     #     return(trace_i)
-    #     #__|
+    #     # __|
 
     #
     # def __create_volcano_plot__(self,
@@ -82,12 +82,12 @@
     #         smart_format_dict:
     #             Optional dictionary that will format data points
     #     """
-    #     #| - create_volcano_relations_plot
+    #     # | - create_volcano_relations_plot
     #
     #
-    #     #| - __temp__ | out of the way
+    #     # | - __temp__ | out of the way
     #     #
-    #     # #| - Default Smart Format Dict
+    #     # # | - Default Smart Format Dict
     #     # smart_format_dict = self.smart_format_dict
     #     #
     #     # if smart_format_dict is None:
@@ -103,15 +103,15 @@
     #     #         [{"facet": "211"}, {"color1": "green"}],
     #     #         [{"facet": "100"}, {"color1": "black"}],
     #     #         ]
-    #     # #__|
+    #     # # __|
     #     #
-    #     # #| - Processing Data Points
+    #     # # | - Processing Data Points
     #     # x_data_list = []
     #     # y_data_list = []
     #     #
     #     # for series_i in self.ORR_Free_E_Plot.series_list:
     #     #
-    #     #     #| - x-axis energy
+    #     #     # | - x-axis energy
     #     #     x_spec = self.x_ax_species
     #     #     if x_spec == "o-oh":
     #     #         e_o = series_i.energy_states_dict["o"]
@@ -119,9 +119,9 @@
     #     #         x_ax_energy = e_o - e_oh
     #     #     else:
     #     #         x_ax_energy = series_i.energy_states_dict[x_spec]
-    #     #     #__|
+    #     #     # __|
     #     #
-    #     #     #| - y-axis limiting potential
+    #     #     # | - y-axis limiting potential
     #     #     if self.ORR_Free_E_Plot.rxn_type == "ORR":
     #     #         lim_pot_i = 1.23 - series_i.overpotential
     #     #
@@ -129,9 +129,9 @@
     #     #         lim_pot_i = 1.23 + series_i.overpotential_OER
     #     #     else:
     #     #         print("LSDJFlksdj")
-    #     #     #__|
+    #     #     # __|
     #     #
-    #     #     #| - Process series_i
+    #     #     # | - Process series_i
     #     #     x_data_list.append(x_ax_energy)
     #     #     y_data_list.append(lim_pot_i)
     #     #
@@ -172,11 +172,11 @@
     #     #         )
     #     #
     #     #     self.data_points.append(trace_i)
-    #     #     #__|
+    #     #     # __|
     #     #
-    #     # #__|
+    #     # # __|
     #     #
-    #     # #| - Finding plot axis limits
+    #     # # | - Finding plot axis limits
     #     # if self.plot_range is None:
     #     #     y_axis_range = [min(y_data_list) - 0.2, max(y_data_list) + 0.2]
     #     #     if self.ORR_Free_E_Plot.rxn_type == "OER":
@@ -190,11 +190,11 @@
     #     #         }
     #     #
     #     #     self.plot_range = plot_range
-    #     # #__|
+    #     # # __|
     #     #
-    #     #__|
+    #     # __|
     #
-    #     #__|
+    #     # __|
     #
     # #
     # def create_volcano_lines(self,
@@ -223,11 +223,11 @@
     #             plot, if 'bottom' then the data points will by on top of the
     #             volcano
     #     """
-    #     #| - create_volcano_lines
+    #     # | - create_volcano_lines
     #     out_data = []
     #     x_range = self.plot_range["x"]
     #
-    #     #| - Volcano Legs
+    #     # | - Volcano Legs
     #     volc_legs = [
     #         'o2_to_ooh',
     #         'ooh_to_o',
@@ -242,7 +242,7 @@
     #         'oh_to_h2o': [],
     #         }
     #
-    #     #| - Create Volcano Legs (LOOP)
+    #     # | - Create Volcano Legs (LOOP)
     #     x_axis = np.linspace(x_range[0], x_range[1], num=500)
     #     for leg_i in volc_legs:
     #         for x_energy_i in x_axis:
@@ -266,11 +266,11 @@
     #                     rxn_direction="forward",
     #                     ),
     #                 )
-    #     #__|
+    #     # __|
     #
     #     if plot_all_legs:
     #
-    #         #| - plot_all_legs
+    #         # | - plot_all_legs
     #         # hoverinfo_type = "none"
     #         hoverinfo_type = "name"
     #
@@ -333,11 +333,11 @@
     #             out_data.insert(0, trace_ooh_to_o)
     #             out_data.insert(0, trace_o_to_oh)
     #             out_data.insert(0, trace_oh_to_h2o)
-    #         #__|
+    #         # __|
     #
-    #     #__|
+    #     # __|
     #
-    #     #| - Minimum Energy Legs
+    #     # | - Minimum Energy Legs
     #     energy_lists= []
     #     for leg_i in legs_to_plot:
     #         energy_lists.append(energy_dict[leg_i])
@@ -371,15 +371,15 @@
     #
     #         elif trace_priority == "bottom":
     #             out_data.insert(0, trace_volcano)
-    #     #__|
+    #     # __|
     #
     #     return(out_data)
-    #     #__|
+    #     # __|
 
-#__|
+# __|
 
 
-#| - __old__
+# | - __old__
 
 #
 # # ███████ ██████          ██████  ██       ██████  ████████
@@ -395,7 +395,7 @@
 #         IDEA: Add vertical lines to connect *O, *OH, and *OOH data points
 #     """
 #
-#     #| - Scaling_Relations_Plot ***********************************************
+#     # | - Scaling_Relations_Plot ***********************************************
 #
 #     def __init__(self,
 #         ORR_Free_E_Plot,
@@ -420,7 +420,7 @@
 #             mode:
 #                 "all", "ooh_vs_oh", "o_vs_oh"
 #         """
-#         #| - __init__
+#         # | - __init__
 #         self.ORR_Free_E_Plot = ORR_Free_E_Plot
 #
 #         assert (x_ax_species == "oh"), "Only *OH as the x-axis is allowed now"
@@ -466,7 +466,7 @@
 #
 #         self.annotations_list = []
 #
-#         #__|
+#         # __|
 #
 #     def create_scaling_relations_plot(self,
 #         smart_format_dict=None,
@@ -477,9 +477,9 @@
 #             y_ax_spec:
 #             x_ax_spec:
 #         """
-#         #| - create_scaling_relations_plot
+#         # | - create_scaling_relations_plot
 #
-#         #| - Default Smart Format Dict
+#         # | - Default Smart Format Dict
 #         if smart_format_dict is None:
 #             print("No smart format given!")
 #             smart_format_dict = [
@@ -493,9 +493,9 @@
 #                 [{"facet": "211"}, {self.marker_border_color_key: "green"}],
 #                 [{"facet": "100"}, {self.marker_border_color_key: "black"}],
 #                 ]
-#         #__|
+#         # __|
 #
-#         #| - Processing Data Points
+#         # | - Processing Data Points
 #         for series_i in self.ORR_Free_E_Plot.series_list:
 #
 #             e_oh = series_i.energy_states_dict["oh"]
@@ -525,7 +525,7 @@
 #                 smart_format_i = series_i.format_dict
 #
 #
-#             #| - ooh_vs_oh
+#             # | - ooh_vs_oh
 #             trace_i = self.__create_trace_i__(
 #                 e_oh,
 #                 e_ooh,
@@ -535,9 +535,9 @@
 #                 )
 #             # self.data_ooh_oh.append(trace_i)
 #             self.data_points["ooh_vs_oh"].append(trace_i)
-#             #__|
+#             # __|
 #
-#             #| - o_vs_oh
+#             # | - o_vs_oh
 #             trace_i = self.__create_trace_i__(
 #                 e_oh,
 #                 e_o,
@@ -547,9 +547,9 @@
 #                 )
 #             # self.data_o_oh.append(trace_i)
 #             self.data_points["o_vs_oh"].append(trace_i)
-#             #__|
+#             # __|
 #
-#             #| - oh_vs_oh
+#             # | - oh_vs_oh
 #             trace_i = self.__create_trace_i__(
 #                 e_oh,
 #                 e_oh,
@@ -559,11 +559,11 @@
 #                 )
 #             # self.data_oh_oh.append(trace_i)
 #             self.data_points["oh_vs_oh"].append(trace_i)
-#             #__|
+#             # __|
 #
-#         #__|
+#         # __|
 #
-#         #__|
+#         # __|
 #
 #     # Deprecated, delete this later
 #     def __create_smart_format_dict__(self, property_dict, smart_format_dict):
@@ -573,7 +573,7 @@
 #             property_dict:
 #             smart_format_dict:
 #         """
-#         #| - __create_smart_format_dict__
+#         # | - __create_smart_format_dict__
 #         format_dict = {}
 #         for key_i, value_i in property_dict.items():
 #             for format_i in smart_format_dict:
@@ -582,12 +582,12 @@
 #                         format_dict.update(format_i[1])
 #
 #         return(format_dict)
-#         #__|
+#         # __|
 #
 #     def __create_series_name__(self, series_i):
 #         """
 #         """
-#         #| - create_series_name
+#         # | - create_series_name
 #         name_i = ""
 #         for key, value in series_i.properties.items():
 #             if key == "coverage":
@@ -596,7 +596,7 @@
 #             name_i += str(key) + ": " + str(value) + " | "
 #
 #         return(name_i)
-#         #__|
+#         # __|
 #
 #     def __create_trace_i__(self,
 #         x_energy,
@@ -607,7 +607,7 @@
 #         ):
 #         """
 #         """
-#         #| - create_trace_i
+#         # | - create_trace_i
 #         # NOTE Looks like I need to put these in a list here
 #         x_energy = [x_energy]
 #         y_energy = [y_energy]
@@ -635,7 +635,7 @@
 #             )
 #
 #         return(trace_i)
-#         #__|
+#         # __|
 #
 #     # NOTE | This shouldn't be an internal method
 #     def __create_layout__(self,
@@ -651,7 +651,7 @@
 #             title:
 #             showlegend:
 #         """
-#         #| - create_layout
+#         # | - create_layout
 #
 #         # if x_ax_spec == ""
 #         if self.x_ax_species == "oh":
@@ -668,7 +668,7 @@
 #
 #         # legend_size = 18
 #
-#         #| - Common Axis Dict
+#         # | - Common Axis Dict
 #         common_axis_dict = {
 #
 #             # "range": y_axis_range,
@@ -689,9 +689,9 @@
 #             "ticklen": 2,
 #             "tickwidth": 1,
 #             }
-#         #__|
+#         # __|
 #
-#         #| - __old__
+#         # | - __old__
 #         # x_range_ooh_vs_oh=[0., 3.5],
 #         # y_range_ooh_vs_oh=[0., 5.],
 #         # x_range_o_vs_oh=[0., 3.5],
@@ -714,7 +714,7 @@
 #         #     y_range = self.y_range_oh_vs_oh
 #         # else:
 #         #     print("Woops - create_layout")
-#         #__|
+#         # __|
 #
 #         x_range = self.x_range
 #         y_range = self.y_range
@@ -772,7 +772,7 @@
 #             # layout_i = {**layout_i, **layout_dict}
 #
 #         return(layout_i)
-#         #__|
+#         # __|
 #
 #     def __series_excluded__(self,
 #         properties_i,
@@ -788,7 +788,7 @@
 #             properties_i:
 #             exclude_dict:
 #         """
-#         #| - series_excluded
+#         # | - series_excluded
 #         exclude_dict_keys = list(exclude_dict.keys())
 #         properties_i_keys = list(properties_i.keys())
 #
@@ -816,7 +816,7 @@
 #
 #         return(all_props_match)
 #
-#         #__|
+#         # __|
 #
 #     def fit_scaling_lines(self,
 #         dependent_species,  # 'ooh', 'o', 'oh'
@@ -828,14 +828,14 @@
 #             dependent_species:
 #                 y-axis species 'ooh' or 'o'
 #         """
-#         #| - fit_scaling_lines
+#         # | - fit_scaling_lines
 #
-#         #| - LOOP
+#         # | - LOOP
 #         oh_list = []
 #         dependent_e_list = []
 #         for series_i in self.ORR_Free_E_Plot.series_list:
 #
-#             #| - Excluding series from fitting
+#             # | - Excluding series from fitting
 #             if exclude_dict is not None:
 #                 properties_i = series_i.properties
 #                 exclude_series = self.__series_excluded__(
@@ -844,13 +844,13 @@
 #                     )
 #                 if exclude_series:
 #                     continue
-#             #__|
+#             # __|
 #
 #             energy_i = series_i.energy_states_dict[dependent_species]
 #             dependent_e_list.append(energy_i)
 #             oh_list.append(series_i.energy_states_dict["oh"])
 #
-#         #__|
+#         # __|
 #
 #         X = np.array([[i] for i in oh_list])
 #         y = np.array(dependent_e_list)
@@ -873,7 +873,7 @@
 #             }
 #         # print("_------__)_Z(*XF(8))")
 #
-#         #| - Equation Annotations
+#         # | - Equation Annotations
 #         if dependent_species == "ooh":
 #             eqn_str_i = ("" +
 #                 "G<sub>OOH</sub>=" +
@@ -923,15 +923,15 @@
 #             )
 #
 #         self.annotations_list.append(annotation_i)
-#         #__|
+#         # __|
 #
 #
 #         return(out)
-#         #__|
+#         # __|
 #
 #     def add_ideal_lines(self):
 #         """Add ideal scaling liknes to plot."""
-#         #| - add_ideal_lines
+#         # | - add_ideal_lines
 #         self.add_line({"slope": 1, "intercept": 3.2},
 #             name="*OOH vs *OH Scaling",
 #             color="black",
@@ -952,7 +952,7 @@
 #             width=1,
 #             dash="dash",
 #             )
-#         #__|
+#         # __|
 #
 #     def add_line(self,
 #         slope_intercept_dict,
@@ -970,7 +970,7 @@
 #             width:
 #             dash:
 #         """
-#         #| - add_line
+#         # | - add_line
 #
 #         # print(slope_intercept_dict)
 #
@@ -980,11 +980,11 @@
 #         def scaling_meth(E_OH):
 #             """
 #             """
-#             #| - scaling_meth
+#             # | - scaling_meth
 #             out = slope * E_OH + intercept
 #
 #             return(out)
-#             #__|
+#             # __|
 #
 #         LH_bound = self.x_range[0]
 #         RH_bound = self.x_range[1]
@@ -1026,22 +1026,22 @@
 #         #     ""
 #         #     )
 #
-#         #__|
+#         # __|
 #
 #
 #
 #
 #
-#     #| - __old__
+#     # | - __old__
 #     # def __ideal_ooh_oh_scaling__(self, E_OH):
 #     #     """Return the *OOH adsorption energy given DG_*OH by scaling.
 #     #
 #     #     Args:
 #     #         E_OH:DG_*OH energy of adsorption
 #     #     """
-#     #     #| - __ideal_ooh_oh_scaling__
+#     #     # | - __ideal_ooh_oh_scaling__
 #     #     return(E_OH + 3.2)
-#     #     #__|
+#     #     # __|
 #     #
 #     # def __ideal_h_oh_scaling__(self, E_OH):
 #     #     """Return the *OOH adsorption energy given DG_*OH by scaling.
@@ -1049,9 +1049,9 @@
 #     #     Args:
 #     #         E_OH: DG_*OH energy of adsorption.
 #     #     """
-#     #     #| - __ideal_h_oh_scaling__
+#     #     # | - __ideal_h_oh_scaling__
 #     #     return(2 * E_OH)
-#     #     #__|
+#     #     # __|
 #     #
 #     # def __ideal_oh_oh_scaling__(self, E_OH):
 #     #     """Return the *OH adsorption energy given DG_*OH by scaling.
@@ -1061,13 +1061,13 @@
 #     #     Args:
 #     #         E_OH: DG_*OH energy of adsorption.
 #     #     """
-#     #     #| - __ideal_oh_oh_scaling__
+#     #     # | - __ideal_oh_oh_scaling__
 #     #     return(E_OH)
-#     #     #__|
+#     #     # __|
 #     #
-#     #__|
+#     # __|
 #
-# #__| **********************************************************************
+# # __| **********************************************************************
 
 
 
@@ -1085,7 +1085,7 @@
 #         TEMP
 #     """
 #
-#     #| - Volcano_Plot *********************************************************
+#     # | - Volcano_Plot *********************************************************
 #
 #     def __init__(self,
 #         ORR_Free_E_Plot,
@@ -1111,7 +1111,7 @@
 #                     }
 #
 #         """
-#         #| - __init__
+#         # | - __init__
 #         self.ORR_Free_E_Plot = ORR_Free_E_Plot
 #         self.x_ax_species = x_ax_species
 #         self.plot_range = plot_range
@@ -1124,7 +1124,7 @@
 #         self.marker_border_color_key = marker_border_color_key
 #         self.marker_shape_key = marker_shape_key
 #
-#         #__|
+#         # __|
 #
 #     # NOTE | Rename this create_volcano_plot
 #     def create_volcano_relations_plot(self,
@@ -1137,9 +1137,9 @@
 #             smart_format_dict:
 #                 Optional dictionary that will format data points
 #         """
-#         #| - create_volcano_relations_plot
+#         # | - create_volcano_relations_plot
 #
-#         #| - Default Smart Format Dict
+#         # | - Default Smart Format Dict
 #         smart_format_dict = self.smart_format_dict
 #
 #         if smart_format_dict is None:
@@ -1155,15 +1155,15 @@
 #                 [{"facet": "211"}, {"color1": "green"}],
 #                 [{"facet": "100"}, {"color1": "black"}],
 #                 ]
-#         #__|
+#         # __|
 #
-#         #| - Processing Data Points
+#         # | - Processing Data Points
 #         x_data_list = []
 #         y_data_list = []
 #
 #         for series_i in self.ORR_Free_E_Plot.series_list:
 #
-#             #| - x-axis energy
+#             # | - x-axis energy
 #             x_spec = self.x_ax_species
 #             if x_spec == "o-oh":
 #                 e_o = series_i.energy_states_dict["o"]
@@ -1171,9 +1171,9 @@
 #                 x_ax_energy = e_o - e_oh
 #             else:
 #                 x_ax_energy = series_i.energy_states_dict[x_spec]
-#             #__|
+#             # __|
 #
-#             #| - y-axis limiting potential
+#             # | - y-axis limiting potential
 #             if self.ORR_Free_E_Plot.rxn_type == "ORR":
 #                 lim_pot_i = 1.23 - series_i.overpotential
 #
@@ -1181,9 +1181,9 @@
 #                 lim_pot_i = 1.23 + series_i.overpotential_OER
 #             else:
 #                 print("LSDJFlksdj")
-#             #__|
+#             # __|
 #
-#             #| - Process series_i
+#             # | - Process series_i
 #             x_data_list.append(x_ax_energy)
 #             y_data_list.append(lim_pot_i)
 #
@@ -1214,11 +1214,11 @@
 #                 )
 #
 #             self.data_points.append(trace_i)
-#             #__|
+#             # __|
 #
-#         #__|
+#         # __|
 #
-#         #| - Finding plot axis limits
+#         # | - Finding plot axis limits
 #         if self.plot_range is None:
 #             y_axis_range = [min(y_data_list) - 0.2, max(y_data_list) + 0.2]
 #             if self.ORR_Free_E_Plot.rxn_type == "OER":
@@ -1232,9 +1232,9 @@
 #                 }
 #
 #             self.plot_range = plot_range
-#         #__|
+#         # __|
 #
-#         #__|
+#         # __|
 #
 #     def create_volcano_lines(self,
 #         gas_molec_dict=None,
@@ -1262,11 +1262,11 @@
 #                 plot, if 'bottom' then the data points will by on top of the
 #                 volcano
 #         """
-#         #| - create_volcano_lines
+#         # | - create_volcano_lines
 #         out_data = []
 #         x_range = self.plot_range["x"]
 #
-#         #| - Volcano Legs
+#         # | - Volcano Legs
 #         volc_legs = [
 #             'o2_to_ooh',
 #             'ooh_to_o',
@@ -1281,7 +1281,7 @@
 #             'oh_to_h2o': [],
 #             }
 #
-#         #| - Create Volcano Legs (LOOP)
+#         # | - Create Volcano Legs (LOOP)
 #         x_axis = np.linspace(x_range[0], x_range[1], num=500)
 #         for leg_i in volc_legs:
 #             for x_energy_i in x_axis:
@@ -1305,11 +1305,11 @@
 #                         rxn_direction="forward",
 #                         ),
 #                     )
-#         #__|
+#         # __|
 #
 #         if plot_all_legs:
 #
-#             #| - plot_all_legs
+#             # | - plot_all_legs
 #             # hoverinfo_type = "none"
 #             hoverinfo_type = "name"
 #
@@ -1372,11 +1372,11 @@
 #                 out_data.insert(0, trace_ooh_to_o)
 #                 out_data.insert(0, trace_o_to_oh)
 #                 out_data.insert(0, trace_oh_to_h2o)
-#             #__|
+#             # __|
 #
-#         #__|
+#         # __|
 #
-#         #| - Minimum Energy Legs
+#         # | - Minimum Energy Legs
 #         energy_lists= []
 #         for leg_i in legs_to_plot:
 #             energy_lists.append(energy_dict[leg_i])
@@ -1410,10 +1410,10 @@
 #
 #             elif trace_priority == "bottom":
 #                 out_data.insert(0, trace_volcano)
-#         #__|
+#         # __|
 #
 #         return(out_data)
-#         #__|
+#         # __|
 #
 #     def __create_trace_i__(self,
 #         x_energy,
@@ -1426,7 +1426,7 @@
 #         ):
 #         """
 #         """
-#         #| - __create_trace_i__
+#         # | - __create_trace_i__
 #
 #         if show_data_labels is True:
 #             mode_i = "markers+text"
@@ -1483,7 +1483,7 @@
 #             )
 #
 #         return(trace_i)
-#         #__|
+#         # __|
 #
 #     def get_plotly_layout(self,
 #         showlegend=False,
@@ -1493,9 +1493,9 @@
 #         ):
 #         """
 #         """
-#         #| - get_plotly_layout
+#         # | - get_plotly_layout
 #
-#         #| - Properties
+#         # | - Properties
 #         # plot_title="FED"
 #         plot_title = None
 #         # plot_title_size = 18
@@ -1505,7 +1505,7 @@
 #         legend_size = 18
 #         # font_family="Computer Modern"  # "Courier New, monospace"
 #         font_family = "Arial"  # "Courier New, monospace"
-#         #__|
+#         # __|
 #
 #         # self.x_ax_spec
 #
@@ -1532,9 +1532,9 @@
 #                 "color": "black",
 #                 },
 #
-#             #| - Axes -----------------------------------------------------
+#             # | - Axes -----------------------------------------------------
 #
-#             #| - yaxis
+#             # | - yaxis
 #             "yaxis": {
 #                 "title": "Limiting Potential (V)",
 #                 # "title": "$\\Delta G (ev)$",
@@ -1559,9 +1559,9 @@
 #                 "ticklen": 2,
 #                 "tickwidth": 1,
 #                 },
-#             #__|
+#             # __|
 #
-#             #| - xaxis
+#             # | - xaxis
 #             "xaxis": {
 #                 # "title": "$\\Delta G_{OH} (ev)$",
 #                 "title": xaxis_title,
@@ -1584,9 +1584,9 @@
 #                     size=tick_lab_size,
 #                     ),
 #                 },
-#             #__|
+#             # __|
 #
-#             #__|
+#             # __|
 #
 #             "margin": go.layout.Margin(
 #                 b=50.,
@@ -1598,7 +1598,7 @@
 #             # "paper_bgcolor": 'rgba(0,0,0,0)',
 #             "plot_bgcolor": 'rgba(0,0,0,0)',
 #
-#             #| - Legend ---------------------------------------------------
+#             # | - Legend ---------------------------------------------------
 #             "legend": {
 #                 "traceorder": "normal",
 #                 "font": dict(size=legend_size),
@@ -1611,11 +1611,11 @@
 #             # "showlegend": False,
 #             "showlegend": showlegend,
 #
-#             #__|
+#             # __|
 #
 #             }
 #
-#         #| - Plot Size Settings
+#         # | - Plot Size Settings
 #         # bottom_margin_size = 2.5 * 9. * 37.795275591
 #         plot_size_settings = {
 #             "width": width,
@@ -1635,23 +1635,23 @@
 #             #     }),
 #             }
 #
-#         #__|
+#         # __|
 #
 #         layout = {**layout, **plot_size_settings}
 #
-#         #| - Applying Layout override dict
+#         # | - Applying Layout override dict
 #         if layout_dict is not None:
 #             from misc_modules.misc_methods import dict_merge
 #             dict_merge(layout, layout_dict)
 #
 #             # layout_i = {**layout_i, **layout_dict}
 #
-#         #__|
+#         # __|
 #
 #         return(layout)
 #
-#         #__|
+#         # __|
 #
 #
-#     #__| **********************************************************************
-#__|
+#     # __| **********************************************************************
+# __|

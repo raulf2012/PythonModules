@@ -3,7 +3,7 @@
 
 """Methods and code to handle jobs that depend on one another."""
 
-#| - Import Modules
+# | - Import Modules
 import sys
 import os
 import shutil
@@ -14,18 +14,18 @@ import pandas as pd
 
 from dft_job_automat.job_analysis import DFT_Jobs_Analysis
 from dft_job_automat.job_manager import DFT_Jobs_Manager
-#__|
+# __|
 
-#| - FUNCTIONS
+# | - FUNCTIONS
 
 def full_path_i(root_dir, step_dir_names, step, path):
     """Formats relative path to full path for a given calculation step
     """
-    #| - full_path_i
+    # | - full_path_i
     path_out = root_dir + "/" + step_dir_names[step - 1] + "/" + path
 
     return(path_out)
-    #__|
+    # __|
 
 def copyfiles_onestep_up(
     job_var_lst,
@@ -36,11 +36,11 @@ def copyfiles_onestep_up(
     ):
     """
     """
-    #| - copyfiles_onestep_up
+    # | - copyfiles_onestep_up
     def copy_if_not_in_dest(source, dest_file):
         """
         """
-        #| - copy_if_not_in_dest
+        # | - copy_if_not_in_dest
         if not os.path.isfile(dest_file):
 
             shutil.copy(source, dest_file)
@@ -50,7 +50,7 @@ def copyfiles_onestep_up(
         else:
             pass
 
-        #__|
+        # __|
 
 
     curr_step = JobsInstances_lst[step - 1]
@@ -66,7 +66,7 @@ def copyfiles_onestep_up(
         )
     next_var_lst = copy.deepcopy(next_step.job_var_lst)
 
-    #| - Finding jobs in step+1 whose properties match step's
+    # | - Finding jobs in step+1 whose properties match step's
     for curr_property in job_var_lst:
         prop_name = curr_property["property"]  # force-cutoff
         prop_value = curr_property["value"]    # 0.001
@@ -90,7 +90,7 @@ def copyfiles_onestep_up(
                             next_var_lst.remove(job)
                         else:
                             pass
-    #__|
+    # __|
 
     for next_job in next_var_lst:
         path_i = next_step.var_lst_to_path(
@@ -101,7 +101,7 @@ def copyfiles_onestep_up(
 
         for file_i in files_lst:
 
-            #| - Copy Files to Directory in New Step
+            # | - Copy Files to Directory in New Step
             if type(file_i) == str:
                 curr_dir = dir_curr + \
                     curr_step.cluster.cluster.job_data_dir + "/" + file_i
@@ -111,7 +111,7 @@ def copyfiles_onestep_up(
                 curr_dir = dir_curr + \
                     curr_step.cluster.cluster.job_data_dir + "/" + file_i[0]
                 copy_if_not_in_dest(curr_dir, path_i + "/" + file_i[1])
-            #__|
+            # __|
 
 
         if root_dir_files is not None:
@@ -121,7 +121,7 @@ def copyfiles_onestep_up(
             dest_dir = path_i
 
             for file_i in root_dir_files:
-                #| - Copy Files from Root Dir to New Job Folder
+                # | - Copy Files from Root Dir to New Job Folder
                 if type(file_i) == str:
                     copy_if_not_in_dest(
                         source_dir + "/" + file_i,
@@ -133,43 +133,43 @@ def copyfiles_onestep_up(
                         source_dir + "/" + file_i[0],
                         dest_dir + "/" + file_i[1],
                         )
-                #__|
+                # __|
 
 
     open(dir_curr + "/.FILES_COPIED", "w")
     # file = open(dir_curr + "/.FILES_COPIED", "w")
 
-    #__|
+    # __|
 
 def create_atoms_list(atoms_name, file_ext, root_dir):
     """
     """
-    #| - create_atoms_list
+    # | - create_atoms_list
     atoms_dict = {}
     for atom in atoms_name:
         atoms_i = io.read(root_dir + "/dir_atoms/" + atom + file_ext)
         atoms_dict[atom] = atoms_i
 
     return(atoms_dict)
-    #__|
+    # __|
 
 def create_level_entries_dict(tree_level_labels, tree_level_values):
     """
     """
-    #| - create_level_entries_dict
+    # | - create_level_entries_dict
     level_entries_dict = {}
     for index, variable in enumerate(tree_level_labels):
         level_entries_dict[variable] = tree_level_values[index]
 
     return(level_entries_dict)
-    #__|
+    # __|
 
-#| - __OLD__
+# | - __OLD__
 
 def job_runnable(df, root_dir_beg, path_i):
     """
     """
-    #| - job_runnable
+    # | - job_runnable
     df["full_path"] = root_dir_beg + "/" + df["root_dir"] + "/" + df["path"] + \
         "_" + df["job_revision_number"].astype(str)
 
@@ -183,12 +183,12 @@ def job_runnable(df, root_dir_beg, path_i):
         return(True)
     else:
         return(False)
-    #__|
+    # __|
 
 def job_failed(df, root_dir_beg, path_i):
     """
     """
-    #| - job_failed
+    # | - job_failed
     df["full_path"] = root_dir_beg + "/" + df["root_dir"] + "/" + df["path"] + \
         "_" + df["job_revision_number"].astype(str)
 
@@ -215,11 +215,11 @@ def job_failed(df, root_dir_beg, path_i):
     else:
         return(False)
 
-    #__|
+    # __|
 
-#__|
+# __|
 
-#__|
+# __|
 
 class DFT_Jobs_Workflow:
     """Summary line.
@@ -261,7 +261,7 @@ class DFT_Jobs_Workflow:
             root_dir:
             run_jobs:
         """
-        #| - __init__
+        # | - __init__
         self.mod_dir = "dir_models"
         self.atoms_dir = "dir_atoms"
 
@@ -310,19 +310,19 @@ class DFT_Jobs_Workflow:
 
         self.jobs_man_list = self.__create_jobs_man__()
         self.__job_maint__()
-        #__|
+        # __|
 
     def list_of_None_if_None(self, input):
         """Return list of 'None' of length == # of steps, if input is None
         """
-        #| - list_of_None_if_None
+        # | - list_of_None_if_None
         if input is None:
             none_list = [None for i in range(self.num_steps)]
 
             return(none_list)
         else:
             return(input)
-        #__|
+        # __|
 
     def __set_cwd__(self, root_dir):
         """Set the working directory.
@@ -330,19 +330,19 @@ class DFT_Jobs_Workflow:
         Args:
             root_dir:
         """
-        #| - __set_cwd__
+        # | - __set_cwd__
         if root_dir == ".":
             root_dir_out = os.getcwd()
         else:
             root_dir_out = root_dir
 
         return(root_dir_out)
-        #__|
+        # __|
 
     def __set_step_dir_names__(self):
         """
         """
-        #| - __set_step_dir_names__
+        # | - __set_step_dir_names__
         number_of_steps = self.num_steps
         step_dir_names = []
         for step_i in range(number_of_steps):
@@ -350,7 +350,7 @@ class DFT_Jobs_Workflow:
             step_dir_names.append(step_dir_name_i)
 
         return(step_dir_names)
-        #__|
+        # __|
 
     def __set_model_names__(self, model_names):
         """Return list of model script names.
@@ -358,7 +358,7 @@ class DFT_Jobs_Workflow:
         Args:
             model_names:
         """
-        #| - __set_model_names__
+        # | - __set_model_names__
         # model_names = self.model_names
         if model_names is None:
             model_names_list = []
@@ -369,11 +369,11 @@ class DFT_Jobs_Workflow:
             model_names_list = model_names
 
         return(model_names_list)
-        #__|
+        # __|
 
     def __create_jobs_an__(self):
         """Create Jobs_Analysis instances for each step of workflow."""
-        #| - __create_jobs_an__
+        # | - __create_jobs_an__
         # print("PREPARING EXTENDED FOLDER SYSTEM")  #PERM_PRINT
         step_dir_names = self.step_dir_names
         master_root_dir = self.root_dir
@@ -408,11 +408,11 @@ class DFT_Jobs_Workflow:
             Jobs_Inst_list.append(JobsAn)
 
         return(Jobs_Inst_list)
-        #__|
+        # __|
 
     def __create_jobs_man__(self):
         """Create Jobs_Manager instance(s)."""
-        #| - __create_jobs_man__
+        # | - __create_jobs_man__
         step_dir_names = self.step_dir_names
         master_root_dir = self.root_dir
 
@@ -451,11 +451,11 @@ class DFT_Jobs_Workflow:
             Jobs_Inst_list.append(Jobs)
 
         return(Jobs_Inst_list)
-        #__|
+        # __|
 
     def __create_parent_dirs__(self):
         """Create parent folders."""
-        #| - __create_parent_dirs__
+        # | - __create_parent_dirs__
         step_dir_names = self.step_dir_names
         master_root_dir = self.root_dir
 
@@ -465,12 +465,12 @@ class DFT_Jobs_Workflow:
             step_folder = master_root_dir + "/" + step_dir_names[step]
             if not os.path.isdir(step_folder):
                 os.makedirs(step_folder)
-        #__|
+        # __|
 
     def __prep_dir_sys__(self):
         """
         """
-        #| - __prep_dir_sys
+        # | - __prep_dir_sys
         print("PREPARING EXTENDED FOLDER SYSTEM")  # PERM_PRINT
         step_dir_names = self.step_dir_names
         master_root_dir = self.root_dir
@@ -489,9 +489,9 @@ class DFT_Jobs_Workflow:
             # if not os.path.isfile(files_placed_file):
             if True:
 
-                #| - Create Step Folder Structure
+                # | - Create Step Folder Structure
                 JobsAn.create_dir_struct(create_first_rev_folder="True")
-                #__|
+                # __|
 
                 for Job_i in JobsAn.Job_list:
                     path_i = Job_i.full_path
@@ -507,7 +507,7 @@ class DFT_Jobs_Workflow:
                 #         relative_path=False,
                 #         )
                 #
-                #     #| - Job_i Parameters
+                #     # | - Job_i Parameters
                 #     job_i_params = {}
                 #     for variable in JobsAn.tree_level_labels:
                 #         job_i_var_j = JobsAn.extract_prop_from_var_lst(
@@ -515,7 +515,7 @@ class DFT_Jobs_Workflow:
                 #             variable,
                 #             )
                 #         job_i_params[variable] = job_i_var_j
-                #     #__|
+                #     # __|
                 #
                 #     self.setup_function(step, path_i, job_i_params, wf_vars)
 
@@ -524,7 +524,7 @@ class DFT_Jobs_Workflow:
 
             # file = open(master_root_dir + "/.FOLDERS_CREATED", "w")
             open(master_root_dir + "/.FOLDERS_CREATED", "w")
-        #__|
+        # __|
 
     def __job_maint__(self):
         """Manage jobs after being submitted.
@@ -532,7 +532,7 @@ class DFT_Jobs_Workflow:
         Tries to figure out what state the job is in and acts according to
         user defined methods
         """
-        #| - __job_maint__
+        # | - __job_maint__
         step_dir_names = self.step_dir_names
         # master_root_dir = self.root_dir
 
@@ -543,7 +543,7 @@ class DFT_Jobs_Workflow:
             # df = Jobs.data_frame
             tally = {"successes": 0, "failures": 0, "running": 0, "pending": 0}
 
-            #| - PRINT
+            # | - PRINT
             print("")  # PERM_PRINT
             print("###########################################################")
 
@@ -554,9 +554,9 @@ class DFT_Jobs_Workflow:
             print(str_i)
             print("###########################################################")
             print("Total Jobs: " + str(Jobs.num_jobs))  # PERM_PRINT
-            #__|
+            # __|
 
-            #| - LOOP OVER JOBS
+            # | - LOOP OVER JOBS
             if self.run_jobs:
 
                 tally = {
@@ -591,7 +591,7 @@ class DFT_Jobs_Workflow:
                         tally,
                         )
 
-                #| - __old__
+                # | - __old__
                 # for job_i in Jobs.job_var_lst:
                 #     path_i = Jobs.var_lst_to_path(
                 #         job_i,
@@ -599,7 +599,7 @@ class DFT_Jobs_Workflow:
                 #         relative_path=False,
                 #         )
                 #
-                #     #| - Job_i Parameters
+                #     # | - Job_i Parameters
                 #     job_i_params = {}
                 #     for variable in Jobs.tree_level_labels:
                 #         job_i_param_j = Jobs.extract_prop_from_var_lst(
@@ -608,7 +608,7 @@ class DFT_Jobs_Workflow:
                 #             )
                 #
                 #         job_i_params[variable] = job_i_param_j
-                #     #__|
+                #     # __|
                 #
                 #     tally = self.maint_function(
                 #         step,
@@ -617,17 +617,17 @@ class DFT_Jobs_Workflow:
                 #         wf_vars,
                 #         tally,
                 #         )
-                #__|
+                # __|
 
                 # TODO Check that tally is being incremented by 1 only
                 print(tally)
             print("")
-            #__|
+            # __|
 
-        #__|
+        # __|
 
 
-#| - Reinitiating the Jobs Instances (Is this needed)
+# | - Reinitiating the Jobs Instances (Is this needed)
 # print("")  #PERM_PRINT
 # print("Reinitiating the Jobs Instances")  #PERM_PRINT
 # Jobs_Inst_list = []
@@ -644,4 +644,4 @@ class DFT_Jobs_Workflow:
 #         )
 #
 #     Jobs_Inst_list.append(Jobs)
-#__|
+# __|

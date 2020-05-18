@@ -6,7 +6,7 @@ def formation_e_data_dict():
 
 	All energies are in [eV]
 	"""
-	#| -  - formation_e_data_dict
+	# | -  - formation_e_data_dict
 	import ast
 	direct_0 = '/home/flores12/01_ORR-MatStabScreen/01_virenv-pymatgen/01_data/03_formation_e/'
 	List = open(direct_0+'data.py').read().splitlines()
@@ -54,7 +54,7 @@ def formation_e_data_dict():
 				dict[frozenset(i)].append(j)
 	return dict
 
-	#__|
+	# __|
 
 def get_entry(chemical_formula_list, data_dict):
 	"""
@@ -63,7 +63,7 @@ def get_entry(chemical_formula_list, data_dict):
 		chemical_formula_list:
 		data_dict:
 	"""
-	#| -  - get_entry
+	# | -  - get_entry
 	# print chemical_formula_list
 	key = frozenset(chemical_formula_list)
 
@@ -75,7 +75,7 @@ def get_entry(chemical_formula_list, data_dict):
 
 	return entry
 
-	#__|
+	# __|
 
 # form_e_data = formation_e_data_dict()
 # temp = get_entry(['Pt1','O2'],form_e_data)
@@ -86,7 +86,7 @@ def oxygen_stoich(exp_entry):
 	Args:
 		exp_entry
 	"""
-	#| -  - oxygen_stoich
+	# | -  - oxygen_stoich
 	formula = exp_entry['chem_formula']
 	for i in formula:
 		if i[0]=='O' and i[1].isdigit()==True:
@@ -98,10 +98,10 @@ def oxygen_stoich(exp_entry):
 			break
 	return oxy_num
 
-	#__|
+	# __|
 
 
-#| -  - Possible code to take "Pt2O3 and extract out the elements and stoicheometric numbers"
+# | -  - Possible code to take "Pt2O3 and extract out the elements and stoicheometric numbers"
 # import re
 #
 # chem_form_lst = []
@@ -119,4 +119,4 @@ def oxygen_stoich(exp_entry):
 # 		elem_stoich = re.match(r"([a-z]+)([0-9]+)", element, re.I).groups()
 # 		elem = elem_stoich[0]
 # 		stoich = elem_stoich[1]
-#__|
+# __|

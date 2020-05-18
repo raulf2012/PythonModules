@@ -5,7 +5,7 @@
 Author: Johanness Voss mostly
 """
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import copy
 from itertools import compress
 
@@ -13,9 +13,9 @@ import numpy as np
 import plotly.graph_objs as go
 
 from misc_modules.numpy_methods import make_filter_list
-#__|
+# __|
 
-#| - Methods
+# | - Methods
 def plot_band_series(
     x_data,
     y_data,
@@ -27,7 +27,7 @@ def plot_band_series(
         x_data:
         y_data:
     """
-    #| - plot_dos_series
+    # | - plot_dos_series
     # trace = go.Scatter(
     trace = go.Scattergl(
         x=x_data,
@@ -43,18 +43,21 @@ def plot_band_series(
         )
 
     return(trace)
-    #__|
+    # __|
 
-#__|
+# __|
 
-def filter_bands_data(bands_data, percent_keep=0.6):
+
+def filter_bands_data(
+    bands_data,
+    percent_keep=0.6):
     """Filter bands data series to lower memory cost.
 
     Args:
         bands_data:
         percent_keep:
     """
-    #| - filter_bands_data
+    # | - filter_bands_data
     len_data = len(bands_data[2])
     filter_list = make_filter_list(len_data, percent_keep)
 
@@ -100,7 +103,7 @@ def filter_bands_data(bands_data, percent_keep=0.6):
     new_bands_data += (np.array(new_data),)
 
     return(new_bands_data)
-    #__|
+    # __|
 
 def plot_bands(
     bands_data,
@@ -112,42 +115,45 @@ def plot_bands(
         bands_data:
         plot_title:
     """
-    #| - plot_bands
+    # | - plot_bands
 
-    #| - SCRIPT PARAMETERS
+    # | - SCRIPT PARAMETERS
     # COMBAK
     emin = -20
     emax = 20
     plot_title = "Band diagram"
-    #__|
+    # __|
 
     s, k, x, X, e = bands_data
+
+    print("s:")
+    print(s)
 
     # symbols = [t.replace('Gamma', '$\Gamma$') for t in s]
     symbols = [t.replace("Gamma", "G") for t in s]
 
-    #| - Checking if Atomic Projections Present
+    # | - Checking if Atomic Projections Present
     # If atomic projections in "e" variable
     if isinstance(e, tuple) and len(e) == 2:
         # For the time being I'll just redefine e
 
         e = e[0]
-    #__|
+    # __|
 
-    #| - Checking for Spin Polarization
+    # | - Checking for Spin Polarization
     # If spinpol = True, then e will have added dimension
     if e.shape[0] == 2:
         spinpol = True
     else:
         spinpol = False
-    #__|
+    # __|
 
     data_list = []
 
-    #| - Plotting Bands
+    # | - Plotting Bands
     if spinpol is False:
 
-        #| - Spinpol: False
+        # | - Spinpol: False
         for n in range(len(e[0])):
             if n == 0:
                 showleg = True
@@ -155,10 +161,10 @@ def plot_bands(
                 showleg = False
 
             data_list.append(plot_band_series(x, e[:, n], showlegend=showleg))
-        #__|
+        # __|
 
     elif spinpol is True:
-        #| - Spinpol: True
+        # | - Spinpol: True
         for n in range(len(e[0][0])):
             if n == 0:
                 showleg = True
@@ -172,11 +178,11 @@ def plot_bands(
             data_list.append(
                 plot_band_series(x, e[1][:, n], showlegend=showleg),
                 )
-        #__|
+        # __|
 
-    #__|
+    # __|
 
-    #| - Plot y=0 (Fermi Level)
+    # | - Plot y=0 (Fermi Level)
     fermi_level = go.Scattergl(
         x=[X[0], X[-1]],
         y=[0, 0],
@@ -191,9 +197,9 @@ def plot_bands(
         )
 
     data_list.append(fermi_level)
-    #__|
+    # __|
 
-    #| - Plot Vertical Lines at Special K-Points
+    # | - Plot Vertical Lines at Special K-Points
     for p in X:
         trace = go.Scattergl(
             x=[p, p],
@@ -207,18 +213,18 @@ def plot_bands(
                 )
             )
         data_list.append(trace)
-    #__|
+    # __|
 
-    #| - Plotly
+    # | - Plotly
 
-    #| - Plot Settings
+    # | - Plot Settings
     plot_title_size = 18
     tick_lab_size = 16
     axes_lab_size = 18
     legend_size = 18
-    #__|
+    # __|
 
-    #| - Plot Layout
+    # | - Plot Layout
     layout = {
         "title": plot_title,
         "showlegend": False,
@@ -228,7 +234,7 @@ def plot_bands(
             "color": "black",
             },
 
-        #| - Axes --------------------------------------------------------------
+        # | - Axes --------------------------------------------------------------
         "yaxis": {
             "title": "Energy [eV]",
             "range": [emin, emax],
@@ -254,24 +260,24 @@ def plot_bands(
             },
 
 
-        #__| -------------------------------------------------------------------
+        # __| -------------------------------------------------------------------
 
-        #| - Legend ------------------------------------------------------------
+        # | - Legend ------------------------------------------------------------
         "legend": {
             "traceorder": "normal",
             "font": dict(size=legend_size)
             },
-        #__| -------------------------------------------------------------------
+        # __| -------------------------------------------------------------------
 
-        #| - Plot Size
+        # | - Plot Size
         "width": 200 * 4.,
         "height": 200 * 3.,
-        #__|
+        # __|
 
         }
-    #__|
+    # __|
 
-    #__|
+    # __|
 
     return(data_list, layout)
-    #__|
+    # __|

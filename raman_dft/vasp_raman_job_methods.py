@@ -1,6 +1,6 @@
 """Methods to run VASP-Raman jobs."""
 
-#| - IMPORT MODULES
+# | - IMPORT MODULES
 import os
 import sys
 from math import sqrt
@@ -10,12 +10,12 @@ import numpy as np
 
 from plotly.graph_objs import Scatter
 import re
-#__|
+# __|
 
-#| - Methods from vasp_raman script (Github)
+# | - Methods from vasp_raman script (Github)
 
 def get_modes_from_OUTCAR(outcar_fh, nat=None, free_nat=None, path_i="."):
-    #| - get_modes_from_OUTCAR
+    # | - get_modes_from_OUTCAR
     if nat == None:
 
         name = "OUTCAR.phon"
@@ -76,10 +76,10 @@ def get_modes_from_OUTCAR(outcar_fh, nat=None, free_nat=None, path_i="."):
         " division by SQRT(mass)'' in OUTCAR.",
         " Use 'NWRITE=3' in INCAR. Exiting...")
     sys.exit(1)
-    #__|
+    # __|
 
 def parse_env_params(params):
-    #| - parse_env_params
+    # | - parse_env_params
     tmp = params.strip().split("_")
     if len(tmp) != 4:
         print("[parse_env_params]: ERROR there should be exactly four parameters")
@@ -88,10 +88,10 @@ def parse_env_params(params):
     [first, last, nderiv, step_size] = [int(tmp[0]), int(tmp[1]), int(tmp[2]), float(tmp[3])]
 
     return first, last, nderiv, step_size
-    #__|
+    # __|
 
 def parse_poscar(poscar_fh, cons_atoms=0):
-    #| - parse_poscar
+    # | - parse_poscar
     # modified subroutine from phonopy 1.8.3 (New BSD license)
 
     poscar_fh.seek(0) # just in case
@@ -141,25 +141,25 @@ def parse_poscar(poscar_fh, cons_atoms=0):
 
     poscar_header = "".join(lines[1:line_at-1]) # will add title and "Cartesian" later
     return nat, free_nat, vol, b, positions, poscar_header
-    #__|
+    # __|
 
 def MAT_m_VEC(m, v):
-    #| - MAT_m_VEC
+    # | - MAT_m_VEC
     p = [ 0.0 for i in range(len(v)) ]
     for i in range(len(m)):
         assert len(v) == len(m[i]), "Length of the matrix row is not equal to the length of the vector"
         p[i] = sum( [ m[i][j]*v[j] for j in range(len(v)) ] )
     return p
-    #__|
+    # __|
 
 def T(m):
-    #| - T
+    # | - T
     p = [[ m[i][j] for i in range(len( m[j] )) ] for j in range(len( m )) ]
     return p
-    #__|
+    # __|
 
 def get_epsilon_from_OUTCAR(outcar_fh):
-    #| - get_epsilon_from_OUTCAR
+    # | - get_epsilon_from_OUTCAR
     epsilon = []
 
     outcar_fh.seek(0) # just in case
@@ -178,13 +178,13 @@ def get_epsilon_from_OUTCAR(outcar_fh):
 
     raise RuntimeError("[get_epsilon_from_OUTCAR]: ERROR Couldn't find dielectric tensor in OUTCAR")
     return 1
-    #__|
+    # __|
 
 
-#| - Substitute Functions for VTST
+# | - Substitute Functions for VTST
 
 def parse_freqdat(freqdat_fh, nat):
-    #| - parse_freqdat
+    # | - parse_freqdat
     freqdat_fh.seek(0) # just in case
     #
     eigvals = [ 0.0 for i in range(nat*3) ]
@@ -194,10 +194,10 @@ def parse_freqdat(freqdat_fh, nat):
         eigvals[i] = float(tmp[0])
     #
     return eigvals
-    #__|
+    # __|
 
 def parse_modesdat(modesdat_fh, nat):
-    #| - parse_modesdat
+    # | - parse_modesdat
     # from math import sqrt
     modesdat_fh.seek(0) # just in case
     #
@@ -215,11 +215,11 @@ def parse_modesdat(modesdat_fh, nat):
         norms[i] = sqrt( sum( [abs(x)**2 for sublist in eigvec for x in sublist] ) )
     #
     return eigvecs, norms
-    #__|
+    # __|
 
-#__|
+# __|
 
-#__|
+# __|
 
 def modes_list(num_modes, step, mode_0=1, modes_to_run="All"):
     """Returns list of strings representing number of modes to run per job
@@ -228,7 +228,7 @@ def modes_list(num_modes, step, mode_0=1, modes_to_run="All"):
         atoms:
         modes_to_run:
     """
-    #| - modes_list
+    # | - modes_list
 
 
     # atoms = io.read("POSCAR.phon")
@@ -266,7 +266,7 @@ def modes_list(num_modes, step, mode_0=1, modes_to_run="All"):
 
 
     return(modes_list)
-    #__|
+    # __|
 
 def vasp_raman_input_file(modes, dir="."):
     """
@@ -276,7 +276,7 @@ def vasp_raman_input_file(modes, dir="."):
         dir: <type 'str'>
             Directory to write the vasp_raman input file to
     """
-    #| - vasp_raman_input_file
+    # | - vasp_raman_input_file
     VASP_RAMAN_RUN = "python 3_vasp_raman_run_ibrion_n1.py"
 
     #| Changing "-" character in mode to "_"
@@ -289,15 +289,15 @@ def vasp_raman_input_file(modes, dir="."):
 
     with open(dir + "/" + filename, "w") as file:
         file.write(VASP_RAMAN_PARAMS + "\n" + VASP_RAMAN_RUN + "\n")
-    #__|
+    # __|
 
 def concatenate_mode_files():
     """
     """
-    #| - concatenate_mode_filess
+    # | - concatenate_mode_filess
     tmp = 7
 
-    #__|
+    # __|
 
 def to_plot(hw, ab, gam=0.05, type="Gaussian", scaling=1.):
     """
@@ -309,7 +309,7 @@ def to_plot(hw, ab, gam=0.05, type="Gaussian", scaling=1.):
         type:
         scaling:
     """
-    #| - to_plot
+    # | - to_plot
     ab /= np.max(np.abs(ab), axis=0)
 
     ab = ab * scaling
@@ -331,7 +331,7 @@ def to_plot(hw, ab, gam=0.05, type="Gaussian", scaling=1.):
             spectrum += ab[i]*1/np.pi*gam/((hw[i]-erange)**2+gam**2)
 
     return erange, spectrum
-    #__|
+    # __|
 
 def proc_data(
     data,
@@ -351,7 +351,7 @@ def proc_data(
         gauss_gamma=8.0:
         color_palette=None:
     """
-    #| - proc_data
+    # | - proc_data
     data_sets = data
 
     plot_data_list = []
@@ -365,14 +365,14 @@ def proc_data(
 
         x_dat = np.array(x_dat) + freq_shift
 
-        #| - Creating Gaussian Curves From Frequencies and Activities
+        # | - Creating Gaussian Curves From Frequencies and Activities
         x_dat, y_dat = to_plot(
             x_dat,
             y_dat,
             gam=gauss_gamma,
             scaling=scaling
             )
-        #__|
+        # __|
 
         if color_palette is None:
             data_i = Scatter(
@@ -398,4 +398,4 @@ def proc_data(
         plot_data_list.append(data_i)
 
     return(plot_data_list)
-    #__|
+    # __|
