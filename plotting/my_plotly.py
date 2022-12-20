@@ -7,17 +7,81 @@ Author: Raul A. Flores
 
 # | - Import Modules
 import os
-
 import copy
+import re
+import json
 
-# Plotly imports
-import plotly
-
-import chart_studio.plotly as py
 import plotly.graph_objs as go
-
+import plotly.io as pl_io
 from plotly import io as pyio
 # __|
+
+# #########################################################
+# | - Nice default plot settings
+
+# | - shared_axis_dict
+shared_axis_dict = dict(
+    mirror=True,
+    showgrid=False,
+    showline=True,
+    tickcolor='black',
+    linecolor='black',
+    tickfont=dict(
+        size=10*(4/3),
+        ),
+    title=dict(
+        font=dict(
+            size=12*(4/3),
+            ),
+        ),
+    zeroline=True,
+    zerolinecolor='grey',
+    zerolinewidth=1.,
+    )
+# __|
+
+# | - base_plotly_layout
+base_plotly_layout = dict(
+    paper_bgcolor='rgba(255,255,255,1)',
+    plot_bgcolor='rgba(255,255,255,1)',
+    font=go.layout.Font(
+        color='black',
+        family='Arial',
+        ),
+    yaxis=shared_axis_dict,
+    xaxis=shared_axis_dict,
+    )
+# __|
+
+base_plotly_scatter_props = dict(
+    marker={
+        'size': 10,
+        'line': {
+            'width': 0.8,
+            'color': 'black',
+            },
+        }
+    )
+
+
+# __|
+# #########################################################
+
+
+def read_plotly_html(path=None):
+    """Read HTML plotly file and return a plotly figure object."""
+    #| - read_plotly_html
+    fig_path = path
+
+    with open(fig_path) as f:
+        html = f.read()
+    call_arg_str = re.findall(r'Plotly\.newPlot\((.*)\)', html[-2**16:])[0]
+    call_args = json.loads(f'[{call_arg_str}]')
+    plotly_json = {'data': call_args[1], 'layout': call_args[2]}
+    fig = pl_io.from_json(json.dumps(plotly_json))
+
+    return(fig)
+    #__|
 
 
 def get_xy_axis_info(fig):
@@ -86,34 +150,34 @@ def add_duplicate_axes(
     from plotting.my_plotly import add_duplicate_axes
 
     shared_axis_data = {
-	"tickcolor": "black",
-	"ticklen": 3,
-	}
+        "tickcolor": "black",
+        "ticklen": 3,
+        }
 
     shared_xaxis_data = {
-	"dtick": 50,
-	**shared_axis_data,
-	}
+        "dtick": 50,
+        **shared_axis_data,
+        }
 
     shared_yaxis_data = {
-	"dtick": 1,
-	**shared_axis_data,
-	}
+        "dtick": 1,
+        **shared_axis_data,
+        }
 
     shared_meth_props = dict(
-	tmp_define_both_axis_types=True,
-	)
+        tmp_define_both_axis_types=True,
+        )
 
     add_duplicate_axes(
-	fig, axis_type='x',
-	axis_data=shared_xaxis_data,
-	axis_num_list=[1, ],
-	**shared_meth_props)
+        fig, axis_type='x',
+        axis_data=shared_xaxis_data,
+        axis_num_list=[1, ],
+        **shared_meth_props)
     add_duplicate_axes(
-	fig, axis_type='y',
-	axis_data=shared_yaxis_data,
-	axis_num_list=[1, ],
-	**shared_meth_props)
+        fig, axis_type='y',
+        axis_data=shared_yaxis_data,
+        axis_num_list=[1, ],
+        **shared_meth_props)
 
 
     """
@@ -285,15 +349,17 @@ def add_minor_ticks(
 
 def my_plotly_plot(
     figure=None,
+    save_dir=None,
+    place_in_out_plot=True,
     plot_name="TEMP_PLOT_NAME",
     write_html=False,
     write_png=False,
     png_scale=6.,
     write_pdf=False,
     write_svg=False,
-
     try_orca_write=False,
-    ):
+    verbose=False,
+        ):
     """
     Returns: Plotly figure object
 
@@ -319,12 +385,27 @@ def my_plotly_plot(
     assert figure is not None, "Must pass a plot.ly figure object"
     fig = figure
 
+    import plotly.io as pio
+    scope = pio.kaleido.scope
 
     # #########################################################################
-    plot_dir = "out_plot"
+
+    if save_dir is None:
+        if place_in_out_plot:
+            plot_dir = "out_plots"
+        else:
+            plot_dir = "."
+    else:
+
+        if place_in_out_plot:
+            plot_dir = os.path.join(save_dir, "out_plots")
+        else:
+            plot_dir = os.path.join(save_dir, )
+
     if not os.path.exists(plot_dir):
         os.makedirs(plot_dir)
 
+    prepath = os.path.join(plot_dir, plot_name)
 
     # | - Local write to HTML
     if write_html:
@@ -365,26 +446,29 @@ def my_plotly_plot(
         hostname == "raul-dell-latitude" or
         try_orca_write
         ):
-        print("Writing pdf with ORCA")
-
-        prepath = os.path.join(plot_dir, plot_name)
-        print("prepath:", prepath)
+        if verbose:
+            print("Writing pdf with ORCA")
+            print("prepath:", prepath)
 
         if write_pdf:
-            try:
-                fig.write_image(prepath + ".pdf")
-            except:
-                print("Couldn't write pdf")
+            # This is a test line, throw error if fails
+            fig.write_image(prepath + ".pdf")
+
+            # try:
+            #     fig.write_image(prepath + ".pdf")
+            # except:
+            #     print("Couldn't write pdf")
+
         if write_png:
             try:
+                # print(prepath)
                 fig.write_image(prepath + ".png", scale=png_scale)
             except:
                 print("Couldn't write png")
 
     # __|
 
-
-    # return(fig)
+    scope._shutdown_kaleido()
     # __|
 
 

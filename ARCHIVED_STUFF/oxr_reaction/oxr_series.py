@@ -202,8 +202,14 @@ class ORR_Free_E_Series():
         """
         # | - __num_of_states
         df_i = self.fe_df
+        state_title_i = self.state_title
 
-        num_of_states = len(set(df_i["adsorbate"].tolist()))
+        # num_of_states = len(set(df_i["adsorbate"].tolist()))
+        num_of_states = len(set(df_i[state_title_i].tolist()))
+
+        # print("ijsifjisddf87uy6t5rty7uijuhgtfrtyhb")
+        # print(df_i)
+        # print("ijsifjisddf87uy6t5rty7uijuhgtfrtyhb")
 
         err_mess = "There are not enough unique calcs (less than 4)"
         assert num_of_states >= 4, err_mess
@@ -282,9 +288,13 @@ class ORR_Free_E_Series():
         """
         # | - add_bulk_entry
         df = self.fe_df
+        state_title_i = self.state_title
+        fe_title_i = self.fe_title
+
         bulk_df = pd.DataFrame([{
-            "adsorbate": "bulk",
-            "ads_e": bulk_e,
+            # "adsorbate": "bulk",
+            state_title_i: "bulk",
+            fe_title_i: bulk_e,
             }])
 
         # TEMP
@@ -299,18 +309,26 @@ class ORR_Free_E_Series():
         # | - rxn_energy_lst_h2o2
         # h2o2_e = 3.52
 
+        # #################################################
         df = self.fe_df
+        state_title_i = self.state_title
+        fe_title_i = self.fe_title
+        # #################################################
 
         free_energy_list = []
         for index, row in df.iterrows():
-            if row["adsorbate"] == "bulk" or row["adsorbate"] == "ooh":
-                free_energy_list.append(row["ads_e"])
+            # if row["adsorbate"] == "bulk" or row["adsorbate"] == "ooh":
+            if row[state_title_i] == "bulk" or row[state_title_i] == "ooh":
+                # free_energy_list.append(row["ads_e"])
+                free_energy_list.append(row[fe_title_i])
+
 
         # TODO | Make this parse the reaction array instead of reaction list
         # Checking length of energy list
         if len(free_energy_list) != 2:
+            tmp = 42
             # raise ValueError("Not the correct # of steps for H2O2")
-            print("Not the correct # of steps for H2O2")
+            # print("Not the correct # of steps for H2O2")
 
         free_energy_list[0] += 4.92
         free_energy_list.append(3.52)
@@ -564,9 +582,16 @@ class ORR_Free_E_Series():
         *OOH intermediate
         """
         # | - calc_overpotential_h2o2
+        # #################################################
         df = self.fe_df
-        ooh_row = df[df["adsorbate"] == "ooh"]
-        ooh_ads_e = ooh_row.iloc[0]["ads_e"]
+        fe_title_i = self.fe_title
+        state_title_i = self.state_title
+        # #################################################
+
+        # ooh_row = df[df["adsorbate"] == "ooh"]
+        ooh_row = df[df[state_title_i] == "ooh"]
+        # ooh_ads_e = ooh_row.iloc[0]["ads_e"]
+        ooh_ads_e = ooh_row.iloc[0][fe_title_i]
 
         op_4e = ooh_ads_e - 4.22
 

@@ -119,7 +119,7 @@ class Energy(object):
 
 
         if isinstance(other, Energy):
-            print("Divisor is Energy class instance!!!")
+            # print("Divisor is Energy class instance!!!")
 
             electronic_e_new = subtract_mine(
                 self.electronic_e,

@@ -11,6 +11,7 @@ Development Notes:
     TODO Add work function analysis (Ask Colin about Karen's method)
 """
 
+
 # | - IMPORT MODULES
 import sys
 import os
@@ -21,6 +22,8 @@ import math
 import pickle as pickle
 import numpy as np
 import shutil
+
+import pandas as pd
 
 from scipy.stats import norm
 
@@ -42,7 +45,7 @@ from pymatgen.core.periodic_table import _pt_data as periodic_table_dict
 from misc_modules.numpy_methods import angle_between
 from ase_modules.dft_params import Espresso_Params
 
-from quantum_espresso.qe_methods import estimate_magmom
+#  from quantum_espresso.qe_methods import estimate_magmom
 
 from bader_charge.bader import bader
 
@@ -51,6 +54,7 @@ import shutil
 import random
 import string
 # __|
+
 
 # | - METHODS
 
@@ -133,276 +137,276 @@ def set_QE_calc_params(
 
 # | - Ionic Optimization *******************************************************
 
-def ionic_opt(
-    atoms,
-    calc=None,
-    traj=None,
-    espresso_params=None,
-    mode="opt",
-    fmax=0.05,
-    maxsteps=100000000,
-    run_beef_an=True,
-    run_bader_an=True,
-    save_wf=True,
-    ):
-    """Run ionic dft relaxation on atoms object.
-
-    Development Notes:
-        * What to do when the job has already been previously completed?
-        Should I run a single point calculation just to make sure the
-        calculator is fully operational/loaded?
-
-        TODO .FINSISHED file should include information about what kind of
-        optimization was performed
-
-        TODO Implemetn qn.replay_trajectory('qn.traj') functionality
-
-    Args:
-        atoms: ASE atoms object
-        calc: Calculator object
-        espresso_params: Quantum Espresso job parameters dictionary
-        mode:
-        fmax: Force convergence criteria
-        maxsteps: Maximum number of ionic steps
-        run_beef_an:
-            Attempts to run Beef-vdW ensemble of energies
-            Must have ran calculation with appropriate paramters to begin with
-    """
-    # | - ionic_opt
-    from espresso import espresso
-    from ase.optimize import QuasiNewton
-
-    mess = "Running DFT Calculation "
-    mess += "******************************************************"
-    print(mess)
-    sys.stdout.flush()
-
-    # TODO Skip calculation if previously converged
-    # COMBAK Uncomment this section
-    # | - Checking if Previous Calculation Has Been Completed
-    # filename = ".FINISHED.new"
-    # if os.path.exists("./" + filename):
-    #     with open(filename, "r") as fle:
-    #         lines = [line.strip() for line in fle.readlines()]
-    #         if "ionic_opt" in lines:
-    #             print("ionic_opt | Optimization previusly completed "
-    #                 "(Running a single-point calculation)"
-    #                 )
-    #             mode = "sp"
-    # __|
-
-    # | - Setting Optimization Specific Espresso Parameters
-    # espresso_params_copy = copy.deepcopy(espresso_params)
-
-    params_opt = {
-        # "output": {
-        #     "avoidio": True,
-        #     "removesave": True,
-        #     "removewf": True,
-        #     "wf_collect": False,
-        #     },
-
-        "outdir": "calcdir_opt",
-        }
-
-    # espresso_params_copy.update(params_opt)
-    # calc_opt = espresso(**espresso_params_copy)
-    # atoms.set_calculator(calc_opt)
-
-    calc_opt, espresso_params_opt = set_QE_calc_params(
-        params=params_opt,
-        )
-
-    calc_opt = espresso(**espresso_params_opt)
-    atoms.set_calculator(calc_opt)
-    # __|
-
-    reduce_magmoms(atoms)
-
-    if mode == "opt":
-        # | - Regular Optimization
-        mess = "Running regular optimization "
-        print(mess); sys.stdout.flush()
-
-        # TEMP
-        do_strain_filter = False
-        if do_strain_filter:
-            print("Performing opt with StrainFilter class")
-            from ase.constraints import StrainFilter
-            SF = StrainFilter(atoms)
-            # atoms.set_constraint(SF)
-
-            qn = QuasiNewton(
-                SF,
-                # trajectory="out_opt.traj",
-                logfile="qn.log",
-                )
-
-        else:
-            qn = QuasiNewton(
-                atoms,
-                # trajectory="out_opt.traj",
-                logfile="qn.log",
-                )
-
-        if traj is not None:
-            qn.attach(traj)  # COMBAK Test feature (restarting traj files)
-
-        if os.path.exists("prev.traj"):
-            qn.replay_trajectory("prev.traj")
-
-        qn.run(
-            fmax=fmax,
-            steps=maxsteps,
-            )
-        # __|
-
-    elif mode == "easy_opt":
-        # | - Easy Optimization -> Full Optimization
-        mess = "Running easy optimization scheme"
-        print(mess); sys.stdout.flush()
-
-        # | - Easy Optimization Settings
-        espresso_params_copy = copy.deepcopy(espresso_params)
-
-        easy_params = {
-            "pw": 400,
-            "dw": 4000,
-            "spinpol": False,
-            "kpts": (3, 3, 1),
-
-            "convergence": {
-                "energy": 5e-5,  # convergence parameters
-                "mixing": 0.05,
-                "nmix": 20,
-                "mix": 4,
-                "maxsteps": 400,
-                "diag": "david",
-                },
-            "outdir": "calcdir_easy",
-            }
-
-        espresso_params_copy.update(easy_params)
-        easy_calc = espresso(**espresso_params_copy)
-        # __|
-
-        #TODO: Find a way to freeze all atoms but adsorbates
-        # SIMPLE RELAXATION #################
-        print("ionic_opt | Running Easy Relaxation"); sys.stdout.flush()
-
-        magmoms = atoms.get_initial_magnetic_moments()
-
-        # set_mag_mom_to_0(atoms)
-
-        # FIXME I should be able to just use the "set_initial_magnetic_moments"
-        # method here. That should automatically set to magmoms to 0 from the
-        # QE parameters dict
-        atoms.set_initial_magnetic_moments(np.zeros(len(atoms)))
-
-        atoms.set_calculator(easy_calc)
-
-        qn = QuasiNewton(
-            atoms,
-            trajectory="out_opt_easy.traj",
-            logfile="qn.log",
-            )
-
-        if os.path.exists("prev.traj"):
-            qn.replay_trajectory("prev.traj")
-
-        qn.run(fmax=fmax)
-
-        # FULL RELAXATION #################
-        print("ionic_opt | Running Full Relaxation"); sys.stdout.flush()
-        # atoms.set_calculator(calc)
-        atoms.set_calculator(calc_opt)
-
-        print(magmoms)
-        atoms.set_initial_magnetic_moments(magmoms)
-
-        qn = QuasiNewton(
-            atoms,
-            trajectory="out_opt.traj",
-            logfile="qn.log",
-            )
-
-        if os.path.exists("prev.traj"):
-            qn.replay_trajectory("prev.traj")
-
-        qn.run(fmax=fmax)
-        # __|
-
-    elif mode == "sp":
-        # | - Single Point Calculation
-        mess = "Running Single-Point Calculation"
-        print(mess); sys.stdout.flush()
-
-        atoms.get_potential_energy()
-        write("out_opt.traj", atoms)
-        # __|
-
-
-    #TEMP
-    if save_wf:
-        atoms.calc.save_wf()
-
-    estimate_magmom(
-        path_i=".",
-        atoms=atoms,
-        log="calcdir_opt/log",
-        )
-
-    elec_e = atoms.get_potential_energy()
-
-    outdir = "dir_opt"
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-
-    e_out = outdir + "/elec_e.out"
-    with open(e_out, "w") as fle:
-        fle.write(str(elec_e) + "\n")
-
-    # if mode != "sp":
-    #     # | - Always Run Single-Point Calculation with Full IO
-    #     mess = "Running Post-run Single-Point Calculation"
-    #     print(mess); sys.stdout.flush()
-    #     atoms.get_potential_energy()
-    #     # __|
-
-    update_FINISHED("ionic_opt")
-
-    if run_beef_an:
-        an_beef_ensemble(atoms)
-
-    if run_bader_an:
-
-        # | - Running initial single-point calculation
-        params_bader = {
-            "output": {
-                "avoidio": False,
-                "removesave": True,
-                "removewf": True,
-                "wf_collect": False,
-                },
-
-            "outdir": "calcdir_bader",
-            }
-
-        calc_bader, espresso_params_bader = set_QE_calc_params(
-            params=params_bader,
-            )
-
-        calc_bader = espresso(**espresso_params_bader)
-        atoms.set_calculator(calc_bader)
-
-        mess = "Running single-point calc with high io "
-        print(mess); sys.stdout.flush()
-        atoms.get_potential_energy()
-        print("finished single-point"); sys.stdout.flush()
-        # __|
-
-        bader(atoms, spinpol=espresso_params_opt["spinpol"], run_exec=True)
-    # __|
+#  def ionic_opt(
+#      atoms,
+#      calc=None,
+#      traj=None,
+#      espresso_params=None,
+#      mode="opt",
+#      fmax=0.05,
+#      maxsteps=100000000,
+#      run_beef_an=True,
+#      run_bader_an=True,
+#      save_wf=True,
+#      ):
+#      """Run ionic dft relaxation on atoms object.
+#
+#      Development Notes:
+#          * What to do when the job has already been previously completed?
+#          Should I run a single point calculation just to make sure the
+#          calculator is fully operational/loaded?
+#
+#          TODO .FINSISHED file should include information about what kind of
+#          optimization was performed
+#
+#          TODO Implemetn qn.replay_trajectory('qn.traj') functionality
+#
+#      Args:
+#          atoms: ASE atoms object
+#          calc: Calculator object
+#          espresso_params: Quantum Espresso job parameters dictionary
+#          mode:
+#          fmax: Force convergence criteria
+#          maxsteps: Maximum number of ionic steps
+#          run_beef_an:
+#              Attempts to run Beef-vdW ensemble of energies
+#              Must have ran calculation with appropriate paramters to begin with
+#      """
+#      # | - ionic_opt
+#      from espresso import espresso
+#      from ase.optimize import QuasiNewton
+#
+#      mess = "Running DFT Calculation "
+#      mess += "******************************************************"
+#      print(mess)
+#      sys.stdout.flush()
+#
+#      # TODO Skip calculation if previously converged
+#      # COMBAK Uncomment this section
+#      # | - Checking if Previous Calculation Has Been Completed
+#      # filename = ".FINISHED.new"
+#      # if os.path.exists("./" + filename):
+#      #     with open(filename, "r") as fle:
+#      #         lines = [line.strip() for line in fle.readlines()]
+#      #         if "ionic_opt" in lines:
+#      #             print("ionic_opt | Optimization previusly completed "
+#      #                 "(Running a single-point calculation)"
+#      #                 )
+#      #             mode = "sp"
+#      # __|
+#
+#      # | - Setting Optimization Specific Espresso Parameters
+#      # espresso_params_copy = copy.deepcopy(espresso_params)
+#
+#      params_opt = {
+#          # "output": {
+#          #     "avoidio": True,
+#          #     "removesave": True,
+#          #     "removewf": True,
+#          #     "wf_collect": False,
+#          #     },
+#
+#          "outdir": "calcdir_opt",
+#          }
+#
+#      # espresso_params_copy.update(params_opt)
+#      # calc_opt = espresso(**espresso_params_copy)
+#      # atoms.set_calculator(calc_opt)
+#
+#      calc_opt, espresso_params_opt = set_QE_calc_params(
+#          params=params_opt,
+#          )
+#
+#      calc_opt = espresso(**espresso_params_opt)
+#      atoms.set_calculator(calc_opt)
+#      # __|
+#
+#      reduce_magmoms(atoms)
+#
+#      if mode == "opt":
+#          # | - Regular Optimization
+#          mess = "Running regular optimization "
+#          print(mess); sys.stdout.flush()
+#
+#          # TEMP
+#          do_strain_filter = False
+#          if do_strain_filter:
+#              print("Performing opt with StrainFilter class")
+#              from ase.constraints import StrainFilter
+#              SF = StrainFilter(atoms)
+#              # atoms.set_constraint(SF)
+#
+#              qn = QuasiNewton(
+#                  SF,
+#                  # trajectory="out_opt.traj",
+#                  logfile="qn.log",
+#                  )
+#
+#          else:
+#              qn = QuasiNewton(
+#                  atoms,
+#                  # trajectory="out_opt.traj",
+#                  logfile="qn.log",
+#                  )
+#
+#          if traj is not None:
+#              qn.attach(traj)  # COMBAK Test feature (restarting traj files)
+#
+#          if os.path.exists("prev.traj"):
+#              qn.replay_trajectory("prev.traj")
+#
+#          qn.run(
+#              fmax=fmax,
+#              steps=maxsteps,
+#              )
+#          # __|
+#
+#      elif mode == "easy_opt":
+#          # | - Easy Optimization -> Full Optimization
+#          mess = "Running easy optimization scheme"
+#          print(mess); sys.stdout.flush()
+#
+#          # | - Easy Optimization Settings
+#          espresso_params_copy = copy.deepcopy(espresso_params)
+#
+#          easy_params = {
+#              "pw": 400,
+#              "dw": 4000,
+#              "spinpol": False,
+#              "kpts": (3, 3, 1),
+#
+#              "convergence": {
+#                  "energy": 5e-5,  # convergence parameters
+#                  "mixing": 0.05,
+#                  "nmix": 20,
+#                  "mix": 4,
+#                  "maxsteps": 400,
+#                  "diag": "david",
+#                  },
+#              "outdir": "calcdir_easy",
+#              }
+#
+#          espresso_params_copy.update(easy_params)
+#          easy_calc = espresso(**espresso_params_copy)
+#          # __|
+#
+#          #TODO: Find a way to freeze all atoms but adsorbates
+#          # SIMPLE RELAXATION #################
+#          print("ionic_opt | Running Easy Relaxation"); sys.stdout.flush()
+#
+#          magmoms = atoms.get_initial_magnetic_moments()
+#
+#          # set_mag_mom_to_0(atoms)
+#
+#          # FIXME I should be able to just use the "set_initial_magnetic_moments"
+#          # method here. That should automatically set to magmoms to 0 from the
+#          # QE parameters dict
+#          atoms.set_initial_magnetic_moments(np.zeros(len(atoms)))
+#
+#          atoms.set_calculator(easy_calc)
+#
+#          qn = QuasiNewton(
+#              atoms,
+#              trajectory="out_opt_easy.traj",
+#              logfile="qn.log",
+#              )
+#
+#          if os.path.exists("prev.traj"):
+#              qn.replay_trajectory("prev.traj")
+#
+#          qn.run(fmax=fmax)
+#
+#          # FULL RELAXATION #################
+#          print("ionic_opt | Running Full Relaxation"); sys.stdout.flush()
+#          # atoms.set_calculator(calc)
+#          atoms.set_calculator(calc_opt)
+#
+#          print(magmoms)
+#          atoms.set_initial_magnetic_moments(magmoms)
+#
+#          qn = QuasiNewton(
+#              atoms,
+#              trajectory="out_opt.traj",
+#              logfile="qn.log",
+#              )
+#
+#          if os.path.exists("prev.traj"):
+#              qn.replay_trajectory("prev.traj")
+#
+#          qn.run(fmax=fmax)
+#          # __|
+#
+#      elif mode == "sp":
+#          # | - Single Point Calculation
+#          mess = "Running Single-Point Calculation"
+#          print(mess); sys.stdout.flush()
+#
+#          atoms.get_potential_energy()
+#          write("out_opt.traj", atoms)
+#          # __|
+#
+#
+#      #TEMP
+#      if save_wf:
+#          atoms.calc.save_wf()
+#
+#      estimate_magmom(
+#          path_i=".",
+#          atoms=atoms,
+#          log="calcdir_opt/log",
+#          )
+#
+#      elec_e = atoms.get_potential_energy()
+#
+#      outdir = "dir_opt"
+#      if not os.path.exists(outdir):
+#          os.makedirs(outdir)
+#
+#      e_out = outdir + "/elec_e.out"
+#      with open(e_out, "w") as fle:
+#          fle.write(str(elec_e) + "\n")
+#
+#      # if mode != "sp":
+#      #     # | - Always Run Single-Point Calculation with Full IO
+#      #     mess = "Running Post-run Single-Point Calculation"
+#      #     print(mess); sys.stdout.flush()
+#      #     atoms.get_potential_energy()
+#      #     # __|
+#
+#      update_FINISHED("ionic_opt")
+#
+#      if run_beef_an:
+#          an_beef_ensemble(atoms)
+#
+#      if run_bader_an:
+#
+#          # | - Running initial single-point calculation
+#          params_bader = {
+#              "output": {
+#                  "avoidio": False,
+#                  "removesave": True,
+#                  "removewf": True,
+#                  "wf_collect": False,
+#                  },
+#
+#              "outdir": "calcdir_bader",
+#              }
+#
+#          calc_bader, espresso_params_bader = set_QE_calc_params(
+#              params=params_bader,
+#              )
+#
+#          calc_bader = espresso(**espresso_params_bader)
+#          atoms.set_calculator(calc_bader)
+#
+#          mess = "Running single-point calc with high io "
+#          print(mess); sys.stdout.flush()
+#          atoms.get_potential_energy()
+#          print("finished single-point"); sys.stdout.flush()
+#          # __|
+#
+#          bader(atoms, spinpol=espresso_params_opt["spinpol"], run_exec=True)
+#      # __|
 
 # __| **************************************************************************
 
@@ -2266,9 +2270,9 @@ def view_in_vesta(
 
         if name_list is not None:
             mess_i = "name_list must be the same len as atoms_list"
-            assert len(name_list) == len(atoms_list), mess_i 
+            assert len(name_list) == len(atoms_list), mess_i
             filename_prepend = name_list[i_cnt]
-            file_i = str(i_cnt).zfill(3) + "_" + filename_prepend + "_"  + file_i            
+            file_i = str(i_cnt).zfill(3) + "_" + filename_prepend + "_"  + file_i
 
         full_path_i = os.path.join(
             dirpath,
@@ -2466,6 +2470,30 @@ def create_gif_from_atoms_movies(
 
 # | - MISC
 
+def get_slab_kpts(atoms):
+    """
+    """
+    #| - get_slab_kpts
+    unitcell = atoms.get_cell()
+    unitcell = np.array(unitcell.tolist())
+
+    kpoints = []
+    for i in [0, 1, ]:
+        l_var = np.linalg.norm(unitcell[i])
+
+        k = math.ceil(4 * 5 / l_var)
+        # k = int(4 * 5 / l_var)
+
+        if(k > 0):
+            kpoints.append(k)
+        else:
+            kpoints.append(1)
+    kpoints.append(1)
+
+    # print("kpoints:", kpoints)
+    return(kpoints)
+    #__|
+
 def max_force(atoms):
     """Return largest force on any atom.
 
@@ -2505,6 +2533,48 @@ def max_force(atoms):
             largest = force
 
     return(largest, sum)
+    # __|
+
+def get_atom_mapping_dict(atoms_A, atoms_B):
+    """
+    """
+    # | - get_atom_mapping_dict
+    data_dict_list_i = []
+    for atom_i in atoms_A:
+
+        index_i = atom_i.index
+        born_charge_i = 0.
+
+        data_dict_list_j = []
+        for atom_j in atoms_B:
+            index_j = atom_j.index
+            distance_between_atoms_ij = np.linalg.norm(atom_i.position - atom_j.position)
+            data_dict_j = dict()
+            data_dict_j["elem_i"] = atom_i.symbol
+            data_dict_j["elem_j"] = atom_j.symbol
+            data_dict_j["index_j"] = index_j
+            data_dict_j["distance_between_atoms"] = distance_between_atoms_ij
+            data_dict_list_j.append(data_dict_j)
+        df_j = pd.DataFrame(data_dict_list_j)
+
+        df_j_2 = df_j[
+            df_j["elem_i"] == df_j["elem_j"]
+            ]
+
+        closest_atom_index = None
+        if df_j_2.shape[0] > 0:
+            closest_atom_index_df = df_j["distance_between_atoms"].idxmin()
+            closest_atom_index = df_j.loc[closest_atom_index_df].index_j
+
+        data_dict_i = dict()
+        data_dict_i["atomic_index_A"] = atom_i.index
+        data_dict_i["atomic_index_B"] = closest_atom_index
+        data_dict_list_i.append(data_dict_i)
+
+    df_i = pd.DataFrame(data_dict_list_i)
+    df_i = df_i.set_index("atomic_index_A")
+
+    return(df_i)
     # __|
 
 # __|

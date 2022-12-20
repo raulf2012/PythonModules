@@ -94,7 +94,7 @@ def slurm_squeue_parse(
 
 # __|
 
-###############################################################################
+###########################################################
 class ComputerCluster():
     """Base class for interfacing with computing resources.
 
@@ -267,6 +267,8 @@ class ComputerCluster():
         # | - submit_job
         kwargs = merge_two_dicts(self.default_sub_params, kwargs)
 
+        # | - Job Checks
+
         # | - Checking if job has already been submitted
         if "path_i" in kwargs:
             path_i = kwargs["path_i"]
@@ -275,6 +277,18 @@ class ComputerCluster():
 
         if self.is_job_submitted(path_i=path_i):
             return(None)
+        # __|
+
+        if "wall_time" in kwargs:
+            wall_time = kwargs["wall_time"]
+            # print(kwargs["wall_time"])
+            if type(wall_time) != int:
+                wall_time = int(wall_time)
+
+            if wall_time > 2880:
+                print("Wall time greater than 2 days, being set to 2800 min")
+                wall_time = 2800
+            kwargs["wall_time"] = wall_time
         # __|
 
         # | - Writing Job Submission Parameters
@@ -290,7 +304,6 @@ class ComputerCluster():
             path_i = kwargs["path_i"]
 
             with open(os.path.join(path_i, ".cluster_sys"), "w") as fle:
-                # fle.write(self.cluster_sys)
                 fle.write(self.cluster_sys + "\n")
         # __|
 
@@ -298,7 +311,7 @@ class ComputerCluster():
 
     # __| **********************************************************************
 
-###############################################################################
+###########################################################
 
 
 class EdisonCluster(ComputerCluster):
@@ -1013,7 +1026,7 @@ class SLACCluster(ComputerCluster):
 
         # | - Checking if Job Id Still in Batch System
         if "is not found" in out:
-            print("Job ID no longer in batch system, or ID is wrong")
+            # print("Job ID no longer in batch system, or ID is wrong")
             return(None)
         # __|
 

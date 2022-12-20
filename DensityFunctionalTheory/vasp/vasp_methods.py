@@ -1,15 +1,23 @@
-# | - IMPORT MODULES
-from raman_dft.vasp_raman_job_methods import get_modes_from_OUTCAR
-# from raman_dft.vasp_raman_job_methods import parse_poscar
+"""Vasp methods."""
 
-from ase_modules.ase_methods import create_gif_from_atoms_movies
-
-from ase import io
-import copy
-import numpy as np
+# | - Import Modules
 import os
+import sys
+
+import copy
 import itertools
+from pathlib import Path
+
+import numpy as np
+from ase import io
+
+# #########################################################
+#  from raman_dft.vasp_raman_job_methods import get_modes_from_OUTCAR
+# from raman_dft.vasp_raman_job_methods import parse_poscar
+from ase_modules.ase_methods import create_gif_from_atoms_movies
 # __|
+
+
 
 def num_of_atoms_OUTCAR_tmp(outcar_fh):
     """Parses OUTCAR for number of atoms in atoms object
@@ -33,6 +41,7 @@ def num_of_atoms_OUTCAR_tmp(outcar_fh):
                 num_atoms += 1
     return(num_atoms)
     # __|
+
 
 def create_vib_modes_atoms(
     path_i=".",
@@ -145,6 +154,7 @@ def create_vib_modes_atoms(
         fle.write("")
     # __|
 
+
 def create_vdw_kernel_symlink():
     """
     If on the SLAC cluster, symlinks the vdw vasp kernel into the job directory,
@@ -173,6 +183,33 @@ def create_vdw_kernel_symlink():
         pass
 
     # __|
+
+
+def read_incar(path_i, verbose=False):
+    """
+    """
+    #| - read_incar
+    incar_path = os.path.join(
+        path_i,
+        "INCAR")
+    my_file = Path(incar_path)
+    if my_file.is_file():
+        with open(incar_path, "r") as f:
+            incar_lines = f.read().splitlines()
+
+        incar_dict = parse_incar(incar_lines)
+    else:
+        incar_dict = None
+        if verbose:
+            print("Couldn't get INCAR dict, maybe is not at path specified")
+            print("path_i", "\n", path_i)
+
+        # nsw_i = incar_dict["NSW"]
+        # nelm_i = incar_dict["NELM"]
+        # incar_parsed = True
+
+    return(incar_dict)
+    #__|
 
 
 def parse_incar(incar_list):
@@ -327,4 +364,256 @@ def parse_incar(incar_list):
     return(formatted_incar_dict)
 
     # return(incar_dict)
+    # __|
+
+
+# from read_bad_outcar import read_vasp_out
+from vasp.read_bad_outcar import read_vasp_out
+
+def read_bad_OUTCAR(filename):
+    """
+    """
+    #| - read_bad_OUTCAR
+    traj = read_vasp_out(
+        # filename="OUTCAR",
+        # "OUTCAR",
+        filename,
+        index=":",
+        )
+
+    return(traj)
+    #__|
+
+
+def get_irr_kpts_from_outcar(path_i):
+    """Get irreducible number of k-points from OUTCAR file.
+
+    Printed towards beginning of file before SCF cycles begin.
+    """
+    #| - get_irr_kpts_from_outcar
+    outcar_path = os.path.join(path_i, "OUTCAR")
+
+    N = 1000
+
+    my_file = Path(outcar_path)
+    if my_file.is_file():
+        num_lines = sum(1 for line in open(outcar_path))
+        if num_lines < N:
+            N = num_lines - 1
+
+        with open(outcar_path) as myfile:
+            outcar_lines = [next(myfile) for x in range(N)]
+    else:
+        return(None)
+
+
+    # Parse lines looking for irr. kpts
+    line_tmp = None
+    for line_i in outcar_lines:
+        frag_i = "irreducible k-points"
+        if frag_i in line_i:
+            # print(line_i)
+            line_tmp = line_i
+            break
+
+    irr_kpts = None
+    if line_tmp is not None:
+        # Extract number of irr. kpts from line
+        line_split = [i for i in line_tmp.split(" ") if i != ""]
+
+        irr_kpts = None
+        found_found = False
+        for i in line_split:
+
+            # I know that the number of irreducible k-points comes after the "Found"
+            if i == "Found":
+                found_found = True
+
+            if i.isnumeric() and found_found:
+                irr_kpts = int(i)
+
+    return(irr_kpts)
+    #__|
+
+
+def read_ase_sort_dat(path_i=None):
+    """
+    """
+    #| - read_ase_sort_dat
+    # path_i = os.path.join(
+    #     gdrive_path_i,
+    #     "ase-sort.dat")
+
+    with open(path_i, "r") as f:
+        lines = f.read().splitlines()
+
+
+    # REMOVE
+    # atom_index_mapping = dict()
+
+    sort_list = []
+    resort_list = []
+    for line_i in lines:
+        line_i = [i for i in line_i.split(" ") if i != ""]
+        line_i = [int(i) for i in line_i]
+
+        sort_list.append(line_i[0])
+        resort_list.append(line_i[1])
+
+        # REMOVE
+        # atom_index_mapping[line_i[0]] = line_i[1]
+
+    atom_index_mapping = dict(zip(
+        resort_list,
+        list(range(len(resort_list))),
+        ))
+
+    return(
+        atom_index_mapping,
+        sort_list,
+        resort_list,
+        )
+    #__|
+
+
+def parse_dipole_OUTCAR(file_path):
+    """Parse dipole data from OUTCAR generated from LCALCPOL=True run.
+    """
+    # | - parse_dipole_OUTCAR
+    file_i = file_path
+
+    lookup = 'Ionic dipole moment'
+    with open(file_i) as f:
+        for num, line in enumerate(f, 1):
+            if lookup in line:
+                start_line = num
+
+    file_lines = []
+    with open(file_i) as f:
+        for i, line in enumerate(f):
+            if i > start_line - 2:
+                file_lines.append(line)
+            if i > start_line + 6:
+                break
+
+    file_lines_2 = []
+    for line in file_lines:
+
+        # | - Parse for ionic dipole moment
+        phrase = 'Ionic dipole moment'
+        if phrase in line:
+            ion_line = line
+
+            match_ind = ion_line.index(phrase)
+            tmp0 = ion_line[match_ind + len(phrase):]
+
+            phrase1 = 'p[ion]=('
+            match_ind = tmp0.index(phrase1)
+            tmp1 = tmp0[match_ind + len(phrase1):]
+
+            phrase2 = ') electrons'
+            match_ind = tmp1.index(phrase2)
+            tmp2 = tmp1[:match_ind]
+
+            ion_dipole_mom = [float(i) for i in tmp2.split(' ') if i != '']
+        # __|
+
+        # | - Parse for electronic dipole moment
+        phrase = 'Total electronic dipole moment'
+        if phrase in line:
+            elec_line = line
+
+            match_ind = elec_line.index(phrase)
+            tmp0 = elec_line[match_ind + len(phrase):]
+
+            phrase1 = 'p[elc]=('
+            match_ind = tmp0.index(phrase1)
+            tmp1 = tmp0[match_ind + len(phrase1):]
+
+            phrase2 = ') electrons'
+            match_ind = tmp1.index(phrase2)
+            tmp2 = tmp1[:match_ind]
+
+            elc_dipole_mom = [float(i) for i in tmp2.split(' ') if i != '']
+        # __|
+
+    out_dict = dict()
+    out_dict['elc_dipole_mom'] = elc_dipole_mom
+    out_dict['ion_dipole_mom'] = ion_dipole_mom
+    return(out_dict)
+    # __|
+
+
+def get_BEC_data(outcar_path):
+    """Parse Born Effective Charge data from OUTCAR (LEPSILON calculation)
+
+    Note: There is also a pymatgen instance for this
+
+        from pymatgen.io.vasp.outputs import Outcar
+        OUTCAR_INSTANCE = Outcar(outcar_path)
+        OUTCAR_INSTANCE.read_lepsilon()
+        OUTCAR_data = OUTCAR_INSTANCE.as_dict()
+        BEC_data = OUTCAR_data['born']
+
+    """
+    # | - get_BEC_data
+
+    # Read in OUTCAR  lines
+
+    with open(outcar_path, 'r') as f:
+        outcar_lines = f.read().splitlines()
+
+    # Read OUTCAR as ASE atoms object
+    # atoms = io.read(outcar_path)
+
+    try:
+        atoms = io.read(outcar_path)
+    except:
+        # Construct POSCAR path, use to read ase atoms object instead of OUTCAR
+        poscar_path = os.path.join(
+            '/'.join(outcar_path.split('/')[0:-1]),
+            'POSCAR')
+        atoms = io.read(poscar_path)
+
+    num_atoms = atoms.arrays['numbers'].shape[0]
+
+    start_index = None
+    BEC_outcar_str = 'BORN EFFECTIVE CHARGES (including local field effects) (in e, cummulative output)'
+    for index, line in enumerate(outcar_lines):
+        if BEC_outcar_str in line:
+            start_index = index
+
+    # Relevent lines from OUTCAR containing BEC data
+    outcar_lines_2 = outcar_lines[
+        start_index + 2:
+        start_index + 4 * num_atoms + 2
+        ]
+
+    # #####################################################
+    def chunks(lst, n):
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+
+    correct_atom_indices = False
+
+    BEC_data = dict()
+    for index, i in enumerate(chunks(outcar_lines_2, 4)):
+
+        atom_index = int(i[0].split(' ')[-1])
+        if index == 0 and atom_index == 1:
+            correct_atom_indices = True
+        if correct_atom_indices:
+            atom_index = atom_index - 1
+
+        BEC_tensor = []
+        for j in i[1:]:
+            BEC_j = [float(i) for i in [i for i in j.split(' ') if i != ''][1:]]
+            BEC_tensor.append(BEC_j)
+        BEC_data[atom_index] = BEC_tensor
+
+    # for key, val in BEC_data.items():
+    #     print(44 * '-')
+    #     print(np.array(val))
+
+    return(BEC_data)
     # __|

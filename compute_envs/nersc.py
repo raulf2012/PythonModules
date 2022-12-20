@@ -88,11 +88,26 @@ class NERSC_Cluster(ComputerCluster):
 
 
             if params["wall_time"] < 180:
-
                 params["min_time"] = params["wall_time"] - 30
             else:
                 params["min_time"] = 180
             # --time-min=01:30:00
+
+        if params["queue"] == "debug" or params["priority"] == "debug":
+            if "wall_time" in list(params.keys()):
+                wall_time_i = params["wall_time"]
+
+                if type(wall_time_i) == str:
+                    wall_time_i = int(wall_time_i)
+
+                if wall_time_i > 30:
+                    wall_time_i = 30
+
+                    params["wall_time"] = wall_time_i
+
+            else:
+                wall_time_i = 30
+                params["wall_time"] = wall_time_i
 
         # __|
 
@@ -582,8 +597,8 @@ class KNL_Arch():
         bash_comm = "module load " + self.vasp_module
 
         # TEMP
-        print("fjjisdjfjisdfu8h3w8whgiafd6gwgundssoijgg")
-        print(bash_comm)
+        # print("fjjisdjfjisdfu8h3w8whgiafd6gwgundssoijgg")
+        print("bash_comm:", "\n", bash_comm)
         os.system(bash_comm)
         # __|
 

@@ -94,6 +94,8 @@ def calc_ads_e(
     correction=0.,
     oxy_ref_e=-443.70964,
     hyd_ref_e=-16.46018,
+    adsorbate_key_var="adsorbate",
+    dft_energy_key_var="elec_energy",
     ):
     """Calculate adsorption energies from raw DFT energetics.
 
@@ -127,16 +129,16 @@ def calc_ads_e(
 
     else:
 
-        if row["adsorbate"] == "ooh":
+        if row[adsorbate_key_var] == "ooh":
             num_O = 2
             num_H = 1
-        elif row["adsorbate"] == "o":
+        elif row[adsorbate_key_var] == "o":
             num_O = 1
             num_H = 0
-        elif row["adsorbate"] == "oh":
+        elif row[adsorbate_key_var] == "oh":
             num_O = 1
             num_H = 1
-        elif row["adsorbate"] == "bare":
+        elif row[adsorbate_key_var] == "bare":
             num_O = 0
             num_H = 0
     # __|
@@ -144,15 +146,22 @@ def calc_ads_e(
     # print("oxy_ref: ", oxy_ref)
     # print("hyd_ref:", hyd_ref)
 
-    try:
-        raw_e = row["elec_energy"]
-        ads_e_i = raw_e - (bare_slab + num_O * oxy_ref + num_H * hyd_ref)
-        ads_e_i += correction
 
-        # ads_e_i = raw_e - bare_slab - num_O * oxy_ref - num_H * hyd_ref
-        # ads_e_i += correction
-    except:
-        ads_e_i = None
+
+
+    # try:
+
+    # raw_e = row["elec_energy"]
+    raw_e = row[dft_energy_key_var]
+    ads_e_i = raw_e - (bare_slab + num_O * oxy_ref + num_H * hyd_ref)
+    ads_e_i += correction
+
+    # ads_e_i = raw_e - bare_slab - num_O * oxy_ref - num_H * hyd_ref
+    # ads_e_i += correction
+
+    # except:
+    #     print("Tryed to calc ads_e but failed")
+    #     ads_e_i = None
 
     return(ads_e_i)
     # __|
@@ -170,6 +179,9 @@ def df_calc_adsorption_e(
     corrections_column="gibbs_correction",
 
     corrections_dict=None,
+
+    adsorbate_key_var="adsorbate",
+    dft_energy_key_var="elec_energy",
     ):
     """Calculate and add adsorption energy column to data_frame.
 
@@ -177,7 +189,14 @@ def df_calc_adsorption_e(
         df:
     """
     # | - df_calc_adsorption_e
+
+
+    # print("oxy_ref:", oxy_ref)
+    # print("hyd_ref:", hyd_ref)
+    # print("")
+
     ads_e_list = []
+    ads_g_list = []
     for index, row in df.iterrows():
         bare_e = bare_slab_e
 
@@ -191,10 +210,12 @@ def df_calc_adsorption_e(
             # If "df_column" method return 0. then try to use correction_dict
             if corr == 0.:
                 if corrections_dict is not None:
-                    corr = corrections_dict[row["adsorbate"]]
+                    # corr = corrections_dict[row["adsorbate"]]
+                    corr = corrections_dict[row[adsorbate_key_var]]
+
 
         elif corrections_mode == "corr_dict" and corrections_dict is not None:
-            corr = corrections_dict[row["adsorbate"]]
+            corr = corrections_dict[row[adsorbate_key_var]]
         else:
             print("No correction being applied")
             corr = 0.
@@ -206,18 +227,37 @@ def df_calc_adsorption_e(
         elif type(bare_slab_e) == float:
             bare_e = bare_slab_e
 
-        ads_e_i = calc_ads_e(
+        # print("")
+        # print(30 * "-")
+        # print(row.ads)
+        # print("corr:", corr)
+
+        ads_g_i = calc_ads_e(
             row,
             # bare_slab,
             bare_e,
             correction=corr,
             oxy_ref_e=oxy_ref,
             hyd_ref_e=hyd_ref,
+            adsorbate_key_var=adsorbate_key_var,
+            dft_energy_key_var=dft_energy_key_var,
             )
-        #  print("ads_e_i:", ads_e_i)
+        ads_g_list.append(ads_g_i)
+
+        ads_e_i = calc_ads_e(
+            row,
+            bare_e,
+            correction=0.,
+            oxy_ref_e=oxy_ref,
+            hyd_ref_e=hyd_ref,
+            adsorbate_key_var=adsorbate_key_var,
+            dft_energy_key_var=dft_energy_key_var,
+            )
         ads_e_list.append(ads_e_i)
 
-    df["ads_e"] = np.array(ads_e_list)
+    df["ads_e"] = np.array(ads_g_list)
+    df["ads_e_elec"] = np.array(ads_e_list)
+
     # __|
 
 def lowest_e_path(

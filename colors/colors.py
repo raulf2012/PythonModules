@@ -9,41 +9,12 @@ Author: Raul A. Flores
 import seaborn as sns
 
 import colorlover as cl
-# __|
-
-color_list = [
-    "rgb(113,166,190)",
-    "rgb(145,209,79)",
-    "rgb(124,78,196)",
-    "rgb(203,169,87)",
-    "rgb(200,72,150)",
-    "rgb(130,204,159)",
-    "rgb(190,82,63)",
-    "rgb(80,51,82)",
-    "rgb(81,92,54)",
-    "rgb(192,151,188)",
-    ]
-
-
-# | - My Sets of Contrasting Color Schemes
-color_palette_1 = [
-    "rgb(198,158,61)",
-    "rgb(238,88,121)",
-    "rgb(236,186,51)",
-    "rgb(237,101,67)",
-    "rgb(222,134,54)",
-    ]
-
-color_palette_2 = [
-    "rgb(181,149,213)",
-    "rgb(103,76,204)",
-    "rgb(97,166,201)",
-    "rgb(185,76,198)",
-    "rgb(93,80,139)",
-    ]
 
 # __|
 
+
+# #########################################################
+# | - Using seaborn to generate colors
 # palette = sns.color_palette(None, 3)
 # palette
 #
@@ -70,28 +41,8 @@ def generate_color_palette(
     return(colors)
     # __|
 
+# __|
 
-
-
-def rgb_to_hex(rgb_tuple):
-    """
-    """
-    # | - rgb_to_hex
-    r = int(rgb_tuple[0])
-    g = int(rgb_tuple[1])
-    b = int(rgb_tuple[2])
-
-    def clamp(x):
-        return(max(0, min(x, 255)))
-
-    hex_rep = "#{0:02x}{1:02x}{2:02x}".format(
-        clamp(r),
-        clamp(g),
-        clamp(b),
-        )
-
-    return(hex_rep)
-    # __|
 
 def color_scale_interp(
     input_num,

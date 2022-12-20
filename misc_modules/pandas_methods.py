@@ -11,67 +11,15 @@ __maintainer__ = "Raul A. Flores"
 __email__ = "flores12@stanford.edu; raulf2012@gmail.com"
 __date__ = "181115"
 
+
 def reorder_df_columns(col_order_list, df):
     """
+    returns(df)
+
+    Returns:
+        Pandas DataFrame: Returns the inputted dataframe with newly ordered colums
     """
     # | - show
-
-    # | - __old__
-    # col_order_list = [
-    #     # Main system variables
-    #     "bulk_system",
-    #     "facet",
-    #     "adsorbate",
-    #     "coverage_type",
-    #     "ooh_direction",
-    #
-    #     # Energetics
-    #     "ads_e",
-    #     "elec_energy",
-    #
-    #     # Magnetic Moments
-    #     "magmoms",
-    #     "total_magmom",
-    #     "abs_magmom",
-    #
-    #     "path_short",
-    #
-    #     "name_i",
-    #
-    #     "max_force",
-    #     "sum_force",
-    #     "elem_num_dict",
-    #
-    #     "incar",
-    #     "incar_parsed",
-    #
-    #     # Atom properties
-    #     "init_atoms",
-    #     "atoms_object",
-    #     "N_atoms",
-    #
-    #     "dipole_correction",
-    #     "u_correction",
-    #
-    #     # Low priority
-    #     "job_type",
-    #     "max_revision",
-    #     "revision_number",
-    #     "success",
-    #     "coverage",
-    #
-    #
-    #     "path",
-    #     "name_i_2",
-    #     "name_i_3",
-    #
-    #
-    #     # Not needed columns
-    #     "Job",
-    #     "layers",
-    #     ]
-    # __|
-
     col_order_list.reverse()
 
     df_col_list = list(df)
@@ -87,8 +35,6 @@ def reorder_df_columns(col_order_list, df):
 
     return(df)
     # __|
-
-
 
 def drop_columns(df=None, columns=None, keep_or_drop="keep"):
     """
@@ -114,3 +60,16 @@ def drop_columns(df=None, columns=None, keep_or_drop="keep"):
 
     return(df_out)
     # __|
+
+def drop_nonunique_cols(df=None, ):
+    """
+    """
+    #| - drop_nonunique_cols
+    group = df
+
+    nunique = group.apply(pd.Series.nunique)
+    cols_to_drop = nunique[nunique == 1].index
+    group = group.drop(cols_to_drop, axis=1)
+
+    return(group)
+    #__|

@@ -92,10 +92,7 @@ def remove_file_from_all_folders(
     for dirName, subdirList, fileList in os.walk(root_dir):
         for file_name in file_name_list:
             if file_name in fileList:
-                print(dirName)
-                # print(subdirList)
-                # print(fileList)
-                # print(file_name)
+                print(os.path.join(dirName, file_name))
 
                 file_path_i = os.path.join(
                     dirName,

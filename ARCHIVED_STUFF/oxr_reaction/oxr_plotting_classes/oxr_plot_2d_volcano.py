@@ -43,7 +43,7 @@ class Volcano_Plot_2D():
         marker_color_key="color2",
         marker_border_color_key="color1",
         marker_shape_key="symbol",
-
+        ooh_oh_scaling_dict={"m": 0.9104, "b": 3.144, },
         ):
         """
         """
@@ -53,6 +53,7 @@ class Volcano_Plot_2D():
         self.marker_color_key = marker_color_key
         self.marker_border_color_key = marker_border_color_key
         self.marker_shape_key = marker_shape_key
+        self.ooh_oh_scaling_dict = ooh_oh_scaling_dict
 
         if plot_range is None:
             self.plot_range = {
@@ -218,7 +219,7 @@ class Volcano_Plot_2D():
                 format_i = series_i.format_dict
 
 
-            print("format_i:", format_i)
+            # print("format_i:", format_i)
 
             trace_i = self.__create_scatter_trace_i__(
                 series_i,
@@ -236,7 +237,7 @@ class Volcano_Plot_2D():
         """
         """
         # | - __create_trace_i__
-        print("sys_i:", sys_i)
+        # print("sys_i:", sys_i)
         trace_i = go.Scatter(
             x=[sys_i.energy_states_dict["o"] - sys_i.energy_states_dict["oh"]],
             y=[sys_i.energy_states_dict["oh"]],
@@ -303,6 +304,13 @@ class Volcano_Plot_2D():
     def ooh_oh_scaling(self, doh):
         """ooh_oh_scaling equation."""
         # | - ooh_oh_scaling
+
+        ooh_oh_scaling_dict = self.ooh_oh_scaling_dict
+
+        m = ooh_oh_scaling_dict["m"]
+        b = ooh_oh_scaling_dict["b"]
+
+        #| - __old__
         #like ambars
         #dooh=0.5*doh  + 3.0         #O
         #normal one
@@ -311,11 +319,12 @@ class Volcano_Plot_2D():
         # m = 0.8926
         # b = 3.174
 
-        m = 0.9104
-        b = 3.144
-
         # 0.9104 x + 3.144
         # 1.302 x + 1.338
+
+        #  m = 0.9104
+        #  b = 3.144
+        #__|
 
         dooh = m * doh + b  # TEMP
 
