@@ -368,7 +368,7 @@ def parse_incar(incar_list):
 
 
 # from read_bad_outcar import read_vasp_out
-from vasp.read_bad_outcar import read_vasp_out
+from DensityFunctionalTheory.vasp.read_bad_outcar import read_vasp_out
 
 def read_bad_OUTCAR(filename):
     """
