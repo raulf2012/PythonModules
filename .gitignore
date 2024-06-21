@@ -4,6 +4,12 @@
 * conflicted copy *
 *__pycache__*
 
+# folder created by ProcessLargeDataFrame class
+temp_save_dir
+
+__old__
+*swp
+
 
 # Compiled source #
 ###################
