@@ -26,12 +26,32 @@ shared_axis_dict = dict(
     showline=True,
     tickcolor='black',
     linecolor='black',
+    ticks='outside',  # None, 'outside', 'inside'
     tickfont=dict(
-        size=10*(4/3),
+        size=10 * (4 / 3),
         ),
     title=dict(
         font=dict(
-            size=12*(4/3),
+            size=12 * (4 / 3),
+            ),
+        ),
+    zeroline=True,
+    zerolinecolor='grey',
+    zerolinewidth=1.,
+    )
+
+shared_axis_dict__bigger = dict(
+    mirror=True,
+    showgrid=False,
+    showline=True,
+    tickcolor='black',
+    linecolor='black',
+    tickfont=dict(
+        size=14 * (4 / 3),
+        ),
+    title=dict(
+        font=dict(
+            size=16 * (4 / 3),
             ),
         ),
     zeroline=True,
@@ -50,6 +70,7 @@ base_plotly_layout = dict(
         ),
     yaxis=shared_axis_dict,
     xaxis=shared_axis_dict,
+    showlegend=True,
     )
 # __|
 
@@ -347,6 +368,24 @@ def add_minor_ticks(
     # __|
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def my_plotly_plot(
     figure=None,
     save_dir=None,
@@ -354,12 +393,14 @@ def my_plotly_plot(
     plot_name="TEMP_PLOT_NAME",
     write_html=False,
     write_png=False,
-    png_scale=6.,
     write_pdf=False,
     write_svg=False,
-    try_orca_write=False,
+    write_json=True,
+    png_scale=6.,  # Not being used now
+    # try_orca_write=False,  # COMBAK Not used anymore right?
+    # try_kaleido_write=True,
     verbose=False,
-        ):
+    ):
     """
     Returns: Plotly figure object
 
@@ -385,10 +426,11 @@ def my_plotly_plot(
     assert figure is not None, "Must pass a plot.ly figure object"
     fig = figure
 
+    #  if try_kaleido_write:
     import plotly.io as pio
     scope = pio.kaleido.scope
 
-    # #########################################################################
+    # #####################################################
 
     if save_dir is None:
         if place_in_out_plot:
@@ -407,69 +449,95 @@ def my_plotly_plot(
 
     prepath = os.path.join(plot_dir, plot_name)
 
-    # | - Local write to HTML
+
+    #  # Requires installing the kaleido package to write images
+    #  if verbose:
+    #      print("Writing pdf with ORCA")
+    #      print("prepath:", prepath)
+
     if write_html:
-        pyio.write_html(
-            fig,
-            os.path.join(plot_dir, plot_name + ".html"),
-            # config=None,
-            # auto_play=True,
-            # include_plotlyjs=True,
-            # include_mathjax=False,
-            # post_script=None,
-            # full_html=True,
-            # animation_opts=None,
-            # validate=True,
-            # default_width='100%',
-            # default_height='100%',
-            # auto_open=False,
-            )
-    # __|
+        fig.write_html(prepath + '.html')
+
+    if write_pdf:
+        fig.write_image(prepath + '.pdf')
 
     if write_svg:
-        try:
-            fig.write_image(prepath + ".svg")
-        except:
-            print("Couldn't write svg")
+        fig.write_image(prepath + '.svg')
 
-    # | - Write pdf and svg (if ORCA is installed and working)
-    # Getting the hostname of computer
-    import socket
-    hostname = socket.gethostbyaddr(socket.gethostname())[0]
+    if write_png:
+        fig.write_image(prepath + '.png')
 
-    # Requires ORCA installation
-    if (
-        os.environ.get("USER", "") == "raul-ubuntu-desktop" or
-        hostname == "raul-ubuntu-vb" or
-        hostname == "DESKTOP-37GUFJ5" or
-        hostname == "raul-dell-ubuntu" or
-        hostname == "raul-dell-latitude" or
-        try_orca_write
-        ):
-        if verbose:
-            print("Writing pdf with ORCA")
-            print("prepath:", prepath)
+    if write_json:
+        fig.write_json(prepath + '.json')
 
-        if write_pdf:
-            # This is a test line, throw error if fails
-            fig.write_image(prepath + ".pdf")
+    #  #  if try_kaleido_write:
+    #  scope._shutdown_kaleido()
 
-            # try:
-            #     fig.write_image(prepath + ".pdf")
-            # except:
-            #     print("Couldn't write pdf")
 
-        if write_png:
-            try:
-                # print(prepath)
-                fig.write_image(prepath + ".png", scale=png_scale)
-            except:
-                print("Couldn't write png")
+    #| - __old__
+
+
+    # | - Local write to HTML
+
+    # if write_html:
+    #     pyio.write_html(
+    #         fig,
+    #         os.path.join(plot_dir, plot_name + ".html"),
+    #         # config=None,
+    #         # auto_play=True,
+    #         # include_plotlyjs=True,
+    #         # include_mathjax=False,
+    #         # post_script=None,
+    #         # full_html=True,
+    #         # animation_opts=None,
+    #         # validate=True,
+    #         # default_width='100%',
+    #         # default_height='100%',
+    #         # auto_open=False,
+    #         )
 
     # __|
 
-    scope._shutdown_kaleido()
+    # if write_svg:
+    #     try:
+    #         fig.write_image(prepath + ".svg")
+    #     except:
+    #         print("Couldn't write svg")
+
+        # try:
+        #     # print(prepath)
+        #     fig.write_image(prepath + ".png", scale=png_scale)
+        # except:
+        #     print("Couldn't write png")
+
+    # # Getting the hostname of computer
+    # import socket
+    # hostname = socket.gethostbyaddr(socket.gethostname())[0]
+
+    # # Requires ORCA installation
+    # if (
+    #     os.environ.get("USER", "") == "raul-ubuntu-desktop" or
+    #     hostname == "raul-ubuntu-vb" or
+    #     hostname == "DESKTOP-37GUFJ5" or
+    #     hostname == "raul-dell-ubuntu" or
+    #     hostname == "raul-dell-latitude" or
+    #     try_orca_write
+    #     ):
+
+    #__|
+
     # __|
+
+
+
+
+
+
+
+
+
+
+
 
 
 def reapply_colors(data):
