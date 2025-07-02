@@ -64,14 +64,10 @@ class ProcessLargeDataFrame:
         #__|
 
 
-    def method_0(self):
-        """
-        """
-        #| - method_0
-        tmp = 42
-        #__|
-
     def df_drop_rows(self):
+        """
+        """
+        #| - df_drop_rows
         df = self.df
         chunk_size = self.chunk_size
         temp_data = self.temp_data
@@ -86,6 +82,7 @@ class ProcessLargeDataFrame:
             df = df.sample(n=chunk_size)
         self.df = df
         # return(df)
+        #__|
 
     def save_temp_data(self):
         #| - save_temp_data
