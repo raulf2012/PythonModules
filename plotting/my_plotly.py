@@ -395,14 +395,12 @@ def my_plotly_plot(
 
     write_html=False,
     write_png=False,
-    png_scale=4,
     write_pdf=False,
     write_svg=False,
     write_json=True,
-
-    #  # try_orca_write=False,  # COMBAK Not used anymore right?
-    #  # try_kaleido_write=True,
-
+    png_scale=6.,  # Not being used now
+    # try_orca_write=False,  # COMBAK Not used anymore right?
+    # try_kaleido_write=True,
     verbose=False,
     ):
     """
@@ -430,6 +428,10 @@ def my_plotly_plot(
     assert figure is not None, "Must pass a plot.ly figure object"
     fig = figure
 
+    #  #  if try_kaleido_write:
+    #  import plotly.io as pio
+    #  scope = pio.kaleido.scope
+
     # #####################################################
 
     if save_dir is None:
@@ -449,6 +451,10 @@ def my_plotly_plot(
     prepath = os.path.join(plot_dir, plot_name)
 
 
+    #  # Requires installing the kaleido package to write images
+    #  if verbose:
+    #      print("Writing pdf with ORCA")
+    #      print("prepath:", prepath)
 
     if write_html:
         fig.write_html(prepath + '.html')
