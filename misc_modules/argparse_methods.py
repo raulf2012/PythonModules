@@ -8,9 +8,44 @@ def process_arg_dict(
     parser=None,
     arg_dict=None,
     verbose=False,
+    DEV=False,
     ):
+    #| - process_arg_dict
     """Takes a dictionary of argument, value pairs and formats into a list.
 
+
+    Example usage:
+        if parse_cl:
+            opt = parser.parse_args()
+
+        if arg_dict is not None:
+            from methods import process_arg_dict
+            args_list = process_arg_dict(
+                parser,
+                arg_dict,
+                #  verbose=True,  # TEMP
+                )
+
+            opt = parser.parse_args(args_list)
+
+
+    If a value is of a list type, then it will be formatted into a single comma-delimited string
+        'val_0,val_1'
+
+        Then, for the argparse object, the corresponding argument will be something like this
+            /home/raulf2012/Repos/DHS_chemprop/dhs_chemprop/predict__MINE.py
+
+            ```
+            def split_list_str(smiles_str):
+                return smiles_str.split(',')
+
+            parser.add_argument(
+                '--smiles_input',
+                type=split_list_str,
+                default=None,
+                help='This works for command line: --smiles_input "CCCN(CCC)CCC#N,NC(=O)Cc1ccccc1,TEMP"',
+                )
+            ```
 
     Parameters
     ----------
@@ -25,7 +60,14 @@ def process_arg_dict(
     args_list
         List of arguments ready to be passed to parse_args method
     """
-    #| - process_arg_dict
+
+    # Replacing dashes for underscores, necessary to make the following line work
+    # if key == parse_action.dest:
+    def _norm(k: str) -> str:
+        return k.lstrip("-").replace("-", "_")
+    arg_dict = { _norm(k): v for k, v in arg_dict.items() }
+
+
     args_list = []
     for key, val in arg_dict.items():
 
@@ -41,6 +83,21 @@ def process_arg_dict(
 
                 if len(parse_action.option_strings) > 1:
                     print('Edge case I had not considered, COMBAK')
+
+                if DEV:
+                    print(
+                        'parse_action.option_strings:',
+                        parse_action.option_strings
+                        )
+
+                if len(parse_action.option_strings) == 0:
+                    raise ValueError(
+                        """parse_action.option_strings = [] (empty)
+                        Can be due to an add_argument entry like this:
+                        ap.add_argument("json_path", type=Path)
+                        """
+                        )
+
                 flag_str = parse_action.option_strings[0]
 
                 # Necessary to append argument value to args_list
@@ -59,69 +116,23 @@ def process_arg_dict(
                     append_val = False
                     print('Not implemented, no flags of the StoreFalse variety (RF), so far')
 
+                # -----------------------------------------
+                # Processing any formatting of val
+                if type(val) == list:
+                    list_proper_format = ''
+                    for i in val:
+                        list_proper_format += i + ','
+                    list_proper_format = list_proper_format[0:-1]
+                    val_ = list_proper_format
+                else:
+                    val_ = val
+
+
                 if append_flag:
                     args_list.append(flag_str)
                     if append_val:
-                        args_list.append(str(val))
+                        args_list.append(str(val_))
 
     return args_list
     #__|
 
-
-
-
-
-
-# I had duplicate methods for process_arg_dict, I think I fixed it now
-#TODO Remove below when you're sure it's ok 2025-04-30
-
-#| - TEMP
-#  def process_arg_dict(arg_dict, parser):
-#      """This is a method that helps you pass dicts to define the parameters of an argparse object.
-#
-#      Will take dictionary key, val pairs and create a list of arguments
-#
-#      arg_dict = {'key1': 'val1', 'key2': 'val2', } --> ['', '', ]
-#
-#
-#
-#      USAGE:
-#
-#      def argparse_setup(parse_cl=True, arg_dict=None):
-#
-#          parser = argparse.ArgumentParser()
-#          parser.add_argument(...)
-#          ...
-#          ...
-#
-#          if parse_cl:
-#              opt = parser.parse_args()
-#
-#          if arg_dict is not None:
-#              from methods import process_arg_dict
-#              args_list = process_arg_dict(arg_dict, parser)
-#              opt = parser.parse_args(args_list)
-#      """
-#      args_list = []
-#      for key, val in arg_dict.items():
-#          for parse_action in parser._actions:
-#              if key == parse_action.dest:
-#
-#                  if len(parse_action.option_strings) > 1:
-#                      print('Edge case I had not considered, COMBAK')
-#                  args_list.append(parse_action.option_strings[0])
-#
-#                  if type(parse_action) == argparse._StoreAction:
-#                      # Necessary to append argument value to args_list
-#                      args_list.append(str(val))
-#
-#                  # For _StoreTrueAction and _StoreFalseAction, No need to append to args_list
-#                  if type(parse_action) == argparse._StoreTrueAction:
-#                      if val == False:
-#                          print(key, '=', val, ' | The presence of this flag sets the argument to True, you cannot set it to False in this way, just comment out argument instead')
-#                  if type(parse_action) == argparse._StoreFalseAction:
-#                      print('Not implemented, no flags of the StoreFalse variety (RF), so far')
-#
-#      return(args_list)
-
-#__|
