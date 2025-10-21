@@ -1,5 +1,7 @@
 # Python modules used in my research
 
+Trying to setup this repo as a python package. Added setup.py, pyproject.toml
+    2025-10-21
 
 TEMP I'm doing a test commit to test pulling a specific branch of a repo
 
