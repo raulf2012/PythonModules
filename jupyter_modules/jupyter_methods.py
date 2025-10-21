@@ -11,6 +11,9 @@ from json import dump, load
 from shutil import copyfile
 
 import pandas as pd
+
+import nbformat
+from nbclient import NotebookClient
 #__|
 
 
@@ -20,6 +23,67 @@ import pandas as pd
 #     get_ipynb_notebook_paths,
 #     )
 
+
+def run_notebook(
+    notebook_path=None,
+    kernel_name=None,
+    verbose=False,
+    ):
+    """Run/execute a jupyter notebook given its path.
+
+    2025-07-24
+    * Tries to obtain the kernel name from the notebook
+    """
+    #| - run_notebook
+
+    # If kernel_name arg is passed, use that
+    if kernel_name is None:
+        kernel_name = get_kernel_name(notebook_path)
+        if verbose:
+            print(
+                'kernel_name:',
+                kernel_name)
+    else:
+        kernel_name = kernel_name
+
+    notebook_dir = os.path.dirname(notebook_path)
+    notebook_filename = os.path.basename(notebook_path)
+
+    with open(notebook_path) as f:
+        nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
+
+    client = NotebookClient(
+        nb,
+        # timeout=600,
+        # kernel_name='python3',
+        kernel_name=kernel_name,
+        resources={
+            'metadata': {
+                'path': notebook_dir,
+                },
+            },
+        )
+
+    client.execute()
+
+    # Save executed notebook to file
+    with open(notebook_path, 'w') as f:
+        nbformat.write(nb, f)
+    #__|
+
+def get_kernel_name(notebook_path):
+    """Obtain the kernel name from a notebook using nbformat.
+
+    Reads the metadata >> kernelspec >> name field
+    """
+    #| - get_kernel_name
+    with open(notebook_path) as f:
+        nb = nbformat.read(f, as_version=4)
+
+    kernel_name = nb['metadata']['kernelspec']['name']
+
+    return kernel_name
+    #__|
 
 def clean_ipynb(ipynb_file_path, overwrite):
     """
