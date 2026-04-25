@@ -4,6 +4,33 @@ import os
 import argparse
 
 
+
+def argparse_process(
+    arg_dict=None,
+    parser=None,
+    ):
+    """Figures out whether to parse command line args or to use arg_dict."""
+    #| - argparse_process
+    if arg_dict is None:
+        parse_cl = True
+    else:
+        parse_cl = False
+
+    if parse_cl:
+        args = parser.parse_args()
+
+    if arg_dict is not None:
+        args_list = process_arg_dict(
+            parser,
+            arg_dict,
+            #  verbose=True,  # TEMP
+            )
+        args = parser.parse_args(args_list)
+
+
+    return args
+    #__|
+
 def process_arg_dict(
     parser=None,
     arg_dict=None,
@@ -15,18 +42,13 @@ def process_arg_dict(
 
 
     Example usage:
-        if parse_cl:
-            opt = parser.parse_args()
 
-        if arg_dict is not None:
-            from methods import process_arg_dict
-            args_list = process_arg_dict(
-                parser,
-                arg_dict,
-                #  verbose=True,  # TEMP
-                )
+        p = argparse_setup()  # This is custom for every method (where all the add_argument calls go)
 
-            opt = parser.parse_args(args_list)
+        args = argparse_process(
+            arg_dict=arg_dict,
+            parser=p,
+            )
 
 
     If a value is of a list type, then it will be formatted into a single comma-delimited string
@@ -119,6 +141,15 @@ def process_arg_dict(
                 # -----------------------------------------
                 # Processing any formatting of val
                 if type(val) == list:
+
+                    #  # If the list has non-strings, then this breaks, find a fix (2026-02-13)
+                    #  print(100 * 'TEMP | ')
+                    #  print(val)
+                    #  print(100 * 'TEMP | ')
+                    #  for i in val:
+                    #      if type(i) != str:
+                    #          i = str(i)
+
                     list_proper_format = ''
                     for i in val:
                         list_proper_format += i + ','
