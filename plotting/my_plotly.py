@@ -475,7 +475,6 @@ def my_plotly_plot(
         fig.write_json(prepath + '.json')
 
 
-    #| - __old__
 
     #  # Requires installing the kaleido package to write images
     #  if verbose:
